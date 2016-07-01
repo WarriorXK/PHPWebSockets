@@ -25,6 +25,7 @@
 
 declare(strict_types = 1);
 
+require_once(__DIR__ . '/Client/Client.php.inc');
 require_once(__DIR__ . '/Server/Server.php.inc');
 require_once(__DIR__ . '/Update/AUpdate.php.inc');
 require_once(__DIR__ . '/Framer.php.inc');
