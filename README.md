@@ -1,5 +1,5 @@
 # PHPWebSockets
-A PHP 7.0+ library to accept and create websocket connections
+A PHP 7.0+ library to accept and create websocket connections, we aim to be 100% compliant with the websocket RFC and use the [Autobahn test suite](http://autobahn.ws/testsuite/) to ensure so.
 
 ## Server
 For websocket servers a new \PHPWebSocket\Server instance should be created with a bind address and a port to listen on.
