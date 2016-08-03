@@ -365,9 +365,31 @@ class Client {
 
                         \PHPWebSocket::Log(\PHPWebSocket::LOGLEVEL_DEBUG, 'Got disconnect');
 
-                        $this->setCloseAfterWrite();
+                        $disconnectMessage = '';
+                        $code = \PHPWebSocket::CLOSECODE_NORMAL;
 
-                        $updates[] = new Update\Read(Update\Read::C_READ_DISCONNECT, $this);
+                        if (strlen($message) > 1) {
+
+                            $code = unpack('n', substr($message, 0, 2))[1]; // Send back the same disconnect code if provided
+                            if (!\PHPWebSocket::IsValidCloseCode($code)) {
+
+                                $disconnectMessage = 'Invalid close code provided: ' . $code;
+                                $code = \PHPWebSocket::CLOSECODE_PROTOCOLERROR;
+
+                            } elseif (!preg_match('//u', substr($message, 2))) {
+
+                                $disconnectMessage = 'Received Non-UTF8 close frame payload';
+                                $code = \PHPWebSocket::CLOSECODE_PROTOCOLERROR;
+
+                            } else {
+                                $disconnectMessage = substr($message, 2);
+                            }
+
+                        }
+
+                        yield new Update\Read(Update\Read::C_READ_DISCONNECT, $this, $opcode, $message);
+                        $this->sendDisconnect($code, $disconnectMessage); // Echo the disconnect
+
                         $this->_serverSentDisconnect = TRUE;
 
                     break;
@@ -576,9 +598,8 @@ class Client {
      */
     public function sendDisconnect(int $code, string $reason = '') {
 
-        \PHPWebSocket::Log(\PHPWebSocket::LOGLEVEL_DEBUG, __METHOD__);
-
-        $this->write(sprintf('%016b', $code) . $reason, \PHPWebSocket::OPCODE_CLOSE_CONNECTION);
+        $this->_clientSendDisconnect = TRUE;
+        $this->write(pack('n', $code) . $reason, \PHPWebSocket::OPCODE_CLOSE_CONNECTION);
 
     }
 

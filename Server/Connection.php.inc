@@ -463,6 +463,8 @@ class Connection {
                                 $disconnectMessage = 'Received Non-UTF8 close frame payload';
                                 $code = \PHPWebSocket::CLOSECODE_PROTOCOLERROR;
 
+                            } else {
+                                $disconnectMessage = substr($message, 2);
                             }
 
                         }
