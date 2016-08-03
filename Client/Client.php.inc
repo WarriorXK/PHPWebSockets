@@ -233,8 +233,8 @@ class Client {
      * @return \PHPWebSocket\AUpdate[]
      * @throws \Exception
      */
-    public function update(float $timeout = 0.1) : array {
-        return self::UpdateMultiple(array($this), $timeout);
+    public function update(float $timeout = 0.1) : \Generator {
+        yield from self::UpdateMultiple(array($this), $timeout);
     }
 
     /**
@@ -428,6 +428,10 @@ class Client {
                 yield new Update\Error(Update\Error::C_READ_UNEXPECTED_DISCONNECT, $this);
             }
 
+            $this->close();
+
+            return;
+
         } else {
 
             $handshakeAccepted = $this->handshakeAccepted();
@@ -461,7 +465,7 @@ class Client {
                 $rawHandshake = substr($newData, 0, $headersEnd);
 
                 if (strlen($newData) > strlen($rawHandshake)) { // Place all data that came after the header back into the buffer
-                    $this->_readBuffer = substr($newData, $headersEnd + 4);
+                    $newData = substr($newData, $headersEnd + 4);
                 }
 
                 $this->_headers = \PHPWebSocket::ParseHTTPHeaders($rawHandshake);
@@ -469,12 +473,15 @@ class Client {
                     $this->_handshakeAccepted = TRUE;
                     yield new Update\Read(Update\Read::C_CONNECTION_ACCEPTED, $this);
                 } else {
+
+                    $this->close();
+
                     yield new Update\Read(Update\Read::C_CONNECTION_DENIED, $this);
+
                 }
 
                 $handshakeAccepted = $this->handshakeAccepted();
 
-                return;
             }
 
             if ($handshakeAccepted) {
@@ -489,9 +496,9 @@ class Client {
      * Handles exceptional data reads
      * @return \PHPWebSocket\AUpdate[]
      */
-    public function handleExceptional() : array {
+    public function handleExceptional() : \Generator {
         // Maybe we'll need this someday
-        return array();
+        return;
     }
 
     /**
@@ -727,7 +734,7 @@ class Client {
      * @return \PHPWebSocket\AUpdate[]
      * @throws \Exception
      */
-    static public function UpdateMultiple(array $clients, float $timeout = 0.1) : array {
+    static public function UpdateMultiple(array $clients, float $timeout = 0.1) : \Generator {
 
         $timeInt = NULL;
         $timePart = 0;
@@ -738,8 +745,6 @@ class Client {
             $timePart = (int) (fmod($timeout, 1) * 1000000);
 
         }
-
-        $ret = array();
 
         $exceptional = array();
         $write = array();
@@ -774,7 +779,8 @@ class Client {
 
             $streams = @stream_select($read, $write, $exceptional, $timeInt, $timePart); // Stream select filters everything out of the arrays
             if ($streams === FALSE) {
-                return array(new Update\Error(Update\Error::C_SELECT));
+                yield new Update\Error(Update\Error::C_SELECT);
+                return;
             } else {
 
                 if (!empty($read) || !empty($write) || !empty($exceptional)) {
@@ -789,14 +795,7 @@ class Client {
                         continue;
                     }
 
-                    $readRes = $client->handleRead();
-                    if (!empty($readRes)) {
-
-                        foreach ($readRes as $res) {
-                            $ret[] = $res;
-                        }
-
-                    }
+                    yield from $client->handleRead();
 
                 }
 
@@ -810,7 +809,7 @@ class Client {
 
                     $writeRes = $client->handleWrite();
                     if ($writeRes !== NULL) {
-                        $ret[] = $writeRes;
+                        yield $writeRes;
                     }
 
                 }
@@ -825,14 +824,7 @@ class Client {
 
                     \PHPWebSocket::Log(\PHPWebSocket::LOGLEVEL_ERROR, 'Got exceptional for ' . $client);
 
-                    $exceptionalRes = $client->handleExceptional();
-                    if (!empty($exceptionalRes)) {
-
-                        foreach ($exceptionalRes as $res) {
-                            $ret[] = $res;
-                        }
-
-                    }
+                    yield from $client->handleExceptional();
 
                 }
 
@@ -840,19 +832,6 @@ class Client {
 
         }
 
-        foreach ($ret as $update) {
-
-            if ($update->getSourceObject() === NULL) {
-                continue;
-            }
-
-            if ($update instanceof Update\Error || ($update instanceof Update\Read && $update->getCode() === Update\Read::C_SOCK_DISCONNECT)) {
-                $update->getSourceObject()->close();
-            }
-
-        }
-
-        return $ret;
     }
 
     static public function GetAgentString() : string {

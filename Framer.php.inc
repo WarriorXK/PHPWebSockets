@@ -56,7 +56,7 @@ final class Framer {
     static public function GetFrameHeaders(string $frame) {
 
         $frameLength = strlen($frame);
-        if ($frameLength < 6) {
+        if ($frameLength < 2) {
             return NULL;
         }
 
@@ -103,7 +103,13 @@ final class Framer {
             $headers[self::IND_PAYLOADOFFSET] += 8;
 
         } elseif ($headers[self::IND_MASK]) { // 7 bits
+
+            if ($frameLength < 6) {
+                return NULL;
+            }
+
             $headers[self::IND_MASKINGKEY] = substr($frame, 2, 4);
+
         }
 
         if ($headers[self::IND_MASK]) {
