@@ -559,7 +559,7 @@ class Client {
      */
     public function write(string $data, int $opcode = \PHPWebSocket::OPCODE_FRAME_TEXT, bool $isFinal = TRUE) {
 
-        $frame = Framer::Frame($data, FALSE, $opcode, $isFinal);
+        $frame = Framer::Frame($data, TRUE, $opcode, $isFinal);
 
         if (\PHPWebSocket::IsControlOpcode($opcode)) {
             $this->_controlMessagesBuffer[] = $frame;
