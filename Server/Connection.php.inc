@@ -292,11 +292,12 @@ class Connection {
                     $newData = substr($newData, $headersEnd + 4);
                 }
 
-                if ($this->_doHandshake($rawHandshake)) {
+                $responseCode = 0;
+                if ($this->_doHandshake($rawHandshake, $responseCode)) {
                     yield new Update\Read(Update\Read::C_NEWCONNECTION, $this);
                 } else {
 
-                    $this->_messagesBuffer[] = 'HTTP/1.1 400 ' . \PHPWebSocket::GetStringForErrorCode(400);
+                    $this->_messagesBuffer[] = $this->_websocket->getErrorPageForCode($responseCode);
                     $this->setCloseAfterWrite();
 
                     yield new Update\Error(Update\Error::C_READ_HANDSHAKEFAILURE, $this);
@@ -514,29 +515,28 @@ class Connection {
      * @param  string $rawHandshake
      * @return boolean
      */
-    protected function _doHandshake(string $rawHandshake) : bool {
+    protected function _doHandshake(string $rawHandshake, int &$responseCode) : bool {
 
         $headers = \PHPWebSocket::ParseHTTPHeaders($rawHandshake);
 
-        $errorCode = 101;
+        $responseCode = 101;
         if (!isset($headers['get'])) {
-            $errorCode = 405;
+            $responseCode = 405;
         } else if (!isset($headers['host'])) {
-            $errorCode = 400;
+            $responseCode = 400;
         } elseif (!isset($headers['upgrade']) || strtolower($headers['upgrade']) !== 'websocket') {
-            $errorCode = 400;
+            $responseCode = 400;
         } elseif (!isset($headers['connection']) || strpos(strtolower($headers['connection']), 'upgrade') === FALSE) {
-            $errorCode = 400;
+            $responseCode = 400;
         } elseif (!isset($headers['sec-websocket-key'])) {
-            $errorCode = 400;
+            $responseCode = 400;
         } elseif (!isset($headers['sec-websocket-version']) || intval($headers['sec-websocket-version']) !== 13) {
-            $errorCode = 426;
+            $responseCode = 426;
         }
 
         $this->_headers = $headers;
 
-        if ($errorCode >= 300) {
-            $this->_messagesBuffer[] = 'HTTP/1.1 ' . $errorCode . ' ' . \PHPWebSocket::GetStringForErrorCode($errorCode) . "\r\nServer: PHPWebSocket/" . \PHPWebSocket::Version() . "\r\n\r\n";
+        if ($responseCode >= 300) {
             return FALSE;
         }
 
