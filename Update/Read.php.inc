@@ -68,23 +68,23 @@ class Read extends \PHPWebSocket\AUpdate {
 
         switch ($code) {
             case self::C_UNKNOWN:
-            return 'Unknown error';
+                return 'Unknown error';
             case self::C_NEWCONNECTION:
-            return 'New connection';
+                return 'New connection';
             case self::C_READ:
-            return 'Read';
+                return 'Read';
             case self::C_PING:
-            return 'Ping';
+                return 'Ping';
             case self::C_SOCK_DISCONNECT:
-            return 'Socket disconnected';
+                return 'Socket disconnected';
             case self::C_CONNECTION_DENIED:
-            return 'Connection denied';
+                return 'Connection denied';
             case self::C_CONNECTION_ACCEPTED:
-            return 'Connection accepted';
+                return 'Connection accepted';
             case self::C_READ_DISCONNECT:
-            return 'Disconnect';
+                return 'Disconnect';
             default:
-            return 'Unknown read code ' . $code;
+                return 'Unknown read code ' . $code;
         }
 
     }

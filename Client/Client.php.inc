@@ -360,7 +360,7 @@ class Client {
                             \PHPWebSocket::Log(\PHPWebSocket::LOGLEVEL_DEBUG, 'IND_FIN not TRUE');
                         }
 
-                    break;
+                        break;
                     case \PHPWebSocket::OPCODE_CLOSE_CONNECTION:
 
                         \PHPWebSocket::Log(\PHPWebSocket::LOGLEVEL_DEBUG, 'Got disconnect');
@@ -392,7 +392,7 @@ class Client {
 
                         $this->_serverSentDisconnect = TRUE;
 
-                    break;
+                        break;
                     case \PHPWebSocket::OPCODE_PING:
 
                         $pingPayload = (is_string($message) ? $message : '');
@@ -400,12 +400,12 @@ class Client {
                         yield new Update\Read(Update\Read::C_PING, $this, $opcode, $pingPayload);
                         $pongs[] = $pingPayload;
 
-                    break;
+                        break;
                     case \PHPWebSocket::OPCODE_PONG:
                         // No action
-                    break;
+                        break;
                     default:
-                    throw new \Exception('Got unknown opcode from framer!');
+                        throw new \Exception('Got unknown opcode from framer!');
                 }
 
             }

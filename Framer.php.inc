@@ -161,11 +161,10 @@ final class Framer {
                     $payload = self::ApplyMask($payload, $headers[self::IND_MASKINGKEY]);
                 }
 
-            return $payload;
+                return $payload;
             default:
                 \PHPWebSocket::Log(\PHPWebSocket::LOGLEVEL_WARNING, 'Encountered unknown opcode: ' . $opcode);
-                // Failure, unknown action
-            return FALSE;
+                return FALSE; // Failure, unknown action
         }
 
     }

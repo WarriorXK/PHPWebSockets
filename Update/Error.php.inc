@@ -53,35 +53,35 @@ class Error extends \PHPWebSocket\AUpdate {
 
         switch ($code) {
             case self::C_UNKNOWN:
-            return 'Unknown error';
+                return 'Unknown error';
             case self::C_SELECT:
-            return 'Select error';
+                return 'Select error';
             case self::C_READ:
-            return 'Read error';
+                return 'Read error';
             case self::C_READ_EMPTY:
-            return 'Empty read';
+                return 'Empty read';
             case self::C_READ_UNHANDLED:
-            return 'Unhandled read';
+                return 'Unhandled read';
             case self::C_READ_HANDSHAKEFAILURE:
-            return 'Handshake failure';
+                return 'Handshake failure';
             case self::C_READ_HANDSHAKETOLARGE:
-            return 'Handshake to large';
+                return 'Handshake to large';
             case self::C_READ_INVALID_PAYLOAD:
-            return 'Invalid payload';
+                return 'Invalid payload';
             case self::C_READ_INVALID_HEADERS:
-            return 'Invalid headers';
+                return 'Invalid headers';
             case self::C_READ_UNEXPECTED_DISCONNECT:
-            return 'Unexpected disconnect';
+                return 'Unexpected disconnect';
             case self::C_READ_PROTOCOL_ERROR:
-            return 'Protocol error';
+                return 'Protocol error';
             case self::C_READ_RVSBIT_SET:
-            return 'RVS bit set while not being expected';
+                return 'RVS bit set while not being expected';
             case self::C_WRITE:
-            return 'Write failure';
+                return 'Write failure';
             case self::C_ACCEPT_TIMEOUT_PASSED:
-            return 'Accept timeout passed';
+                return 'Accept timeout passed';
             default:
-            return 'Unknown error code ' . $code;
+                return 'Unknown error code ' . $code;
         }
 
     }

@@ -163,13 +163,13 @@ final class PHPWebSocket {
             case self::CLOSECODE_PAYLOAD_TO_LARGE:
             case self::CLOSECODE_EXTENSION_NEGOTIATION_FAILURE:
             case self::CLOSECODE_UNEXPECTED_CONDITION:
-            return TRUE;
+                return TRUE;
             case self::CLOSECODE_NO_STATUS:
             case self::CLOSECODE_ABNORMAL_DISCONNECT:
             case self::CLOSECODE_TLS_HANDSHAKE_FAILURE:
-            return !$received;
+                return !$received;
             default:
-            return $code >= 3000 && $code <= 4999;
+                return $code >= 3000 && $code <= 4999;
         }
 
     }
