@@ -27,8 +27,8 @@ declare(strict_types = 1);
 
 namespace PHPWebSocket;
 
-require_once(__DIR__ . '/Error.php.inc');
-require_once(__DIR__ . '/Read.php.inc');
+require_once(__DIR__ . '/Update/Error.php.inc');
+require_once(__DIR__ . '/Update/Read.php.inc');
 
 abstract class AUpdate {
 

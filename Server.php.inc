@@ -28,7 +28,7 @@ declare(strict_types = 1);
 namespace PHPWebSocket;
 use \PHPWebSocket\Update;
 
-require_once(__DIR__ . '/Connection.php.inc');
+require_once(__DIR__ . '/Server/Connection.php.inc');
 
 class Server {
 
