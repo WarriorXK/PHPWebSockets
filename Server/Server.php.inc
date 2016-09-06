@@ -251,6 +251,23 @@ class Server {
     }
 
     /**
+     * Generates a error response for the provided code
+     * @param  integer $errorCode
+     * @param  string  $fallbackErrorString
+     * @return string
+     */
+    public function getErrorPageForCode(int $errorCode, string $fallbackErrorString = 'Unknown error code') : string {
+
+        $replaceFields = array(
+            '%errorCode%' => (string) $errorCode,
+            '%errorString%' => \PHPWebSocket::GetStringForErrorCode($errorCode) ?: $fallbackErrorString,
+            '%serverIdentifier%' => 'PHPWebSocket/' . \PHPWebSocket::Version()
+        );
+
+        return str_replace(array_keys($replaceFields), array_values($replaceFields), "HTTP/1.1 %errorCode% %errorString%\r\nServer: %serverIdentifier%\r\n\r\n<html><head><title>%errorCode% %errorString%</title></head><body bgcolor='white'><center><h1>%errorCode% %errorString%</h1></center><hr><center>%serverIdentifier%</center></body></html>\r\n\r\n");
+    }
+
+    /**
      * Attempts to return the connection object related to the provided stream
      * @param  resource $stream
      * @return \PHPWebSocket\Server\Connection|NULL
