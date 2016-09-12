@@ -29,7 +29,7 @@ namespace PHPWebSocket\Server;
 use \PHPWebSocket\Update;
 use \PHPWebSocket\Framer;
 
-class Connection {
+class Connection implements \PHPWebSocket\IStreamContainer {
 
     /**
      * The amount of bytes to read to complete our current frame
@@ -178,9 +178,9 @@ class Connection {
 
     /**
      * Writes the current buffer to the connection
-     * @return \PHPWebSocket\Update\Error|NULL
+     * @return \PHPWebSocket\AUpdate[]
      */
-    public function handleWrite() {
+    public function handleWrite() : \Generator {
 
         \PHPWebSocket::Log(\PHPWebSocket::LOGLEVEL_DEBUG, __METHOD__);
 
@@ -207,7 +207,7 @@ class Connection {
             $bytesWritten = fwrite($this->_stream, $this->_writeBuffer, min($this->_websocket->getWriteRate($this), $bytesToWrite));
             if ($bytesWritten === FALSE) {
                 \PHPWebSocket::Log(\PHPWebSocket::LOGLEVEL_DEBUG, '    fwrite failed');
-                return new Update\Error(Update\Error::C_WRITE, $this);
+                yield new Update\Error(Update\Error::C_WRITE, $this);
             } elseif ($bytesWritten === $bytesToWrite) {
                 \PHPWebSocket::Log(\PHPWebSocket::LOGLEVEL_DEBUG, '    All bytes written');
                 $this->_writeBuffer = NULL;
@@ -223,7 +223,6 @@ class Connection {
             $this->_websocket->removeConnection($this);
         }
 
-        return NULL;
     }
 
     /**
@@ -311,6 +310,21 @@ class Connection {
             if ($hasHandshake) {
                 yield from $this->_handlePacket($newData);
             }
+
+        }
+
+    }
+
+    /**
+     * Gets called just before stream_select gets called
+     * @return \PHPWebSocket\AUpdate[]
+     */
+    public function beforeStreamSelect() : \Generator {
+
+        if (!$this->isAccepted() && $this->hasHandshake() && $this->getOpenedTimestamp() + self::ACCEPT_TIMEOUT < time()) {
+
+            yield new Update\Error(Update\Error::C_ACCEPT_TIMEOUT_PASSED, $this);
+            $this->deny(408);
 
         }
 

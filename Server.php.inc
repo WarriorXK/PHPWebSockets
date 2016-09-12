@@ -28,6 +28,7 @@ declare(strict_types = 1);
 namespace PHPWebSocket;
 use \PHPWebSocket\Update;
 
+require_once(__DIR__ . '/Server/AcceptingConnection.php.inc');
 require_once(__DIR__ . '/Server/Connection.php.inc');
 
 class Server {
@@ -51,6 +52,12 @@ class Server {
     const ACCEPT_TIMEOUT = 1.0;
 
     /**
+     * The accepting socket connection
+     * @var \PHPWebSocket\Server\AcceptingConnection
+     */
+    protected $_acceptingConnection = NULL;
+
+    /**
      * The index for the next connection to be inserted at
      * @var integer
      */
@@ -61,12 +68,6 @@ class Server {
      * @var \PHPWebSocket\Server\Connection[]
      */
     protected $_connections = array();
-
-    /**
-     * The accepting socket connection
-     * @var resource
-     */
-    protected $_mainSocket = NULL;
 
     /**
      * If we're using SSL
@@ -109,17 +110,14 @@ class Server {
 
         $errCode = NULL;
         $errString = NULL;
-        $this->_mainSocket = @stream_socket_server($protocol . '://' . $address . ':' . $port, $errCode, $errString, STREAM_SERVER_BIND | STREAM_SERVER_LISTEN, stream_context_create($options));
-        if (!$this->_mainSocket) {
+        $acceptingSocket = @stream_socket_server($protocol . '://' . $address . ':' . $port, $errCode, $errString, STREAM_SERVER_BIND | STREAM_SERVER_LISTEN, stream_context_create($options));
+        if (!$acceptingSocket) {
             throw new \Exception('Unable to create webserver: ' . $errString, $errCode);
         }
 
-        \PHPWebSocket::Log(\PHPWebSocket::LOGLEVEL_NORMAL, 'Opened webserver on ' . $address . ':' . $port, TRUE);
+        $this->_acceptingConnection = new Server\AcceptingConnection($this, $acceptingSocket);
 
-        stream_set_timeout($this->_mainSocket, 1);
-        stream_set_blocking($this->_mainSocket, FALSE);
-        stream_set_read_buffer($this->_mainSocket, 0);
-        stream_set_write_buffer($this->_mainSocket, 0);
+        \PHPWebSocket::Log(\PHPWebSocket::LOGLEVEL_NORMAL, 'Opened webserver on ' . $address . ':' . $port, TRUE);
 
         $this->_open = TRUE;
 
@@ -146,7 +144,7 @@ class Server {
         $connectionsToRemove = array();
         $exceptional = array();
         $write = array();
-        $read = array($this->_mainSocket);
+        $read = array($this->_acceptingConnection->getStream());
 
         foreach ($this->_connections as $index => $connection) { // Add all sockets to the arrays that need stuff done
 
@@ -181,7 +179,7 @@ class Server {
 
                 foreach ($read as $stream) {
 
-                    if ($stream === $this->_mainSocket) { // The main socket only accepts
+                    if ($stream === $this->_acceptingConnection->getStream()) { // The main socket only accepts
 
                         $peername = '';
                         $newStream = stream_socket_accept($stream, self::SOCKET_ACCEPT_TIMEOUT, $peername);
@@ -218,10 +216,7 @@ class Server {
                         continue;
                     }
 
-                    $writeRes = $connection->handleWrite();
-                    if ($writeRes !== NULL) {
-                        yield $writeRes;
-                    }
+                    yield from $connection->handleWrite();
 
                 }
 
@@ -248,6 +243,27 @@ class Server {
         }
 
         return;
+    }
+
+    public function gotNewConnection(\PHPWebSocket\Server\AcceptingConnection $acceptingConnection) {
+
+        if ($acceptingConnection !== $this->_acceptingConnection) {
+            throw new \InvalidArgumentException('Got new connection from unknown accepting socket!');
+        }
+
+        $peername = '';
+        $newStream = stream_socket_accept($acceptingConnection->getStream(), self::ACCEPT_TIMEOUT, $peername);
+        if (!$newStream) {
+            throw new \Exception('Unable to accept stream socket!');
+        }
+
+        $newConnection = new \PHPWebSocket\Server\Connection($this, $newStream, $peername, $this->_connectionIndex);
+        $this->_connections[$this->_connectionIndex] = $newConnection;
+
+        \PHPWebSocket::Log(\PHPWebSocket::LOGLEVEL_DEBUG, 'Got new connection: ' . $newConnection);
+
+        $this->_connectionIndex++;
+
     }
 
     /**
@@ -291,6 +307,14 @@ class Server {
      */
     public function hasConnection(Server\Connection $connection) : bool {
         return in_array($connection, $this->_connections, TRUE);
+    }
+
+    /**
+     * Returns the accepting connection
+     * @return \PHPWebSocket\Server\AcceptingConnection
+     */
+    public function getAcceptingConnection() : Server\AcceptingConnection {
+        return $this->_acceptingConnection;
     }
 
     /**
@@ -351,10 +375,8 @@ class Server {
             $connection->close();
         }
 
-        if (is_resource($this->_mainSocket)) {
-            fclose($this->_mainSocket);
-            $this->_mainSocket = NULL;
-        }
+        $this->_acceptingConnection->close();
+        $this->_acceptingConnection = NULL;
 
         $this->_open = FALSE;
 

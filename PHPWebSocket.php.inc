@@ -25,6 +25,7 @@
 
 declare(strict_types = 1);
 
+require_once(__DIR__ . '/IStreamContainer.php.inc');
 require_once(__DIR__ . '/AUpdate.php.inc');
 require_once(__DIR__ . '/Client.php.inc');
 require_once(__DIR__ . '/Framer.php.inc');
@@ -147,6 +148,112 @@ final class PHPWebSocket {
     private static $_Debug = TRUE;
 
     /**
+     * Checks for updates for the provided IStreamContainer objects
+     * @param  \PHPWebSocket\IStreamContainer $objects
+     * @param  float|NULL                     $timeout The amount of seconds to wait for updates, setting this value to NULL causes this function to block indefinitely until there is an update
+     * @return \PHPWebSocket\AUpdate[]
+     * @throws \InvalidArgumentException
+     */
+    static public function MultiUpdate(array $updateObjects, float $timeout = 0.1) : \Generator {
+
+        $timeInt = NULL;
+        $timePart = 0;
+
+        if ($timeout !== NULL) {
+
+            $timeInt = (int) floor($timeout);
+            $timePart = (int) (fmod($timeout, 1) * 1000000);
+
+        }
+
+        $exceptional = [];
+        $write = [];
+        $read = [];
+
+        foreach ($updateObjects as $object) {
+
+            if (!$object instanceof \PHPWebSocket\IStreamContainer) {
+                throw new \InvalidArgumentException('Got invalid object, all provided objects should implement of \PHPWebSocket\IStreamContainer');
+            }
+
+            yield from $object->beforeStreamSelect();
+
+            $stream = $object->getStream();
+
+            $exceptional[] = $stream;
+            if (!$object->isWriteBufferEmpty()) {
+                $write[] = $stream;
+            }
+            $read[] = $stream;
+
+        }
+
+        if (!empty($read) || !empty($write) || !empty($exceptional)) {
+
+            $objectByStream = function($stream) use (&$updateObjects) {
+
+                foreach ($updateObjects as $object) {
+                    if ($object->getStream() === $stream) {
+                        return $object;
+                    }
+                }
+
+                return NULL;
+            };
+
+            \PHPWebSocket::Log(\PHPWebSocket::LOGLEVEL_DEBUG, 'Read: ' . count($read) . ' Write: ' . count($write) . ' Except: ' . count($exceptional));
+
+            $streams = @stream_select($read, $write, $exceptional, $timeInt, $timePart); // Stream select filters everything out of the arrays
+            if ($streams === FALSE) {
+                yield new \PHPWebSocket\Update\Error(\PHPWebSocket\Update\Error::C_SELECT);
+                return;
+            } else {
+
+                foreach ($read as $stream) {
+
+                    $object = $objectByStream($stream);
+                    if ($object === NULL) {
+                        \PHPWebSocket::Log(\PHPWebSocket::LOGLEVEL_ERROR, 'Unable to find client related to stream during read!');
+                        continue;
+                    }
+
+                    yield from $object->handleRead();
+
+                }
+
+                foreach ($write as $stream) {
+
+                    $object = $objectByStream($stream);
+                    if ($object === NULL) {
+                        \PHPWebSocket::Log(\PHPWebSocket::LOGLEVEL_ERROR, 'Unable to find client related to stream during write!');
+                        continue;
+                    }
+
+                    yield from $object->handleWrite();
+
+                }
+
+                foreach ($exceptional as $stream) {
+
+                    $object = $objectByStream($stream);
+                    if ($object === NULL) {
+                        \PHPWebSocket::Log(\PHPWebSocket::LOGLEVEL_ERROR, 'Unable to find client related to stream during exceptional read!');
+                        continue;
+                    }
+
+                    \PHPWebSocket::Log(\PHPWebSocket::LOGLEVEL_ERROR, 'Got exceptional for ' . $object);
+
+                    yield from $object->handleExceptional();
+
+                }
+
+            }
+
+        }
+
+    }
+
+    /**
      * Returns TRUE if the specified code is valid
      * @param integer $code
      * @param boolean $received If the close code is received as reason
@@ -205,7 +312,7 @@ final class PHPWebSocket {
      */
     static public function ParseHTTPHeaders(string $rawHeaders) : array {
 
-        $headers = array();
+        $headers = [];
 
         $lines = explode("\n", $rawHeaders);
         foreach ($lines as $line) {

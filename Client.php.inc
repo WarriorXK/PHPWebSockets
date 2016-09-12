@@ -27,7 +27,7 @@ declare(strict_types = 1);
 
 namespace PHPWebSocket;
 
-class Client {
+class Client implements \PHPWebSocket\IStreamContainer {
 
     /**
      * The amount of bytes to read to complete our current frame
@@ -234,7 +234,7 @@ class Client {
      * @throws \Exception
      */
     public function update(float $timeout = 0.1) : \Generator {
-        yield from self::UpdateMultiple(array($this), $timeout);
+        yield from \PHPWebSocket\MultiUpdate(array($this), $timeout);
     }
 
     /**
@@ -515,6 +515,14 @@ class Client {
     }
 
     /**
+     * Gets called just before stream_select gets called
+     * @return \PHPWebSocket\AUpdate[]
+     */
+    public function beforeStreamSelect() : \Generator {
+        yield; // Nothing
+    }
+
+    /**
      * Handles exceptional data reads
      * @return \PHPWebSocket\AUpdate[]
      */
@@ -525,9 +533,9 @@ class Client {
 
     /**
      * Writes the current buffer to the connection
-     * @return \PHPWebSocket\Update\Error|NULL
+     * @return \PHPWebSocket\AUpdate[]
      */
-    public function handleWrite() {
+    public function handleWrite() : \Generator {
 
         \PHPWebSocket::Log(\PHPWebSocket::LOGLEVEL_DEBUG, __METHOD__);
 
@@ -554,7 +562,7 @@ class Client {
             $bytesWritten = fwrite($this->_stream, $this->_writeBuffer, min($this->getWriteRate($this), $bytesToWrite));
             if ($bytesWritten === FALSE) {
                 \PHPWebSocket::Log(\PHPWebSocket::LOGLEVEL_DEBUG, 'fwrite failed');
-                return new Update\Error(Update\Error::C_WRITE, $this);
+                yield new Update\Error(Update\Error::C_WRITE, $this);
             } elseif ($bytesWritten === $bytesToWrite) {
                 \PHPWebSocket::Log(\PHPWebSocket::LOGLEVEL_DEBUG, 'All bytes written');
                 $this->_writeBuffer = NULL;
@@ -570,7 +578,6 @@ class Client {
             $this->close($this);
         }
 
-        return NULL;
     }
 
     /**
@@ -744,113 +751,6 @@ class Client {
         if (is_resource($this->_stream)) {
             fclose($this->_stream);
             $this->_stream = NULL;
-        }
-
-    }
-
-    /**
-     * Checks for updates for the provided clients
-     * @param  \PHPWebSocket\Client $clients
-     * @param  float|NULL           $timeout The amount of seconds to wait for updates, setting this value to NULL causes this function to block indefinitely until there is an update
-     * @return \PHPWebSocket\AUpdate[]
-     * @throws \Exception
-     */
-    static public function UpdateMultiple(array $clients, float $timeout = 0.1) : \Generator {
-
-        $timeInt = NULL;
-        $timePart = 0;
-
-        if ($timeout !== NULL) {
-
-            $timeInt = (int) floor($timeout);
-            $timePart = (int) (fmod($timeout, 1) * 1000000);
-
-        }
-
-        $exceptional = array();
-        $write = array();
-        $read = array();
-
-        foreach ($clients as $key => $client) {
-
-            if (!is_object($client) || !$client instanceof \PHPWebSocket\Client) {
-                throw new \InvalidArgumentException('Argument 1 should be an array with only object of type \PHPWebSocket\Client, found' . get_class($client) . ' at key ' . $key);
-            }
-
-            $read[] = $client->getStream();
-
-            if (!$client->isWriteBufferEmpty()) {
-                $write[] = $client->getStream();
-            }
-
-        }
-
-        $clientByStream = function($stream) use ($clients) {
-
-            foreach ($clients as $client) {
-                if ($client->getStream() === $stream) {
-                    return $client;
-                }
-            }
-
-            return NULL;
-        };
-
-        if (!empty($read) || !empty($write) || !empty($exceptional)) {
-
-            $streams = @stream_select($read, $write, $exceptional, $timeInt, $timePart); // Stream select filters everything out of the arrays
-            if ($streams === FALSE) {
-                yield new Update\Error(Update\Error::C_SELECT);
-                return;
-            } else {
-
-                if (!empty($read) || !empty($write) || !empty($exceptional)) {
-                    \PHPWebSocket::Log(\PHPWebSocket::LOGLEVEL_DEBUG, 'Read: ' . count($read) . ' Write: ' . count($write) . ' Except: ' . count($exceptional));
-                }
-
-                foreach ($read as $stream) {
-
-                    $client = $clientByStream($stream);
-                    if ($client === NULL) {
-                        \PHPWebSocket::Log(\PHPWebSocket::LOGLEVEL_ERROR, 'Unable to find client related to stream during read!');
-                        continue;
-                    }
-
-                    yield from $client->handleRead();
-
-                }
-
-                foreach ($write as $stream) {
-
-                    $client = $clientByStream($stream);
-                    if ($client === NULL) {
-                        \PHPWebSocket::Log(\PHPWebSocket::LOGLEVEL_ERROR, 'Unable to find client related to stream during write!');
-                        continue;
-                    }
-
-                    $writeRes = $client->handleWrite();
-                    if ($writeRes !== NULL) {
-                        yield $writeRes;
-                    }
-
-                }
-
-                foreach ($exceptional as $stream) {
-
-                    $client = $clientByStream($stream);
-                    if ($client === NULL) {
-                        \PHPWebSocket::Log(\PHPWebSocket::LOGLEVEL_ERROR, 'Unable to find client related to stream during exceptional read!');
-                        continue;
-                    }
-
-                    \PHPWebSocket::Log(\PHPWebSocket::LOGLEVEL_ERROR, 'Got exceptional for ' . $client);
-
-                    yield from $client->handleExceptional();
-
-                }
-
-            }
-
         }
 
     }
