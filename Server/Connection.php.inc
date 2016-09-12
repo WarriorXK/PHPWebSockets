@@ -636,7 +636,7 @@ class Connection implements \PHPWebSocket\IStreamContainer {
             $misc .= 'Sec-WebSocket-Protocol ' . $protocol . "\r\n";
         }
 
-        $this->_messagesBuffer[] = 'HTTP/1.1 101 ' . \PHPWebSocket::GetStringForErrorCode(101) . "\n\rServer: PHPWebSocket/" . \PHPWebSocket::Version() . "\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Accept: " . base64_encode($this->_rawToken) . "\r\n" . $misc . "\r\n";
+        $this->_messagesBuffer[] = 'HTTP/1.1 101 ' . \PHPWebSocket::GetStringForErrorCode(101) . "\n\rServer: " . $this->_websocket->getServerIdentifier() . "\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Accept: " . base64_encode($this->_rawToken) . "\r\n" . $misc . "\r\n";
 
         $this->_accepted = TRUE;
 

@@ -184,6 +184,7 @@ class Client implements \PHPWebSocket\IStreamContainer {
         $headerParts = array(
             'GET ' . $path . ' HTTP/1.1',
             'Host: ' . $address . ':' . $port,
+            'User-Agent: ' . $this->getUserAgent(),
             'Upgrade: websocket',
             'Connection: Upgrade',
             'Sec-WebSocket-Key: ' . base64_encode(\PHPWebSocket::RandomString()),
@@ -527,8 +528,7 @@ class Client implements \PHPWebSocket\IStreamContainer {
      * @return \PHPWebSocket\AUpdate[]
      */
     public function handleExceptional() : \Generator {
-        // Maybe we'll need this someday
-        return;
+        yield; // Nothing
     }
 
     /**
@@ -656,6 +656,14 @@ class Client implements \PHPWebSocket\IStreamContainer {
     }
 
     /**
+     * Returns the user agent string that is reported to the server that we are connecting to
+     * @return string
+     */
+    public function getUserAgent() : string {
+        return 'PHPWebSocket/' . \PHPWebSocket::Version();
+    }
+
+    /**
      * Sets if we allow the RSV1 bit to be set
      * @param boolean $allow
      */
@@ -753,10 +761,6 @@ class Client implements \PHPWebSocket\IStreamContainer {
             $this->_stream = NULL;
         }
 
-    }
-
-    static public function GetAgentString() : string {
-        return 'PHPWebSocket/' . \PHPWebSocket::Version();
     }
 
 }

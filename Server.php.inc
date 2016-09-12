@@ -131,120 +131,16 @@ class Server {
      */
     public function update(float $timeout = 0.1) : \Generator {
 
-        $timeInt = NULL;
-        $timePart = 0;
+        $objects = $this->getConnections();
+        $objects[] = $this->getAcceptingConnection();
 
-        if ($timeout !== NULL) {
-
-            $timeInt = (int) floor($timeout);
-            $timePart = (int) (fmod($timeout, 1) * 1000000);
-
-        }
-
-        $connectionsToRemove = array();
-        $exceptional = array();
-        $write = array();
-        $read = array($this->_acceptingConnection->getStream());
-
-        foreach ($this->_connections as $index => $connection) { // Add all sockets to the arrays that need stuff done
-
-            if (!$connection->isAccepted() && $connection->hasHandshake() && $connection->getOpenedTimestamp() + self::ACCEPT_TIMEOUT < time()) {
-
-                yield new Update\Error(Update\Error::C_ACCEPT_TIMEOUT_PASSED, $connection);
-
-                $connectionsToRemove[] = $connection;
-                $connection->deny(408);
-
-            }
-
-            $read[] = $connection->getStream();
-
-            if (!$connection->isWriteBufferEmpty()) {
-                $write[] = $connection->getStream();
-            }
-
-        }
-
-        if (!empty($read) || !empty($write) || !empty($exceptional)) {
-
-            $streams = @stream_select($read, $write, $exceptional, $timeInt, $timePart); // Stream select filters everything out of the arrays
-            if ($streams === FALSE) {
-                yield new Update\Error(Update\Error::C_SELECT);
-                return;
-            } else {
-
-                if (!empty($read) || !empty($write) || !empty($exceptional)) {
-                    \PHPWebSocket::Log(\PHPWebSocket::LOGLEVEL_DEBUG, 'Read: ' . count($read) . ' Write: ' . count($write) . ' Except: ' . count($exceptional));
-                }
-
-                foreach ($read as $stream) {
-
-                    if ($stream === $this->_acceptingConnection->getStream()) { // The main socket only accepts
-
-                        $peername = '';
-                        $newStream = stream_socket_accept($stream, self::SOCKET_ACCEPT_TIMEOUT, $peername);
-                        if (!$newStream) {
-                            throw new \Exception('Unable to accept stream socket!');
-                        }
-
-                        $newConnection = new \PHPWebSocket\Server\Connection($this, $newStream, $peername, $this->_connectionIndex);
-                        $this->_connections[$this->_connectionIndex] = $newConnection;
-
-                        \PHPWebSocket::Log(\PHPWebSocket::LOGLEVEL_DEBUG, 'Got new connection: ' . $newConnection);
-
-                        $this->_connectionIndex++;
-
-                    } else {
-
-                        $connection = $this->getConnectionByStream($stream);
-                        if ($connection === NULL) {
-                            \PHPWebSocket::Log(\PHPWebSocket::LOGLEVEL_ERROR, 'Unable to find connection related to stream during read!');
-                            continue;
-                        }
-
-                        yield from $connection->handleRead();
-
-                    }
-
-                }
-
-                foreach ($write as $stream) {
-
-                    $connection = $this->getConnectionByStream($stream);
-                    if ($connection === NULL) {
-                        \PHPWebSocket::Log(\PHPWebSocket::LOGLEVEL_ERROR, 'Unable to find connection related to stream during write!');
-                        continue;
-                    }
-
-                    yield from $connection->handleWrite();
-
-                }
-
-                foreach ($exceptional as $stream) {
-
-                    $connection = $this->getConnectionByStream($stream);
-                    if ($connection === NULL) {
-                        \PHPWebSocket::Log(\PHPWebSocket::LOGLEVEL_ERROR, 'Unable to find connection related to stream during exceptional read!');
-                        continue;
-                    }
-
-                    \PHPWebSocket::Log(\PHPWebSocket::LOGLEVEL_WARNING, 'Got exceptional for ' . $connection);
-
-                    yield from $connection->handleExceptional();
-
-                }
-
-            }
-
-        }
-
-        foreach ($connectionsToRemove as $connection) {
-            $this->removeConnection($connection);
-        }
-
-        return;
+        yield from \PHPWebSocket::MultiUpdate($objects, $timeout);
     }
 
+    /**
+     * Gets called by the accepting web socket to notify the server that a new connection attempt has occured
+     * @param \PHPWebSocket\Server\AcceptingConnection $acceptingConnection
+     */
     public function gotNewConnection(\PHPWebSocket\Server\AcceptingConnection $acceptingConnection) {
 
         if ($acceptingConnection !== $this->_acceptingConnection) {
@@ -277,7 +173,7 @@ class Server {
         $replaceFields = array(
             '%errorCode%' => (string) $errorCode,
             '%errorString%' => \PHPWebSocket::GetStringForErrorCode($errorCode) ?: $fallbackErrorString,
-            '%serverIdentifier%' => 'PHPWebSocket/' . \PHPWebSocket::Version()
+            '%serverIdentifier%' => $this->getServerIdentifier()
         );
 
         return str_replace(array_keys($replaceFields), array_values($replaceFields), "HTTP/1.1 %errorCode% %errorString%\r\nServer: %serverIdentifier%\r\n\r\n<html><head><title>%errorCode% %errorString%</title></head><body bgcolor='white'><center><h1>%errorCode% %errorString%</h1></center><hr><center>%serverIdentifier%</center></body></html>\r\n\r\n");
@@ -299,6 +195,14 @@ class Server {
         }
 
         return NULL;
+    }
+
+    /**
+     * Returns the server identifier string reported to clients
+     * @return string
+     */
+    public function getServerIdentifier() : string {
+        return 'PHPWebSocket/' . \PHPWebSocket::Version();
     }
 
     /**
