@@ -30,6 +30,8 @@ use \PHPWebSocket\Update;
 
 class AcceptingConnection implements \PHPWebSocket\IStreamContainer {
 
+    use \PHPWebSocket\TStreamContainerDefaults;
+
     /**
      * The websocket object related to this connection
      * @var \PHPWebSocket\Server
@@ -52,21 +54,6 @@ class AcceptingConnection implements \PHPWebSocket\IStreamContainer {
         stream_set_read_buffer($this->_stream, 0);
         stream_set_write_buffer($this->_stream, 0);
 
-    }
-
-    /**
-     * Gets called just before stream_select gets called
-     */
-    public function beforeStreamSelect() : \Generator {
-        yield;
-    }
-
-    /**
-     * Returns if we have (partial)frames ready to be send
-     * @return boolean
-     */
-    public function isWriteBufferEmpty() : bool {
-        return TRUE;
     }
 
     /**
@@ -93,7 +80,10 @@ class AcceptingConnection implements \PHPWebSocket\IStreamContainer {
 
         $this->_websocket->gotNewConnection($this, $this->_stream);
 
-        yield;
+        if (FALSE) {
+            yield NULL;
+        }
+
     }
 
     /**

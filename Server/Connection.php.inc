@@ -31,6 +31,8 @@ use \PHPWebSocket\Framer;
 
 class Connection implements \PHPWebSocket\IStreamContainer {
 
+    use \PHPWebSocket\TStreamContainerDefaults;
+
     /**
      * The amount of bytes to read to complete our current frame
      * @var integer|NULL
@@ -328,14 +330,6 @@ class Connection implements \PHPWebSocket\IStreamContainer {
 
         }
 
-    }
-
-    /**
-     * Handles exceptional data reads
-     * @return \PHPWebSocket\AUpdate[]
-     */
-    public function handleExceptional() : \Generator {
-        return; // Maybe we'll need this someday
     }
 
     /**

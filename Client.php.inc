@@ -29,6 +29,8 @@ namespace PHPWebSocket;
 
 class Client implements \PHPWebSocket\IStreamContainer {
 
+    use \PHPWebSocket\TStreamContainerDefaults;
+
     /**
      * The amount of bytes to read to complete our current frame
      * @var integer|NULL
@@ -513,22 +515,6 @@ class Client implements \PHPWebSocket\IStreamContainer {
 
         }
 
-    }
-
-    /**
-     * Gets called just before stream_select gets called
-     * @return \PHPWebSocket\AUpdate[]
-     */
-    public function beforeStreamSelect() : \Generator {
-        yield; // Nothing
-    }
-
-    /**
-     * Handles exceptional data reads
-     * @return \PHPWebSocket\AUpdate[]
-     */
-    public function handleExceptional() : \Generator {
-        yield; // Nothing
     }
 
     /**

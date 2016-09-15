@@ -26,6 +26,7 @@
 declare(strict_types = 1);
 
 require_once(__DIR__ . '/IStreamContainer.php.inc');
+require_once(__DIR__ . '/TStreamContainerDefaults.php.inc');
 require_once(__DIR__ . '/AUpdate.php.inc');
 require_once(__DIR__ . '/Client.php.inc');
 require_once(__DIR__ . '/Framer.php.inc');
@@ -201,13 +202,15 @@ final class PHPWebSocket {
                 return NULL;
             };
 
-            \PHPWebSocket::Log(\PHPWebSocket::LOGLEVEL_DEBUG, 'Read: ' . count($read) . ' Write: ' . count($write) . ' Except: ' . count($exceptional));
-
             $streams = @stream_select($read, $write, $exceptional, $timeInt, $timePart); // Stream select filters everything out of the arrays
             if ($streams === FALSE) {
                 yield new \PHPWebSocket\Update\Error(\PHPWebSocket\Update\Error::C_SELECT);
                 return;
             } else {
+
+                if (!empty($read) || !empty($write) || !empty($exceptional)) {
+                    \PHPWebSocket::Log(\PHPWebSocket::LOGLEVEL_DEBUG, 'Read: ' . count($read) . ' Write: ' . count($write) . ' Except: ' . count($exceptional));
+                }
 
                 foreach ($read as $stream) {
 
