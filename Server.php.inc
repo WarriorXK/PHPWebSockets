@@ -83,9 +83,9 @@ class Server {
 
     /**
      * Constructs a new webserver
-     * @param  string       $address Defaults to all adapters
-     * @param  integer|NULL $port    Defaults to 80, if an SLL certificate is provided it will default to 443
-     * @param  string|NULL  $sslCert The filepath to the certificate
+     * @param  string       $address  This is either a IPv4 address or a full protocol://address:port scheme url
+     * @param  integer|NULL $port     Defaults to 80, if an SLL certificate is provided it will default to 443, if the address is not a IPv4 address this parameter is ignored
+     * @param  string|NULL  $sslCert  The filepath to the certificate
      * @throws \Exception
      */
     public function __construct(string $address = '0.0.0.0', int $port = NULL, string $sslCert = NULL) {
@@ -95,8 +95,14 @@ class Server {
             throw new \Exception('Unable to load certificate from path \'' . $sslCert . '\'');
         }
 
-        $port = ($port ?? ($this->_usesSSL ? 443 : 80));
-        $protocol = ($this->_usesSSL ? 'tls' : 'tcp');
+        if (filter_var($address, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4)) {
+
+            $port = ($port ?: ($this->usesSSL() ? 443 : 80));
+            $protocol = ($this->usesSSL() ? 'tls' : 'tcp');
+
+            $address = $protocol . '://' . $address . ':' . $port;
+
+        }
 
         $options = array();
         if ($this->usesSSL()) {
@@ -110,14 +116,14 @@ class Server {
 
         $errCode = NULL;
         $errString = NULL;
-        $acceptingSocket = @stream_socket_server($protocol . '://' . $address . ':' . $port, $errCode, $errString, STREAM_SERVER_BIND | STREAM_SERVER_LISTEN, stream_context_create($options));
+        $acceptingSocket = @stream_socket_server($address, $errCode, $errString, STREAM_SERVER_BIND | STREAM_SERVER_LISTEN, stream_context_create($options));
         if (!$acceptingSocket) {
             throw new \Exception('Unable to create webserver: ' . $errString, $errCode);
         }
 
         $this->_acceptingConnection = new Server\AcceptingConnection($this, $acceptingSocket);
 
-        \PHPWebSocket::Log(\PHPWebSocket::LOGLEVEL_NORMAL, 'Opened webserver on ' . $address . ':' . $port, TRUE);
+        \PHPWebSocket::Log(\PHPWebSocket::LOGLEVEL_NORMAL, 'Opened websocket on ' . $address, TRUE);
 
         $this->_open = TRUE;
 
@@ -222,6 +228,18 @@ class Server {
     }
 
     /**
+     * Returns all connections including the accepting connection
+     * @return array
+     */
+    public function getAllStreamContainers() : array {
+
+        $containers = $this->getConnections();
+        $containers[] = $this->getAcceptingConnection();
+
+        return $containers;
+    }
+
+    /**
      * Returns all connections this server has
      * @return \PHPWebSocket\Server\Connection[]
      */
@@ -279,8 +297,12 @@ class Server {
             $connection->close();
         }
 
-        $this->_acceptingConnection->close();
-        $this->_acceptingConnection = NULL;
+        if ($this->_acceptingConnection !== NULL) {
+
+            $this->_acceptingConnection->close();
+            $this->_acceptingConnection = NULL;
+
+        }
 
         $this->_open = FALSE;
 

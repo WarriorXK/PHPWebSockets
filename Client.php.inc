@@ -172,8 +172,16 @@ class Client implements \PHPWebSocket\IStreamContainer {
             stream_context_set_option($context, 'ssl', 'allow_self_signed', $allowSelfSigned);
         }
 
-        $url = ($useSSL ? 'tls' : 'tcp') . '://' . $address . ':' . $port;
-        $this->_stream = @stream_socket_client($url, $this->_streamLastErrorCode, $this->_streamLastError, intval(ini_get('default_socket_timeout')), STREAM_CLIENT_CONNECT, $context);
+        if (filter_var($address, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4)) {
+
+            $port = ($port ?: ($useSSL ? 443 : 80));
+            $protocol = ($useSSL ? 'tls' : 'tcp');
+
+            $address = $protocol . '://' . $address . ':' . $port;
+
+        }
+
+        $this->_stream = @stream_socket_client($address, $this->_streamLastErrorCode, $this->_streamLastError, intval(ini_get('default_socket_timeout')), STREAM_CLIENT_CONNECT, $context);
         if ($this->_stream === FALSE) {
             return FALSE;
         }
@@ -185,7 +193,7 @@ class Client implements \PHPWebSocket\IStreamContainer {
 
         $headerParts = array(
             'GET ' . $path . ' HTTP/1.1',
-            'Host: ' . $address . ':' . $port,
+            'Host: ' . $address,
             'User-Agent: ' . $this->getUserAgent(),
             'Upgrade: websocket',
             'Connection: Upgrade',
