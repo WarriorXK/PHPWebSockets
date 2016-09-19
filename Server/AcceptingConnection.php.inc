@@ -95,6 +95,14 @@ class AcceptingConnection implements \PHPWebSocket\IStreamContainer {
     }
 
     /**
+     * Returns if our connection is open
+     * @return boolean
+     */
+    public function isOpen() : bool {
+        return is_resource($this->_stream);
+    }
+
+    /**
      * Closes the stream
      */
     public function close() {
@@ -102,6 +110,28 @@ class AcceptingConnection implements \PHPWebSocket\IStreamContainer {
         if (is_resource($this->_stream)) {
             fclose($this->_stream);
             $this->_stream = NULL;
+        }
+
+        $address = $this->_websocket->getAddress();
+        $pos = strpos($address, '://');
+        if ($pos !== FALSE) {
+
+            $protocol = substr($address, 0, $pos);
+            switch ($protocol) {
+                case 'unix':
+                case 'udg':
+
+                    $path = substr($address, $pos + 3);
+                    if (file_exists($path)) {
+
+                        \PHPWebSocket::Log(\PHPWebSocket::LOGLEVEL_DEBUG, 'Unlinking: ' . $path);
+                        unlink($path);
+
+                    }
+
+                    break;
+            }
+
         }
 
     }

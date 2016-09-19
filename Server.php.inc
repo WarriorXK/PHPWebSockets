@@ -70,6 +70,12 @@ class Server {
     protected $_connections = array();
 
     /**
+     * The address of the accepting socket
+     * @var string
+     */
+    protected $_address = NULL;
+
+    /**
      * If we're using SSL
      * @var boolean
      */
@@ -95,12 +101,14 @@ class Server {
             throw new \Exception('Unable to load certificate from path \'' . $sslCert . '\'');
         }
 
-        if (filter_var($address, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4)) {
+        $this->_address = $address;
+
+        if (filter_var($this->_address, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4)) {
 
             $port = ($port ?: ($this->usesSSL() ? 443 : 80));
             $protocol = ($this->usesSSL() ? 'tls' : 'tcp');
 
-            $address = $protocol . '://' . $address . ':' . $port;
+            $this->_address = $protocol . '://' . $this->_address . ':' . $port;
 
         }
 
@@ -114,16 +122,40 @@ class Server {
 
         }
 
+        $address = $this->getAddress();
+        $pos = strpos($address, '://');
+        if ($pos !== FALSE) {
+
+            $protocol = substr($address, 0, $pos);
+            switch ($protocol) {
+                case 'unix':
+                case 'udg':
+
+                    $path = substr($address, $pos + 3);
+                    if (file_exists($path)) {
+
+                        \PHPWebSocket::Log(\PHPWebSocket::LOGLEVEL_WARNING, 'Unix socket "' . $path . '" still exists, unlinking!');
+                        if (!unlink($path)) {
+                            throw new \Exception('Unable to unlink file "' . $path . '"');
+                        }
+
+                    }
+
+                    break;
+            }
+
+        }
+
         $errCode = NULL;
         $errString = NULL;
-        $acceptingSocket = @stream_socket_server($address, $errCode, $errString, STREAM_SERVER_BIND | STREAM_SERVER_LISTEN, stream_context_create($options));
+        $acceptingSocket = @stream_socket_server($this->_address, $errCode, $errString, STREAM_SERVER_BIND | STREAM_SERVER_LISTEN, stream_context_create($options));
         if (!$acceptingSocket) {
             throw new \Exception('Unable to create webserver: ' . $errString, $errCode);
         }
 
         $this->_acceptingConnection = new Server\AcceptingConnection($this, $acceptingSocket);
 
-        \PHPWebSocket::Log(\PHPWebSocket::LOGLEVEL_NORMAL, 'Opened websocket on ' . $address, TRUE);
+        \PHPWebSocket::Log(\PHPWebSocket::LOGLEVEL_NORMAL, 'Opened websocket on ' . $this->_address, TRUE);
 
         $this->_open = TRUE;
 
@@ -234,7 +266,11 @@ class Server {
     public function getAllStreamContainers() : array {
 
         $containers = $this->getConnections();
-        $containers[] = $this->getAcceptingConnection();
+
+        $acceptingConnection = $this->getAcceptingConnection();
+        if ($acceptingConnection && $acceptingConnection->isOpen()) {
+            $containers[] = $acceptingConnection;
+        }
 
         return $containers;
     }
@@ -245,6 +281,14 @@ class Server {
      */
     public function getConnections() : array {
         return $this->_connections;
+    }
+
+    /**
+     * Returns the bind address for this websocket
+     * @return string
+     */
+    public function getAddress() : string {
+        return $this->_address;
     }
 
     /**
