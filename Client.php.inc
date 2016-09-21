@@ -56,7 +56,7 @@ class Client implements \PHPWebSocket\IStreamContainer {
     protected $_partialMessageOpcode = NULL;
 
     /**
-     * The last error code recieved from the stream
+     * The last error code received from the stream
      * @var integer|NULL
      */
     protected $_streamLastErrorCode = NULL;
@@ -74,7 +74,7 @@ class Client implements \PHPWebSocket\IStreamContainer {
     protected $_handshakeAccepted = FALSE;
 
     /**
-     * The last error recieved from the stream
+     * The last error received from the stream
      * @var string|NULL
      */
     protected $_streamLastError = NULL;

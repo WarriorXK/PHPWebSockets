@@ -167,6 +167,7 @@ final class PHPWebSocket {
 
         }
 
+        $objectStreamMap = [];
         $exceptional = [];
         $write = [];
         $read = [];
@@ -181,6 +182,7 @@ final class PHPWebSocket {
 
             $stream = $object->getStream();
 
+            $objectStreamMap[(int) $object->getStream()] = $object;
             $exceptional[] = $stream;
             if (!$object->isWriteBufferEmpty()) {
                 $write[] = $stream;
@@ -190,17 +192,6 @@ final class PHPWebSocket {
         }
 
         if (!empty($read) || !empty($write) || !empty($exceptional)) {
-
-            $objectByStream = function($stream) use (&$updateObjects) {
-
-                foreach ($updateObjects as $object) {
-                    if ($object->getStream() === $stream) {
-                        return $object;
-                    }
-                }
-
-                return NULL;
-            };
 
             $streams = @stream_select($read, $write, $exceptional, $timeInt, $timePart); // Stream select filters everything out of the arrays
             if ($streams === FALSE) {
@@ -214,9 +205,9 @@ final class PHPWebSocket {
 
                 foreach ($read as $stream) {
 
-                    $object = $objectByStream($stream);
+                    $object = $objectStreamMap[(int) $stream];
                     if ($object === NULL) {
-                        \PHPWebSocket::Log(\PHPWebSocket::LOGLEVEL_ERROR, 'Unable to find client related to stream during read!');
+                        \PHPWebSocket::Log(\PHPWebSocket::LOGLEVEL_ERROR, 'Unable to find stream container related to stream during read!');
                         continue;
                     }
 
@@ -226,9 +217,14 @@ final class PHPWebSocket {
 
                 foreach ($write as $stream) {
 
-                    $object = $objectByStream($stream);
+                    $object = $objectStreamMap[(int) $stream];
                     if ($object === NULL) {
-                        \PHPWebSocket::Log(\PHPWebSocket::LOGLEVEL_ERROR, 'Unable to find client related to stream during write!');
+                        \PHPWebSocket::Log(\PHPWebSocket::LOGLEVEL_ERROR, 'Unable to find stream container related to stream during write!');
+                        continue;
+                    }
+
+                    if (!is_resource($object->getStream())) { // Check if it is still open, it could have closed
+                        \PHPWebSocket::Log(\PHPWebSocket::LOGLEVEL_WARNING, 'Unable to complete write for stream container, connection was closed');
                         continue;
                     }
 
@@ -238,9 +234,14 @@ final class PHPWebSocket {
 
                 foreach ($exceptional as $stream) {
 
-                    $object = $objectByStream($stream);
+                    $object = $objectStreamMap[(int) $stream];
                     if ($object === NULL) {
-                        \PHPWebSocket::Log(\PHPWebSocket::LOGLEVEL_ERROR, 'Unable to find client related to stream during exceptional read!');
+                        \PHPWebSocket::Log(\PHPWebSocket::LOGLEVEL_ERROR, 'Unable to find stream container related to stream during exceptional read!');
+                        continue;
+                    }
+
+                    if (!is_resource($object->getStream())) { // Check if it is still open, it could have closed
+                        \PHPWebSocket::Log(\PHPWebSocket::LOGLEVEL_WARNING, 'Unable to complete exceptional read for stream container, connection was closed');
                         continue;
                     }
 

@@ -52,7 +52,7 @@ class Connection implements \PHPWebSocket\IStreamContainer {
     protected $_serverSendDisconnect = FALSE;
 
     /**
-     * If we've recieved the disconnect message from the remote
+     * If we've received the disconnect message from the remote
      * @var boolean
      */
     protected $_clientSentDisconnect = FALSE;
