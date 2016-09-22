@@ -59,7 +59,7 @@ abstract class AUpdate {
     }
 
     public function __toString() {
-        return 'AUpdate) ' . $this->getCode();
+        return 'AUpdate) (C: ' . $code . ')';
     }
 
 }

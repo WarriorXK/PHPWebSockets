@@ -87,7 +87,8 @@ class Error extends \PHPWebSocket\AUpdate {
     }
 
     public function __toString() {
-        return 'Error) ' . self::StringForErrorCode($this->getCode());
+        $code = $this->getCode();
+        return 'Error) ' . self::StringForErrorCode($code) . ' (C: ' . $code . ')';
     }
 
 }

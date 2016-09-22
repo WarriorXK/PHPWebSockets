@@ -33,10 +33,10 @@ class AcceptingConnection implements \PHPWebSocket\IStreamContainer {
     use \PHPWebSocket\TStreamContainerDefaults;
 
     /**
-     * The websocket object related to this connection
+     * The websocket server related to this connection
      * @var \PHPWebSocket\Server
      */
-    protected $_websocket = NULL;
+    protected $_server = NULL;
 
     /**
      * The resource stream
@@ -46,7 +46,7 @@ class AcceptingConnection implements \PHPWebSocket\IStreamContainer {
 
     public function __construct(\PHPWebSocket\Server $websocket, $stream) {
 
-        $this->_websocket = $websocket;
+        $this->_server = $websocket;
         $this->_stream = $stream;
 
         stream_set_timeout($this->_stream, 1);
@@ -78,12 +78,20 @@ class AcceptingConnection implements \PHPWebSocket\IStreamContainer {
      */
     public function handleRead() : \Generator {
 
-        $this->_websocket->gotNewConnection($this, $this->_stream);
+        $this->_server->gotNewConnection($this, $this->_stream);
 
         if (FALSE) {
             yield NULL;
         }
 
+    }
+
+    /**
+     * Returns the related websocket server
+     * @return \PHPWebSocket\Server
+     */
+    public function getServer() : \PHPWebSocket\Server {
+        return $this->_server;
     }
 
     /**
@@ -112,7 +120,7 @@ class AcceptingConnection implements \PHPWebSocket\IStreamContainer {
             $this->_stream = NULL;
         }
 
-        $address = $this->_websocket->getAddress();
+        $address = $this->_server->getAddress();
         $pos = strpos($address, '://');
         if ($pos !== FALSE) {
 

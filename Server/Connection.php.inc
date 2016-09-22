@@ -118,12 +118,6 @@ class Connection implements \PHPWebSocket\IStreamContainer {
     protected $_allowRSV3 = FALSE;
 
     /**
-     * The websocket object related to this connection
-     * @var \PHPWebSocket\Server
-     */
-    protected $_websocket = NULL;
-
-    /**
      * If the connection has been accepted
      * @var boolean
      */
@@ -148,6 +142,12 @@ class Connection implements \PHPWebSocket\IStreamContainer {
     protected $_headers = NULL;
 
     /**
+     * The websocket server related to this connection
+     * @var \PHPWebSocket\Server
+     */
+    protected $_server = NULL;
+
+    /**
      * The resource stream
      * @var resource
      */
@@ -159,15 +159,15 @@ class Connection implements \PHPWebSocket\IStreamContainer {
      */
     private $_index = NULL;
 
-    public function __construct(\PHPWebSocket\Server $websocket, $stream, string $streamName, int $index) {
+    public function __construct(\PHPWebSocket\Server $server, $stream, string $streamName, int $index) {
 
         $this->_openedTimestamp = microtime(TRUE);
-        $this->_websocket = $websocket;
+        $this->_server = $server;
         $this->_remoteIP = parse_url($streamName, PHP_URL_HOST);
         $this->_stream = $stream;
         $this->_index = $index;
 
-        if ($this->_websocket->usesSSL()) {
+        if ($this->_server->usesSSL()) {
             stream_socket_enable_crypto($this->_stream, TRUE, STREAM_CRYPTO_METHOD_TLS_SERVER);
         }
 
@@ -206,7 +206,7 @@ class Connection implements \PHPWebSocket\IStreamContainer {
 
             \PHPWebSocket::Log(\PHPWebSocket::LOGLEVEL_DEBUG, '  Attempting to write ' . $bytesToWrite . ' bytes');
 
-            $bytesWritten = fwrite($this->_stream, $this->_writeBuffer, min($this->_websocket->getWriteRate($this), $bytesToWrite));
+            $bytesWritten = fwrite($this->_stream, $this->_writeBuffer, min($this->_server->getWriteRate($this), $bytesToWrite));
             if ($bytesWritten === FALSE) {
                 \PHPWebSocket::Log(\PHPWebSocket::LOGLEVEL_DEBUG, '    fwrite failed');
                 yield new Update\Error(Update\Error::C_WRITE, $this);
@@ -222,7 +222,7 @@ class Connection implements \PHPWebSocket\IStreamContainer {
 
         if ($this->_closeAfterWrite && $this->isWriteBufferEmpty()) {
             \PHPWebSocket::Log(\PHPWebSocket::LOGLEVEL_DEBUG, '      Close after write');
-            $this->_websocket->removeConnection($this);
+            $this->_server->removeConnection($this);
         }
 
     }
@@ -235,7 +235,7 @@ class Connection implements \PHPWebSocket\IStreamContainer {
 
         \PHPWebSocket::Log(\PHPWebSocket::LOGLEVEL_DEBUG, __METHOD__);
 
-        $readRate = $this->_websocket->getReadRate($this);
+        $readRate = $this->_server->getReadRate($this);
         $newData = fread($this->getStream(), min($this->_currentFrameRemainingBytes ?? $readRate, $readRate));
         if ($newData === FALSE) {
             yield new Update\Error(Update\Error::C_READ, $this);
@@ -251,7 +251,7 @@ class Connection implements \PHPWebSocket\IStreamContainer {
                 yield new Update\Error(Update\Error::C_READ_UNEXPECTED_DISCONNECT, $this);
             }
 
-            $this->_websocket->removeConnection($this);
+            $this->_server->removeConnection($this);
 
             return;
 
@@ -275,7 +275,7 @@ class Connection implements \PHPWebSocket\IStreamContainer {
                         yield new Update\Error(Update\Error::C_READ_HANDSHAKETOLARGE, $this);
                     }
 
-                    $this->_websocket->removeConnection($this);
+                    $this->_server->removeConnection($this);
 
                     return; // Still waiting for headers
                 }
@@ -298,7 +298,7 @@ class Connection implements \PHPWebSocket\IStreamContainer {
                     yield new Update\Read(Update\Read::C_NEWCONNECTION, $this);
                 } else {
 
-                    $this->_messagesBuffer[] = $this->_websocket->getErrorPageForCode($responseCode);
+                    $this->_messagesBuffer[] = $this->_server->getErrorPageForCode($responseCode);
                     $this->setCloseAfterWrite();
 
                     yield new Update\Error(Update\Error::C_READ_HANDSHAKEFAILURE, $this);
@@ -323,7 +323,7 @@ class Connection implements \PHPWebSocket\IStreamContainer {
      */
     public function beforeStreamSelect() : \Generator {
 
-        if (!$this->isAccepted() && $this->hasHandshake() && $this->getOpenedTimestamp() + self::ACCEPT_TIMEOUT < time()) {
+        if (!$this->isAccepted() && $this->hasHandshake() && $this->getOpenedTimestamp() + \PHPWebSocket\Server::ACCEPT_TIMEOUT < time()) {
 
             yield new Update\Error(Update\Error::C_ACCEPT_TIMEOUT_PASSED, $this);
             $this->deny(408);
@@ -630,7 +630,7 @@ class Connection implements \PHPWebSocket\IStreamContainer {
             $misc .= 'Sec-WebSocket-Protocol ' . $protocol . "\r\n";
         }
 
-        $this->_messagesBuffer[] = 'HTTP/1.1 101 ' . \PHPWebSocket::GetStringForErrorCode(101) . "\n\rServer: " . $this->_websocket->getServerIdentifier() . "\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Accept: " . base64_encode($this->_rawToken) . "\r\n" . $misc . "\r\n";
+        $this->_messagesBuffer[] = 'HTTP/1.1 101 ' . \PHPWebSocket::GetStringForErrorCode(101) . "\n\rServer: " . $this->_server->getServerIdentifier() . "\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Accept: " . base64_encode($this->_rawToken) . "\r\n" . $misc . "\r\n";
 
         $this->_accepted = TRUE;
 
@@ -727,6 +727,14 @@ class Connection implements \PHPWebSocket\IStreamContainer {
      */
     public function isAccepted() : bool {
         return $this->_accepted;
+    }
+
+    /**
+     * Returns the related websocket server
+     * @return \PHPWebSocket\Server
+     */
+    public function getServer() : \PHPWebSocket\Server {
+        return $this->_server;
     }
 
     /**

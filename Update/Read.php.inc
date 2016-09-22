@@ -106,7 +106,8 @@ class Read extends \PHPWebSocket\AUpdate {
     }
 
     public function __toString() {
-        return 'Read) ' . self::StringForErrorCode($this->getCode());
+        $code = $this->getCode();
+        return 'Read) ' . self::StringForErrorCode($code) . ' (C: ' . $code . ')';
     }
 
 }

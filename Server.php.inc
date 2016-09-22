@@ -186,7 +186,7 @@ class Server {
         }
 
         $peername = '';
-        $newStream = stream_socket_accept($acceptingConnection->getStream(), self::ACCEPT_TIMEOUT, $peername);
+        $newStream = stream_socket_accept($acceptingConnection->getStream(), self::SOCKET_ACCEPT_TIMEOUT, $peername);
         if (!$newStream) {
             throw new \Exception('Unable to accept stream socket!');
         }
