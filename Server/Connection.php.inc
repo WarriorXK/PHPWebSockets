@@ -630,7 +630,7 @@ class Connection implements \PHPWebSocket\IStreamContainer {
             $misc .= 'Sec-WebSocket-Protocol ' . $protocol . "\r\n";
         }
 
-        $this->_messagesBuffer[] = 'HTTP/1.1 101 ' . \PHPWebSocket::GetStringForErrorCode(101) . "\n\rServer: " . $this->_server->getServerIdentifier() . "\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Accept: " . base64_encode($this->_rawToken) . "\r\n" . $misc . "\r\n";
+        $this->_messagesBuffer[] = 'HTTP/1.1 101 ' . \PHPWebSocket::GetStringForErrorCode(101) . "\r\nServer: " . $this->_server->getServerIdentifier() . "\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Accept: " . base64_encode($this->_rawToken) . "\r\n" . $misc . "\r\n";
 
         $this->_accepted = TRUE;
 
@@ -646,7 +646,7 @@ class Connection implements \PHPWebSocket\IStreamContainer {
             throw new \Exception('Connection has already been accepted!');
         }
 
-        $this->_messagesBuffer[] = 'HTTP/1.1 ' . $errCode . ' ' . \PHPWebSocket::GetStringForErrorCode($errCode) . "\n\rServer: PHPWebSocket/" . \PHPWebSocket::Version() . "\r\n\r\n";
+        $this->_messagesBuffer[] = 'HTTP/1.1 ' . $errCode . ' ' . \PHPWebSocket::GetStringForErrorCode($errCode) . "\r\nServer: PHPWebSocket/" . \PHPWebSocket::Version() . "\r\n\r\n";
         $this->setCloseAfterWrite();
 
     }
