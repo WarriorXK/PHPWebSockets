@@ -146,7 +146,7 @@ final class PHPWebSocket {
      * If we're currently debugging
      * @var boolean
      */
-    private static $_Debug = TRUE;
+    private static $_Debug = FALSE;
 
     /**
      * Checks for updates for the provided IStreamContainer objects
@@ -155,7 +155,7 @@ final class PHPWebSocket {
      * @return \PHPWebSocket\AUpdate[]
      * @throws \InvalidArgumentException
      */
-    static public function MultiUpdate(array $updateObjects, float $timeout = 0.1) : \Generator {
+    static public function MultiUpdate(array $updateObjects, float $timeout = NULL) : \Generator {
 
         $timeInt = NULL;
         $timePart = 0;

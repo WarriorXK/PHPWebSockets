@@ -167,12 +167,8 @@ class Server {
      * @return \PHPWebSocket\AUpdate[]
      * @throws \Exception
      */
-    public function update(float $timeout = 0.1) : \Generator {
-
-        $objects = $this->getConnections();
-        $objects[] = $this->getAcceptingConnection();
-
-        yield from \PHPWebSocket::MultiUpdate($objects, $timeout);
+    public function update(float $timeout = NULL) : \Generator {
+        yield from \PHPWebSocket::MultiUpdate($this->getConnections(TRUE), $timeout);
     }
 
     /**
@@ -260,27 +256,17 @@ class Server {
     }
 
     /**
-     * Returns all connections including the accepting connection
-     * @return array
-     */
-    public function getAllStreamContainers() : array {
-
-        $containers = $this->getConnections();
-
-        $acceptingConnection = $this->getAcceptingConnection();
-        if ($acceptingConnection && $acceptingConnection->isOpen()) {
-            $containers[] = $acceptingConnection;
-        }
-
-        return $containers;
-    }
-
-    /**
      * Returns all connections this server has
      * @return \PHPWebSocket\Server\Connection[]
      */
-    public function getConnections() : array {
-        return $this->_connections;
+    public function getConnections(bool $includeAccepting = FALSE) : array {
+
+        $ret = $this->_connections;
+        if ($includeAccepting) {
+            $ret[] = $this->getAcceptingConnection();
+        }
+
+        return $ret;
     }
 
     /**
@@ -343,7 +329,10 @@ class Server {
 
         if ($this->_acceptingConnection !== NULL) {
 
-            $this->_acceptingConnection->close();
+            if ($this->_acceptingConnection->isOpen()) {
+                $this->_acceptingConnection->close();
+            }
+
             $this->_acceptingConnection = NULL;
 
         }

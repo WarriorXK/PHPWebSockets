@@ -244,7 +244,7 @@ class Client implements \PHPWebSocket\IStreamContainer {
      * @return \PHPWebSocket\AUpdate[]
      * @throws \Exception
      */
-    public function update(float $timeout = 0.1) : \Generator {
+    public function update(float $timeout = NULL) : \Generator {
         yield from \PHPWebSocket\MultiUpdate(array($this), $timeout);
     }
 
