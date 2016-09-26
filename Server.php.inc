@@ -263,7 +263,12 @@ class Server {
 
         $ret = $this->_connections;
         if ($includeAccepting) {
-            $ret[] = $this->getAcceptingConnection();
+
+            $acceptingConnection = $this->getAcceptingConnection();
+            if ($acceptingConnection->isOpen()) {
+                $ret[] = $acceptingConnection;
+            }
+
         }
 
         return $ret;
