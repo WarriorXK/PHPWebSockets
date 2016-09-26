@@ -637,7 +637,7 @@ class Connection implements \PHPWebSocket\IStreamContainer {
     }
 
     /**
-     * Denies the websocket connection
+     * Denies the websocket connection, a HTTP error code has to be provided indicating what went wrong
      * @param integer $errCode
      */
     public function deny(int $errCode) {
@@ -815,7 +815,11 @@ class Connection implements \PHPWebSocket\IStreamContainer {
     }
 
     public function __destruct() {
-        $this->close();
+
+        if ($this->isOpen()) {
+            $this->close();
+        }
+
     }
 
 }

@@ -757,4 +757,12 @@ class Client implements \PHPWebSocket\IStreamContainer {
 
     }
 
+    public function __destruct() {
+
+        if ($this->isOpen()) {
+            $this->close();
+        }
+
+    }
+
 }

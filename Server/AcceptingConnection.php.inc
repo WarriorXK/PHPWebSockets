@@ -145,7 +145,11 @@ class AcceptingConnection implements \PHPWebSocket\IStreamContainer {
     }
 
     public function __destruct() {
-        $this->close();
+
+        if ($this->isOpen()) {
+            $this->close();
+        }
+
     }
 
 }

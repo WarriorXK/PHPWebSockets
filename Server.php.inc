@@ -275,6 +275,19 @@ class Server {
     }
 
     /**
+     * Sends a disconnect message to all clients
+     * @param  integer $closeCode
+     * @param  string  $reason
+     */
+    public function disconnectAll(int $closeCode, string $reason = '') {
+
+        foreach ($this->getConnections() as $connection) {
+            $connection->sendDisconnect($closeCode, $reason);
+        }
+
+    }
+
+    /**
      * Returns the bind address for this websocket
      * @return string
      */
