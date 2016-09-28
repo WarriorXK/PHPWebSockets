@@ -125,7 +125,7 @@ class Connection implements \PHPWebSocket\IStreamContainer {
 
     /**
      * The remote IP
-     * @var string
+     * @var string|NULL
      */
     protected $_remoteIP = NULL;
 
@@ -769,8 +769,9 @@ class Connection implements \PHPWebSocket\IStreamContainer {
 
     /**
      * Returns the remote IP address of the client
+     * @return string|NULL
      */
-    public function getRemoteIP() : string {
+    public function getRemoteIP() {
         return $this->_remoteIP;
     }
 
