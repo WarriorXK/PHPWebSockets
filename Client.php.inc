@@ -152,6 +152,30 @@ class Client implements \PHPWebSocket\IStreamContainer {
     protected $_stream = NULL;
 
     /**
+     * Connects to the provided resource
+     * @param  resource $resource
+     * @return boolean
+     * @throws \InvalidArgumentException
+     * @throws \LogicException
+     */
+    public function connectToResource($resource, string $path = '/') {
+
+        if (!is_resource($resource)) {
+            throw \InvalidArgumentException('Argument is not a resource!');
+        }
+
+        if ($this->isOpen()) {
+            throw new \LogicException('The connection is already open!');
+        }
+
+        $this->_stream = $resource;
+
+        $this->_afterOpen($path, 'localhost');
+
+        return TRUE;
+    }
+
+    /**
      * Attempts to connect to a websocket server
      * @param  string  $address
      * @param  integer $port
@@ -159,12 +183,12 @@ class Client implements \PHPWebSocket\IStreamContainer {
      * @param  boolean $useSSL
      * @param  boolean $allowSelfSigned
      * @return boolean
-     * @throws \Exception
+     * @throws \LogicException
      */
     public function connect(string $address, int $port = 80, string $path = '/', bool $useSSL = FALSE, bool $allowSelfSigned = FALSE) {
 
         if ($this->isOpen()) {
-            throw new \Exception('The connection is already open!');
+            throw new \LogicException('The connection is already open!');
         }
 
         $context = stream_context_create();
@@ -186,6 +210,18 @@ class Client implements \PHPWebSocket\IStreamContainer {
             return FALSE;
         }
 
+        $this->_afterOpen($path, $address);
+
+        return TRUE;
+    }
+
+    /**
+     * Sets the stream settings and appends the HTTP headers to the buffer
+     * @param string $path
+     * @param string $address
+     */
+    protected function _afterOpen(string $path, string $address) {
+
         stream_set_timeout($this->_stream, 15);
         stream_set_blocking($this->_stream, FALSE);
         stream_set_read_buffer($this->_stream, 0);
@@ -203,7 +239,6 @@ class Client implements \PHPWebSocket\IStreamContainer {
 
         $this->_messagesBuffer[] = implode("\r\n", $headerParts) . "\r\n\r\n";
 
-        return TRUE;
     }
 
     /**

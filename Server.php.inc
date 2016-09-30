@@ -67,7 +67,7 @@ class Server {
      * All connections
      * @var \PHPWebSocket\Server\Connection[]
      */
-    protected $_connections = array();
+    protected $_connections = [];
 
     /**
      * The address of the accepting socket
@@ -159,6 +159,27 @@ class Server {
 
         $this->_open = TRUE;
 
+    }
+
+    /**
+     * Creates a new client/connection pair to be used in fork communication
+     * @return array
+     */
+    public function createServerClientPair() : array {
+
+        list($server, $client) = stream_socket_pair(STREAM_PF_UNIX, STREAM_SOCK_STREAM, STREAM_IPPROTO_IP);
+
+        $serverConnection = new \PHPWebSocket\Server\Connection($this, $server, '', $this->_connectionIndex);
+        $this->_connections[$this->_connectionIndex] = $serverConnection;
+
+        \PHPWebSocket::Log(\PHPWebSocket::LOGLEVEL_DEBUG, 'Created new connection: ' . $serverConnection);
+
+        $this->_connectionIndex++;
+
+        $clientConnection = new \PHPWebSocket\Client();
+        $clientConnection->connectToResource($client);
+
+        return [$serverConnection, $clientConnection];
     }
 
     /**
@@ -301,11 +322,16 @@ class Server {
      */
     public function removeConnection(Server\Connection $connection) {
 
+        if ($connection->getServer() !== $this) {
+            throw new \LogicException('Unable to remove connection ' . $connection . ', this is not our connection!');
+        }
+
         \PHPWebSocket::Log(\PHPWebSocket::LOGLEVEL_DEBUG, 'Removing ' . $connection);
 
         if ($connection->isOpen()) {
             $connection->close();
         }
+
         unset($this->_connections[$connection->getIndex()]);
 
     }
