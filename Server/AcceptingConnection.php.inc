@@ -112,8 +112,9 @@ class AcceptingConnection implements \PHPWebSocket\IStreamContainer {
 
     /**
      * Closes the stream
+     * @param boolean $cleanup If we should remove our unix socket if we used one
      */
-    public function close() {
+    public function close(bool $cleanup = TRUE) {
 
         if (is_resource($this->_stream)) {
             fclose($this->_stream);
@@ -129,11 +130,22 @@ class AcceptingConnection implements \PHPWebSocket\IStreamContainer {
                 case 'unix':
                 case 'udg':
 
+                    if (!$cleanup) {
+                        \PHPWebSocket::Log(\PHPWebSocket::LOGLEVEL_DEBUG, 'Not cleaning up');
+                        break;
+                    }
+
                     $path = substr($address, $pos + 3);
                     if (file_exists($path)) {
 
-                        \PHPWebSocket::Log(\PHPWebSocket::LOGLEVEL_DEBUG, 'Unlinking: ' . $path);
-                        unlink($path);
+                        if (!$cleanup) {
+                            \PHPWebSocket::Log(\PHPWebSocket::LOGLEVEL_DEBUG, 'Not cleaning up ' . $path);
+                        } else {
+
+                            \PHPWebSocket::Log(\PHPWebSocket::LOGLEVEL_DEBUG, 'Unlinking: ' . $path);
+                            unlink($path);
+
+                        }
 
                     }
 

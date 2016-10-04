@@ -52,6 +52,12 @@ class Server {
     const ACCEPT_TIMEOUT = 1.0;
 
     /**
+     * If we should cleanup the accepting connection when we close it
+     * @var boolean
+     */
+    protected $_cleanupAcceptingConnectionOnClose = TRUE;
+
+    /**
      * The accepting socket connection
      * @var \PHPWebSocket\Server\AcceptingConnection
      */
@@ -317,6 +323,21 @@ class Server {
     }
 
     /**
+     * This should be called after a process has been fork with the PID returned from pcntl_fork, this ensures that the connection is closed in the new fork without interupting the main process
+     * @param integer $pid
+     */
+    public function processDidFork(int $pid) {
+
+        if ($pid === 0) { // We are in the new fork
+
+            $this->_cleanupAcceptingConnectionOnClose = FALSE;
+            $this->close();
+
+        }
+
+    }
+
+    /**
      * Removes the specified connection from the connections array and closes it if open
      * @param \PHPWebSocket\Server\Connection $connection
      */
@@ -374,7 +395,7 @@ class Server {
         if ($this->_acceptingConnection !== NULL) {
 
             if ($this->_acceptingConnection->isOpen()) {
-                $this->_acceptingConnection->close();
+                $this->_acceptingConnection->close($this->_cleanupAcceptingConnectionOnClose);
             }
 
             $this->_acceptingConnection = NULL;
