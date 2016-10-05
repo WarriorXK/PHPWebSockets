@@ -63,7 +63,7 @@ final class Framer {
         $byte1 = ord($frame[0]);
         $byte2 = ord($frame[1]);
 
-        $headers = array(
+        $headers = [
             self::IND_FIN            => (bool) ($byte1 & self::BYTE1_FIN),
             self::IND_RSV1           => (bool) ($byte1 & self::BYTE1_RSV1),
             self::IND_RSV2           => (bool) ($byte1 & self::BYTE1_RSV2),
@@ -73,7 +73,7 @@ final class Framer {
             self::IND_LENGTH         =>        ($byte2 & self::BYTE2_LENGTH),
             self::IND_MASKINGKEY     => NULL,
             self::IND_PAYLOADOFFSET  => 2
-        );
+        ];
 
         if ($headers[self::IND_LENGTH] === 126) { // 16 bits
 

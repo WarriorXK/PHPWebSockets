@@ -44,10 +44,10 @@ class Client implements \PHPWebSocket\IStreamContainer {
     protected $_didWeInitiateDisconnect = FALSE;
 
     /**
-     * The control messages ready to be send (Takes priority over the normal messages buffer)
+     * The priority frames ready to be send (Takes priority over the normal frames buffer)
      * @var string[]
      */
-    protected $_controlMessagesBuffer = array();
+    protected $_priorityFramesBuffer = [];
 
     /**
      * If we've received the disconnect message from the remote
@@ -104,10 +104,10 @@ class Client implements \PHPWebSocket\IStreamContainer {
     protected $_partialMessage = NULL;
 
     /**
-     * The framed messages ready to be send
+     * The frames ready to be send
      * @var string[]
      */
-    protected $_messagesBuffer = array();
+    protected $_framesBuffer = [];
 
     /**
      * The write buffer
@@ -182,7 +182,7 @@ class Client implements \PHPWebSocket\IStreamContainer {
 
         $this->_stream = $resource;
 
-        $this->_afterOpen($path, 'localhost');
+        $this->_afterOpen((string) $resource, $path);
 
         return TRUE;
     }
@@ -190,56 +190,39 @@ class Client implements \PHPWebSocket\IStreamContainer {
     /**
      * Attempts to connect to a websocket server
      * @param  string  $address
-     * @param  integer $port
      * @param  string  $path
-     * @param  boolean $useSSL
-     * @param  boolean $allowSelfSigned
      * @return boolean
      * @throws \LogicException
      */
-    public function connect(string $address, int $port = 80, string $path = '/', bool $useSSL = FALSE, bool $allowSelfSigned = FALSE) {
+    public function connect(string $address, string $path = '/') {
 
         if ($this->isOpen()) {
             throw new \LogicException('The connection is already open!');
         }
 
-        $context = stream_context_create();
-        if ($useSSL) {
-            stream_context_set_option($context, 'ssl', 'allow_self_signed', $allowSelfSigned);
-        }
-
-        if (filter_var($address, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4)) {
-
-            $port = ($port ?: ($useSSL ? 443 : 80));
-            $protocol = ($useSSL ? 'tls' : 'tcp');
-
-            $address = $protocol . '://' . $address . ':' . $port;
-
-        }
-
-        $this->_stream = @stream_socket_client($address, $this->_streamLastErrorCode, $this->_streamLastError, intval(ini_get('default_socket_timeout')), STREAM_CLIENT_CONNECT, $context);
+        $this->_stream = @stream_socket_client($address, $this->_streamLastErrorCode, $this->_streamLastError);
         if ($this->_stream === FALSE) {
             return FALSE;
         }
 
-        $this->_afterOpen($path, $address);
+        $this->_afterOpen($address, $path);
 
         return TRUE;
     }
 
     /**
      * Sets the stream settings and appends the HTTP headers to the buffer
-     * @param string $path
      * @param string $address
+     * @param string $path
      */
-    protected function _afterOpen(string $path, string $address) {
+    protected function _afterOpen(string $address, string $path) {
 
         stream_set_timeout($this->_stream, 15);
         stream_set_blocking($this->_stream, FALSE);
         stream_set_read_buffer($this->_stream, 0);
         stream_set_write_buffer($this->_stream, 0);
 
-        $headerParts = array(
+        $headerParts = [
             'GET ' . $path . ' HTTP/1.1',
             'Host: ' . $address,
             'User-Agent: ' . $this->getUserAgent(),
@@ -247,9 +230,9 @@ class Client implements \PHPWebSocket\IStreamContainer {
             'Connection: Upgrade',
             'Sec-WebSocket-Key: ' . base64_encode(\PHPWebSocket::RandomString()),
             'Sec-WebSocket-Version: 13'
-        );
+        ];
 
-        $this->_messagesBuffer[] = implode("\r\n", $headerParts) . "\r\n\r\n";
+        $this->_framesBuffer[] = implode("\r\n", $headerParts) . "\r\n\r\n";
 
     }
 
@@ -274,7 +257,7 @@ class Client implements \PHPWebSocket\IStreamContainer {
      * @return boolean
      */
     public function isWriteBufferEmpty() : bool {
-        return empty($this->_controlMessagesBuffer) && empty($this->_messagesBuffer) && empty($this->_writeBuffer);
+        return empty($this->_priorityFramesBuffer) && empty($this->_framesBuffer) && empty($this->_writeBuffer);
     }
 
     /**
@@ -292,7 +275,7 @@ class Client implements \PHPWebSocket\IStreamContainer {
      * @throws \Exception
      */
     public function update(float $timeout = NULL) : \Generator {
-        yield from \PHPWebSocket::MultiUpdate(array($this), $timeout);
+        yield from \PHPWebSocket::MultiUpdate([$this], $timeout);
     }
 
     /**
@@ -313,7 +296,7 @@ class Client implements \PHPWebSocket\IStreamContainer {
         $orgBuffer = $this->_readBuffer;
         $numBytes = strlen($this->_readBuffer);
         $framePos = 0;
-        $pongs = array();
+        $pongs = [];
 
         \PHPWebSocket::Log(\PHPWebSocket::LOGLEVEL_DEBUG, 'Handling packet, current buffer size: ' . strlen($this->_readBuffer));
 
@@ -346,11 +329,10 @@ class Client implements \PHPWebSocket\IStreamContainer {
             \PHPWebSocket::Log(\PHPWebSocket::LOGLEVEL_DEBUG, 'Expecting frame of length ' . $frameSize);
 
             $frame = substr($orgBuffer, $framePos, $frameSize);
-            $message = Framer::GetFramePayload($frame, $headers);
-            if ($message === NULL) {
-                \PHPWebSocket::Log(\PHPWebSocket::LOGLEVEL_DEBUG, 'Framer returned NULL');
+            $framePayload = Framer::GetFramePayload($frame, $headers);
+            if ($framePayload === NULL) {
                 break; // Frame isn't ready yet
-            } elseif ($message === FALSE) {
+            } elseif ($framePayload === FALSE) {
 
                 $this->sendDisconnect(\PHPWebSocket::CLOSECODE_PROTOCOLERROR);
                 $this->setCloseAfterWrite();
@@ -380,7 +362,7 @@ class Client implements \PHPWebSocket\IStreamContainer {
                     case \PHPWebSocket::OPCODE_FRAME_BINARY:
 
                         if ($opcode === \PHPWebSocket::OPCODE_CONTINUE) {
-                            $this->_partialMessage .= $message;
+                            $this->_partialMessage .= $framePayload;
                         } elseif ($this->_partialMessage !== NULL) {
 
                             $this->sendDisconnect(\PHPWebSocket::CLOSECODE_PROTOCOLERROR, 'Got new frame without completing the previous');
@@ -393,7 +375,7 @@ class Client implements \PHPWebSocket\IStreamContainer {
                         } else {
 
                             $this->_partialMessageOpcode = $opcode;
-                            $this->_partialMessage = $message;
+                            $this->_partialMessage = $framePayload;
 
                         }
 
@@ -426,27 +408,27 @@ class Client implements \PHPWebSocket\IStreamContainer {
                         $disconnectMessage = '';
                         $code = \PHPWebSocket::CLOSECODE_NORMAL;
 
-                        if (strlen($message) > 1) {
+                        if (strlen($framePayload) > 1) {
 
-                            $code = unpack('n', substr($message, 0, 2))[1]; // Send back the same disconnect code if provided
+                            $code = unpack('n', substr($framePayload, 0, 2))[1]; // Send back the same disconnect code if provided
                             if (!\PHPWebSocket::IsValidCloseCode($code)) {
 
                                 $disconnectMessage = 'Invalid close code provided: ' . $code;
                                 $code = \PHPWebSocket::CLOSECODE_PROTOCOLERROR;
 
-                            } elseif (!preg_match('//u', substr($message, 2))) {
+                            } elseif (!preg_match('//u', substr($framePayload, 2))) {
 
                                 $disconnectMessage = 'Received Non-UTF8 close frame payload';
                                 $code = \PHPWebSocket::CLOSECODE_PROTOCOLERROR;
 
                             } else {
-                                $disconnectMessage = substr($message, 2);
+                                $disconnectMessage = substr($framePayload, 2);
                             }
 
                         }
 
                         $this->_serverSentDisconnect = TRUE;
-                        yield new Update\Read(Update\Read::C_READ_DISCONNECT, $this, $opcode, $message);
+                        yield new Update\Read(Update\Read::C_READ_DISCONNECT, $this, $opcode, $framePayload);
 
                         if ($this->_didWeInitiateDisconnect) {
 
@@ -467,7 +449,7 @@ class Client implements \PHPWebSocket\IStreamContainer {
                         break;
                     case \PHPWebSocket::OPCODE_PING:
 
-                        $pingPayload = (is_string($message) ? $message : '');
+                        $pingPayload = (is_string($framePayload) ? $framePayload : '');
 
                         yield new Update\Read(Update\Read::C_PING, $this, $opcode, $pingPayload);
                         $pongs[] = $pingPayload;
@@ -513,7 +495,7 @@ class Client implements \PHPWebSocket\IStreamContainer {
             return;
         }
 
-        $updates = array();
+        $updates = [];
         if (strlen($newData) === 0) {
 
             if ($this->_serverSentDisconnect) {
@@ -594,17 +576,17 @@ class Client implements \PHPWebSocket\IStreamContainer {
 
         \PHPWebSocket::Log(\PHPWebSocket::LOGLEVEL_DEBUG, __METHOD__);
 
-        if ($this->_writeBuffer !== NULL) { // If our current message hasn't finished yet
+        if ($this->_writeBuffer !== NULL) { // If our current frame hasn't finished yet
             \PHPWebSocket::Log(\PHPWebSocket::LOGLEVEL_DEBUG, 'Resuming write');
-        } elseif (!empty($this->_controlMessagesBuffer)) { // Control frames take priority over normal frames
+        } elseif (!empty($this->_priorityFramesBuffer)) { // Certain frames take priority over normal frames
 
-            \PHPWebSocket::Log(\PHPWebSocket::LOGLEVEL_DEBUG, 'Starting new write (Control frame)');
-            $this->_writeBuffer = array_shift($this->_controlMessagesBuffer);
+            \PHPWebSocket::Log(\PHPWebSocket::LOGLEVEL_DEBUG, 'Starting new write (Priority)');
+            $this->_writeBuffer = array_shift($this->_priorityFramesBuffer);
 
-        } elseif (!empty($this->_messagesBuffer)) {
+        } elseif (!empty($this->_framesBuffer)) {
 
             \PHPWebSocket::Log(\PHPWebSocket::LOGLEVEL_DEBUG, 'Starting new write');
-            $this->_writeBuffer = array_shift($this->_messagesBuffer);
+            $this->_writeBuffer = array_shift($this->_framesBuffer);
 
         }
 
@@ -645,16 +627,16 @@ class Client implements \PHPWebSocket\IStreamContainer {
 
         $frame = Framer::Frame($data, TRUE, $opcode, $isFinal);
 
-        if (\PHPWebSocket::IsControlOpcode($opcode)) {
-            $this->_controlMessagesBuffer[] = $frame;
+        if (\PHPWebSocket::IsPriorityOpcode($opcode)) {
+            $this->_priorityFramesBuffer[] = $frame;
         } else {
-            $this->_messagesBuffer[] = $frame;
+            $this->_framesBuffer[] = $frame;
         }
 
     }
 
     /**
-     * Sends a disconnect message to the server, note: this doesn't close the connection, use setCloseAfterWrite(); or close the connection manually
+     * Sends a disconnect message to the server, this causes the connection to be closed once the remote responds with its disconnect message
      * @param integer $code
      * @param string  $reason
      */

@@ -62,7 +62,7 @@ final class PHPWebSocket {
     const CLOSECODE_UNEXPECTED_CONDITION = 1011;
     const CLOSECODE_TLS_HANDSHAKE_FAILURE = 1015;
 
-    const HTTP_ERRORCODES = array(
+    const HTTP_ERRORCODES = [
         100 => 'Continue',
         101 => 'Switching Protocols',
         102 => 'Processing',
@@ -128,7 +128,7 @@ final class PHPWebSocket {
         508 => 'Loop Detected',
         510 => 'Not Extended',
         511 => 'Network Authentication Required'
-    );
+    ];
 
     /**
      * The log handler function
@@ -283,6 +283,15 @@ final class PHPWebSocket {
                 return $code >= 3000 && $code <= 4999;
         }
 
+    }
+
+    /**
+     * Returns if the message with the provided opcode should be send with priority
+     * @param  integer $opcode
+     * @return boolean
+     */
+    static public function IsPriorityOpcode(int $opcode) : bool {
+        return self::IsControlOpcode($opcode);
     }
 
     /**

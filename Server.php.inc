@@ -95,73 +95,60 @@ class Server {
 
     /**
      * Constructs a new webserver
-     * @param  string       $address  This is either a IPv4 address or a full protocol://address:port scheme url
-     * @param  integer|NULL $port     Defaults to 80, if an SLL certificate is provided it will default to 443, if the address is not a IPv4 address this parameter is ignored
-     * @param  string|NULL  $sslCert  The filepath to the certificate
+     * @param  string $address  This should be a protocol://address:port scheme url, if left NULL no accepting socket will be created
      * @throws \Exception
      */
-    public function __construct(string $address = '0.0.0.0', int $port = NULL, string $sslCert = NULL) {
-
-        $this->_usesSSL = ($sslCert !== NULL);
-        if ($this->usesSSL() && !file_exists($sslCert)) {
-            throw new \Exception('Unable to load certificate from path \'' . $sslCert . '\'');
-        }
+    public function __construct(string $address = NULL) {
 
         $this->_address = $address;
 
-        if (filter_var($this->_address, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4)) {
-
-            $port = ($port ?: ($this->usesSSL() ? 443 : 80));
-            $protocol = ($this->usesSSL() ? 'tls' : 'tcp');
-
-            $this->_address = $protocol . '://' . $this->_address . ':' . $port;
-
-        }
-
-        $options = array();
+        $options = [];
         if ($this->usesSSL()) {
 
-            $options['ssl'] = array(
+            $options['ssl'] = [
                 'allow_self_signed' => TRUE,
                 'local_cert', $sslCert
-            );
+            ];
 
         }
 
-        $address = $this->getAddress();
-        $pos = strpos($address, '://');
-        if ($pos !== FALSE) {
+        if ($this->_address !== NULL) {
 
-            $protocol = substr($address, 0, $pos);
-            switch ($protocol) {
-                case 'unix':
-                case 'udg':
+            $pos = strpos($this->_address, '://');
+            if ($pos !== FALSE) {
 
-                    $path = substr($address, $pos + 3);
-                    if (file_exists($path)) {
+                $protocol = substr($this->_address, 0, $pos);
+                switch ($protocol) {
+                    case 'unix':
+                    case 'udg':
 
-                        \PHPWebSocket::Log(\PHPWebSocket::LOGLEVEL_WARNING, 'Unix socket "' . $path . '" still exists, unlinking!');
-                        if (!unlink($path)) {
-                            throw new \Exception('Unable to unlink file "' . $path . '"');
+                        $path = substr($this->_address, $pos + 3);
+                        if (file_exists($path)) {
+
+                            \PHPWebSocket::Log(\PHPWebSocket::LOGLEVEL_WARNING, 'Unix socket "' . $path . '" still exists, unlinking!');
+                            if (!unlink($path)) {
+                                throw new \Exception('Unable to unlink file "' . $path . '"');
+                            }
+
                         }
 
-                    }
+                        break;
+                }
 
-                    break;
             }
 
+            $errCode = NULL;
+            $errString = NULL;
+            $acceptingSocket = @stream_socket_server($this->_address, $errCode, $errString, STREAM_SERVER_BIND | STREAM_SERVER_LISTEN, stream_context_create($options));
+            if (!$acceptingSocket) {
+                throw new \Exception('Unable to create webserver: ' . $errString, $errCode);
+            }
+
+            $this->_acceptingConnection = new Server\AcceptingConnection($this, $acceptingSocket);
+
+            \PHPWebSocket::Log(\PHPWebSocket::LOGLEVEL_NORMAL, 'Opened websocket on ' . $this->_address, TRUE);
+
         }
-
-        $errCode = NULL;
-        $errString = NULL;
-        $acceptingSocket = @stream_socket_server($this->_address, $errCode, $errString, STREAM_SERVER_BIND | STREAM_SERVER_LISTEN, stream_context_create($options));
-        if (!$acceptingSocket) {
-            throw new \Exception('Unable to create webserver: ' . $errString, $errCode);
-        }
-
-        $this->_acceptingConnection = new Server\AcceptingConnection($this, $acceptingSocket);
-
-        \PHPWebSocket::Log(\PHPWebSocket::LOGLEVEL_NORMAL, 'Opened websocket on ' . $this->_address, TRUE);
 
         $this->_open = TRUE;
 
@@ -231,11 +218,11 @@ class Server {
      */
     public function getErrorPageForCode(int $errorCode, string $fallbackErrorString = 'Unknown error code') : string {
 
-        $replaceFields = array(
+        $replaceFields = [
             '%errorCode%' => (string) $errorCode,
             '%errorString%' => \PHPWebSocket::GetStringForErrorCode($errorCode) ?: $fallbackErrorString,
             '%serverIdentifier%' => $this->getServerIdentifier()
-        );
+        ];
 
         return str_replace(array_keys($replaceFields), array_values($replaceFields), "HTTP/1.1 %errorCode% %errorString%\r\nServer: %serverIdentifier%\r\n\r\n<html><head><title>%errorCode% %errorString%</title></head><body bgcolor='white'><center><h1>%errorCode% %errorString%</h1></center><hr><center>%serverIdentifier%</center></body></html>\r\n\r\n");
     }
