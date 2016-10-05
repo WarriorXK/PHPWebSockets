@@ -263,9 +263,9 @@ class Server {
 
     /**
      * Returns the accepting connection
-     * @return \PHPWebSocket\Server\AcceptingConnection
+     * @return \PHPWebSocket\Server\AcceptingConnection|NULL
      */
-    public function getAcceptingConnection() : Server\AcceptingConnection {
+    public function getAcceptingConnection() {
         return $this->_acceptingConnection;
     }
 
@@ -279,7 +279,7 @@ class Server {
         if ($includeAccepting) {
 
             $acceptingConnection = $this->getAcceptingConnection();
-            if ($acceptingConnection->isOpen()) {
+            if ($acceptingConnection !== NULL && $acceptingConnection->isOpen()) {
                 $ret[] = $acceptingConnection;
             }
 
