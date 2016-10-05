@@ -29,20 +29,20 @@ namespace PHPWebSocket\Update;
 
 class Error extends \PHPWebSocket\AUpdate {
 
-    const C_UNKNOWN = 0;
-    const C_SELECT = 1;
-    const C_READ = 2;
-    const C_READ_EMPTY = 3;
-    const C_READ_UNHANDLED = 4;
-    const C_READ_HANDSHAKEFAILURE = 5;
-    const C_READ_HANDSHAKETOLARGE = 6;
-    const C_READ_INVALID_PAYLOAD = 7;
-    const C_READ_INVALID_HEADERS = 8;
-    const C_READ_UNEXPECTED_DISCONNECT = 9;
-    const C_READ_PROTOCOL_ERROR = 10;
-    const C_READ_RVSBIT_SET = 11;
-    const C_WRITE = 12;
-    const C_ACCEPT_TIMEOUT_PASSED = 13;
+    const C_UNKNOWN = 0,
+          C_SELECT = 1,
+          C_READ = 2,
+          C_READ_EMPTY = 3,
+          C_READ_UNHANDLED = 4,
+          C_READ_HANDSHAKEFAILURE = 5,
+          C_READ_HANDSHAKETOLARGE = 6,
+          C_READ_INVALID_PAYLOAD = 7,
+          C_READ_INVALID_HEADERS = 8,
+          C_READ_UNEXPECTED_DISCONNECT = 9,
+          C_READ_PROTOCOL_ERROR = 10,
+          C_READ_RVSBIT_SET = 11,
+          C_WRITE = 12,
+          C_ACCEPT_TIMEOUT_PASSED = 13;
 
     /**
      * Returns a description for the provided error code

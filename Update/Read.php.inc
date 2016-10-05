@@ -29,14 +29,14 @@ namespace PHPWebSocket\Update;
 
 class Read extends \PHPWebSocket\AUpdate {
 
-    const C_UNKNOWN = 0;
-    const C_NEWCONNECTION = 1;
-    const C_READ = 2;
-    const C_PING = 3;
-    const C_SOCK_DISCONNECT = 4;
-    const C_CONNECTION_DENIED = 5;
-    const C_CONNECTION_ACCEPTED = 6;
-    const C_READ_DISCONNECT = 7;
+    const C_UNKNOWN = 0,
+          C_NEWCONNECTION = 1,
+          C_READ = 2,
+          C_PING = 3,
+          C_SOCK_DISCONNECT = 4,
+          C_CONNECTION_DENIED = 5,
+          C_CONNECTION_ACCEPTED = 6,
+          C_READ_DISCONNECT = 7;
 
     /**
      * The message from the client
