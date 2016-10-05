@@ -410,4 +410,8 @@ class Server {
         $this->close();
     }
 
+    public function __toString() {
+        return 'server ' . $this->_address;
+    }
+
 }

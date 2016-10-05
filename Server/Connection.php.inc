@@ -478,11 +478,17 @@ class Connection implements \PHPWebSocket\IStreamContainer {
 
                         }
 
-                        $this->sendDisconnect($code, $disconnectMessage); // Echo the disconnect
-                        $this->setCloseAfterWrite();
-
-                        yield new Update\Read(Update\Read::C_READ_DISCONNECT, $this);
+                        yield new Update\Read(Update\Read::C_READ_DISCONNECT, $this, $opcode, $message);
                         $this->_clientSentDisconnect = TRUE;
+
+                        if ($this->_serverSendDisconnect) {
+
+                            $this->close();
+                            yield new Update\Read(Update\Read::C_SOCK_DISCONNECT, $this);
+
+                        } else {
+                            $this->sendDisconnect($code, $disconnectMessage); // Echo the disconnect
+                        }
 
                         break;
                     case \PHPWebSocket::OPCODE_PING:
@@ -812,7 +818,10 @@ class Connection implements \PHPWebSocket\IStreamContainer {
     }
 
     public function __toString() {
-        return 'connection #' . $this->getIndex() . ' => ' . $this->getRemoteIP();
+
+        $remoteIP = $this->getRemoteIP();
+
+        return 'connection #' . $this->getIndex() . ($remoteIP ? ' => ' . $remoteIP : '') . ' @ ' . $this->_server;
     }
 
     public function __destruct() {
