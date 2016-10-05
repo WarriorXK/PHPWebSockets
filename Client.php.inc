@@ -38,6 +38,12 @@ class Client implements \PHPWebSocket\IStreamContainer {
     protected $_currentFrameRemainingBytes = NULL;
 
     /**
+     * If we've initiated the disconnect
+     * @var boolean
+     */
+    protected $_didWeInitiateDisconnect = FALSE;
+
+    /**
      * The control messages ready to be send (Takes priority over the normal messages buffer)
      * @var string[]
      */
@@ -439,17 +445,23 @@ class Client implements \PHPWebSocket\IStreamContainer {
 
                         }
 
+                        $this->_serverSentDisconnect = TRUE;
                         yield new Update\Read(Update\Read::C_READ_DISCONNECT, $this, $opcode, $message);
 
-                        $this->_serverSentDisconnect = TRUE;
+                        if ($this->_didWeInitiateDisconnect) {
 
-                        if ($this->_clientSendDisconnect) {
+                            \PHPWebSocket::Log(\PHPWebSocket::LOGLEVEL_DEBUG, '  We initiated the disconnect, close the connection');
 
                             $this->close();
                             yield new Update\Read(Update\Read::C_SOCK_DISCONNECT, $this);
 
-                        } else {
+                        } elseif (!$this->_clientSendDisconnect) {
+
+                            \PHPWebSocket::Log(\PHPWebSocket::LOGLEVEL_DEBUG, '  Remote initiated the disconnect, echo disconnect');
+
                             $this->sendDisconnect($code, $disconnectMessage); // Echo the disconnect
+                            $this->setCloseAfterWrite();
+
                         }
 
                         break;
@@ -600,24 +612,24 @@ class Client implements \PHPWebSocket\IStreamContainer {
 
             $bytesToWrite = strlen($this->_writeBuffer);
 
-            \PHPWebSocket::Log(\PHPWebSocket::LOGLEVEL_DEBUG, 'Attempting to write ' . $bytesToWrite . ' bytes');
+            \PHPWebSocket::Log(\PHPWebSocket::LOGLEVEL_DEBUG, '  Attempting to write ' . $bytesToWrite . ' bytes');
 
             $bytesWritten = fwrite($this->_stream, $this->_writeBuffer, min($this->getWriteRate($this), $bytesToWrite));
             if ($bytesWritten === FALSE) {
-                \PHPWebSocket::Log(\PHPWebSocket::LOGLEVEL_DEBUG, 'fwrite failed');
+                \PHPWebSocket::Log(\PHPWebSocket::LOGLEVEL_DEBUG, '    fwrite failed');
                 yield new Update\Error(Update\Error::C_WRITE, $this);
             } elseif ($bytesWritten === $bytesToWrite) {
-                \PHPWebSocket::Log(\PHPWebSocket::LOGLEVEL_DEBUG, 'All bytes written');
+                \PHPWebSocket::Log(\PHPWebSocket::LOGLEVEL_DEBUG, '    All bytes written');
                 $this->_writeBuffer = NULL;
             } else {
-                \PHPWebSocket::Log(\PHPWebSocket::LOGLEVEL_DEBUG, 'Written ' . $bytesWritten . ' bytes');
+                \PHPWebSocket::Log(\PHPWebSocket::LOGLEVEL_DEBUG, '    Written ' . $bytesWritten . ' bytes');
                 $this->_writeBuffer = substr($this->_writeBuffer, $bytesWritten);
             }
 
         }
 
         if ($this->_closeAfterWrite && $this->isWriteBufferEmpty()) {
-            \PHPWebSocket::Log(\PHPWebSocket::LOGLEVEL_DEBUG, 'Close after write');
+            \PHPWebSocket::Log(\PHPWebSocket::LOGLEVEL_DEBUG, '      Close after write');
             $this->close($this);
         }
 
@@ -648,7 +660,12 @@ class Client implements \PHPWebSocket\IStreamContainer {
      */
     public function sendDisconnect(int $code, string $reason = '') {
 
+        if (!$this->_serverSentDisconnect) {
+            $this->_didWeInitiateDisconnect = TRUE;
+        }
+
         $this->_clientSendDisconnect = TRUE;
+
         $this->write(pack('n', $code) . $reason, \PHPWebSocket::OPCODE_CLOSE_CONNECTION);
 
     }

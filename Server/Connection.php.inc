@@ -40,6 +40,12 @@ class Connection implements \PHPWebSocket\IStreamContainer {
     protected $_currentFrameRemainingBytes = NULL;
 
     /**
+     * If we've initiated the disconnect
+     * @var boolean
+     */
+    protected $_didWeInitiateDisconnect = FALSE;
+
+    /**
      * The control messages ready to be send (Takes priority over the normal messages buffer)
      * @var string[]
      */
@@ -478,16 +484,24 @@ class Connection implements \PHPWebSocket\IStreamContainer {
 
                         }
 
-                        yield new Update\Read(Update\Read::C_READ_DISCONNECT, $this, $opcode, $message);
                         $this->_clientSentDisconnect = TRUE;
 
-                        if ($this->_serverSendDisconnect) {
+                        yield new Update\Read(Update\Read::C_READ_DISCONNECT, $this, $opcode, $message);
+
+                        if ($this->_didWeInitiateDisconnect) {
+
+                            \PHPWebSocket::Log(\PHPWebSocket::LOGLEVEL_DEBUG, '  We initiated the disconnect, close the connection');
 
                             $this->close();
                             yield new Update\Read(Update\Read::C_SOCK_DISCONNECT, $this);
 
-                        } else {
+                        } elseif (!$this->_serverSendDisconnect) {
+
+                            \PHPWebSocket::Log(\PHPWebSocket::LOGLEVEL_DEBUG, '  Remote initiated the disconnect, echo disconnect');
+
                             $this->sendDisconnect($code, $disconnectMessage); // Echo the disconnect
+                            $this->setCloseAfterWrite();
+
                         }
 
                         break;
@@ -615,7 +629,12 @@ class Connection implements \PHPWebSocket\IStreamContainer {
      */
     public function sendDisconnect(int $code, string $reason = '') {
 
+        if (!$this->_clientSentDisconnect) {
+            $this->_didWeInitiateDisconnect = TRUE;
+        }
+
         $this->_serverSendDisconnect = TRUE;
+
         $this->write(pack('n', $code) . $reason, \PHPWebSocket::OPCODE_CLOSE_CONNECTION);
 
     }
