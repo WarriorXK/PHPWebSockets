@@ -34,33 +34,33 @@ require_once(__DIR__ . '/Server.php.inc');
 
 final class PHPWebSocket {
 
-    const WEBSOCKET_GUID = '258EAFA5-E914-47DA-95CA-C5AB0DC85B11';
+    const   WEBSOCKET_GUID = '258EAFA5-E914-47DA-95CA-C5AB0DC85B11';
 
-    const LOGLEVEL_DEBUG   = 0,
-          LOGLEVEL_NORMAL  = 1,
-          LOGLEVEL_WARNING = 2,
-          LOGLEVEL_ERROR   = 3;
+    const   LOGLEVEL_DEBUG   = 0,
+            LOGLEVEL_NORMAL  = 1,
+            LOGLEVEL_WARNING = 2,
+            LOGLEVEL_ERROR   = 3;
 
-    const OPCODE_CONTINUE         = 0,
-          OPCODE_FRAME_TEXT       = 1,
-          OPCODE_FRAME_BINARY     = 2,
-          OPCODE_CLOSE_CONNECTION = 8,
-          OPCODE_PING             = 9,
-          OPCODE_PONG             = 10;
+    const   OPCODE_CONTINUE         = 0,
+            OPCODE_FRAME_TEXT       = 1,
+            OPCODE_FRAME_BINARY     = 2,
+            OPCODE_CLOSE_CONNECTION = 8,
+            OPCODE_PING             = 9,
+            OPCODE_PONG             = 10;
 
-    const CLOSECODE_NORMAL                        = 1000,
-          CLOSECODE_ENDPOINT_CLOSING              = 1001,
-          CLOSECODE_PROTOCOLERROR                 = 1002,
-          CLOSECODE_UNSUPPORTED_PAYLOAD           = 1003,
-          // CLOSECODE_                           = 1004, // Reserved
-          CLOSECODE_NO_STATUS                     = 1005,
-          CLOSECODE_ABNORMAL_DISCONNECT           = 1006,
-          CLOSECODE_INVALID_PAYLOAD               = 1007,
-          CLOSECODE_POLICY_VIOLATION              = 1008,
-          CLOSECODE_PAYLOAD_TO_LARGE              = 1009,
-          CLOSECODE_EXTENSION_NEGOTIATION_FAILURE = 1010,
-          CLOSECODE_UNEXPECTED_CONDITION          = 1011,
-          CLOSECODE_TLS_HANDSHAKE_FAILURE         = 1015;
+    const   CLOSECODE_NORMAL                        = 1000,
+            CLOSECODE_ENDPOINT_CLOSING              = 1001,
+            CLOSECODE_PROTOCOLERROR                 = 1002,
+            CLOSECODE_UNSUPPORTED_PAYLOAD           = 1003,
+            // CLOSECODE_                           = 1004, // Reserved
+            CLOSECODE_NO_STATUS                     = 1005,
+            CLOSECODE_ABNORMAL_DISCONNECT           = 1006,
+            CLOSECODE_INVALID_PAYLOAD               = 1007,
+            CLOSECODE_POLICY_VIOLATION              = 1008,
+            CLOSECODE_PAYLOAD_TO_LARGE              = 1009,
+            CLOSECODE_EXTENSION_NEGOTIATION_FAILURE = 1010,
+            CLOSECODE_UNEXPECTED_CONDITION          = 1011,
+            CLOSECODE_TLS_HANDSHAKE_FAILURE         = 1015;
 
     const HTTP_ERRORCODES = [
         100 => 'Continue',

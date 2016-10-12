@@ -77,13 +77,7 @@ class AcceptingConnection implements \PHPWebSocket\IStreamContainer {
      * @return \PHPWebSocket\AUpdate[]
      */
     public function handleRead() : \Generator {
-
-        $this->_server->gotNewConnection($this, $this->_stream);
-
-        if (FALSE) {
-            yield NULL;
-        }
-
+        yield from $this->_server->gotNewConnection($this, $this->_stream);
     }
 
     /**

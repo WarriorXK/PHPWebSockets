@@ -29,24 +29,24 @@ namespace PHPWebSocket;
 
 final class Framer {
 
-    const BYTE1_FIN    = 0b10000000,
-          BYTE1_RSV1   = 0b01000000,
-          BYTE1_RSV2   = 0b00100000,
-          BYTE1_RSV3   = 0b00010000,
-          BYTE1_OPCODE = 0b00001111;
+    const   BYTE1_FIN    = 0b10000000,
+            BYTE1_RSV1   = 0b01000000,
+            BYTE1_RSV2   = 0b00100000,
+            BYTE1_RSV3   = 0b00010000,
+            BYTE1_OPCODE = 0b00001111;
 
-    const BYTE2_MASKED = 0b10000000,
-          BYTE2_LENGTH = 0b01111111;
+    const   BYTE2_MASKED = 0b10000000,
+            BYTE2_LENGTH = 0b01111111;
 
-    const IND_FIN           = 'fin',
-          IND_RSV1          = 'rsv1',
-          IND_RSV2          = 'rsv2',
-          IND_RSV3          = 'rsv3',
-          IND_OPCODE        = 'opcode',
-          IND_MASK          = 'mask',
-          IND_LENGTH        = 'length',
-          IND_MASKINGKEY    = 'masking-key',
-          IND_PAYLOADOFFSET = 'payload-offset';
+    const   IND_FIN           = 'fin',
+            IND_RSV1          = 'rsv1',
+            IND_RSV2          = 'rsv2',
+            IND_RSV3          = 'rsv3',
+            IND_OPCODE        = 'opcode',
+            IND_MASK          = 'mask',
+            IND_LENGTH        = 'length',
+            IND_MASKINGKEY    = 'masking-key',
+            IND_PAYLOADOFFSET = 'payload-offset';
 
     /**
      * Extracts the headers out of the provided frame, returns NULL if the provided frame has invalid headers

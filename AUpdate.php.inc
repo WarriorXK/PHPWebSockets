@@ -32,7 +32,16 @@ require_once(__DIR__ . '/Update/Read.php.inc');
 
 abstract class AUpdate {
 
+    /**
+     * The source object related to this update
+     * @var object|NULL
+     */
     protected $_sourceObject = NULL;
+
+    /**
+     * The code for this update
+     * @var integer
+     */
     protected $_code = 0;
 
     public function __construct(int $code, $sourceObject = NULL) {

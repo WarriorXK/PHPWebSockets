@@ -75,6 +75,14 @@ class Server {
      */
     protected $_connections = [];
 
+
+    /**
+     * If the new connection should automatically be accepted
+     * @var boolean
+     */
+    protected $_autoAccept = TRUE;
+
+
     /**
      * The address of the accepting socket
      * @var string
@@ -187,16 +195,37 @@ class Server {
 
     /**
      * Gets called by the accepting web socket to notify the server that a new connection attempt has occured
-     * @param \PHPWebSocket\Server\AcceptingConnection $acceptingConnection
+     * @param  \PHPWebSocket\Server\AcceptingConnection $acceptingConnection
+     * @return \PHPWebSocket\AUpdate[]
      */
-    public function gotNewConnection(\PHPWebSocket\Server\AcceptingConnection $acceptingConnection) {
+    public function gotNewConnection(\PHPWebSocket\Server\AcceptingConnection $acceptingConnection) : \Generator {
 
         if ($acceptingConnection !== $this->_acceptingConnection) {
             throw new \InvalidArgumentException('Got new connection from unknown accepting socket!');
         }
 
+        if (!$this->_autoAccept) {
+            yield new Update\Read(Update\Read::C_NEW_TCP_CONNECTION_AVAILABLE, $this->_acceptingConnection);
+            return;
+        }
+
+        yield from $this->acceptNewConnection();
+
+    }
+
+    /**
+     * Accepts a new connection from the accepting socket
+     * @return \PHPWebSocket\AUpdate[]
+     * @throws \Exception
+     */
+    public function acceptNewConnection() : \Generator {
+
+        if ($this->_acceptingConnection === NULL) {
+            throw new \Exception('This server has no accepting connection, unable to accept a new connection!');
+        }
+
         $peername = '';
-        $newStream = stream_socket_accept($acceptingConnection->getStream(), self::SOCKET_ACCEPT_TIMEOUT, $peername);
+        $newStream = stream_socket_accept($this->_acceptingConnection->getStream(), self::SOCKET_ACCEPT_TIMEOUT, $peername);
         if (!$newStream) {
             throw new \Exception('Unable to accept stream socket!');
         }
@@ -207,6 +236,8 @@ class Server {
         \PHPWebSocket::Log(\PHPWebSocket::LOGLEVEL_DEBUG, 'Got new connection: ' . $newConnection);
 
         $this->_connectionIndex++;
+
+        yield new Update\Read(Update\Read::C_NEW_TCP_CONNECTION, $this->_acceptingConnection);
 
     }
 
@@ -342,6 +373,22 @@ class Server {
 
         unset($this->_connections[$connection->getIndex()]);
 
+    }
+
+    /**
+     * Sets if we should automatically accept the TCP connection
+     * @param boolean $autoAccept
+     */
+    public function setAutoAccept(bool $autoAccept) {
+        $this->_autoAccept = $autoAccept;
+    }
+
+    /**
+     * Returns if we accept the TCP connection automatically
+     * @return boolean
+     */
+    public function getAutoAccept() : bool {
+        return $this->_autoAccept;
     }
 
     /**
