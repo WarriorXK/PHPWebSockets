@@ -545,7 +545,7 @@ class Client implements \PHPWebSocket\IStreamContainer {
                 }
 
                 $this->_headers = \PHPWebSocket::ParseHTTPHeaders($rawHandshake);
-                if ($this->_headers['status-code'] === 101) {
+                if (($this->_headers['status-code'] ?? NULL) === 101) {
                     $this->_handshakeAccepted = TRUE;
                     yield new Update\Read(Update\Read::C_CONNECTION_ACCEPTED, $this);
                 } else {
