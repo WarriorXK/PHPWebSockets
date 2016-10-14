@@ -52,10 +52,10 @@ class Connection implements \PHPWebSocket\IStreamContainer {
     protected $_priorityFramesBuffer = [];
 
     /**
-     * If we've send the disconnect message to the remote
+     * If we've sent the disconnect message to the remote
      * @var boolean
      */
-    protected $_serverSendDisconnect = FALSE;
+    protected $_serverSentDisconnect = FALSE;
 
     /**
      * If we've received the disconnect message from the remote
@@ -142,7 +142,7 @@ class Connection implements \PHPWebSocket\IStreamContainer {
     protected $_rawToken = NULL;
 
     /**
-     * The headers send during the handshake
+     * The headers sent during the handshake
      * @var array
      */
     protected $_headers = NULL;
@@ -495,7 +495,7 @@ class Connection implements \PHPWebSocket\IStreamContainer {
                             $this->close();
                             yield new Update\Read(Update\Read::C_SOCK_DISCONNECT, $this);
 
-                        } elseif (!$this->_serverSendDisconnect) {
+                        } elseif (!$this->_serverSentDisconnect) {
 
                             \PHPWebSocket::Log(\PHPWebSocket::LOGLEVEL_DEBUG, '  Remote initiated the disconnect, echo disconnect');
 
@@ -633,7 +633,7 @@ class Connection implements \PHPWebSocket\IStreamContainer {
             $this->_didWeInitiateDisconnect = TRUE;
         }
 
-        $this->_serverSendDisconnect = TRUE;
+        $this->_serverSentDisconnect = TRUE;
 
         $this->write(pack('n', $code) . $reason, \PHPWebSocket::OPCODE_CLOSE_CONNECTION);
 
@@ -695,7 +695,7 @@ class Connection implements \PHPWebSocket\IStreamContainer {
      * @return boolean
      */
     public function isDisconnecting() : bool {
-        return $this->_clientSentDisconnect || $this->_serverSendDisconnect;
+        return $this->_clientSentDisconnect || $this->_serverSentDisconnect;
     }
 
     /**

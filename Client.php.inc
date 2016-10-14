@@ -56,10 +56,10 @@ class Client implements \PHPWebSocket\IStreamContainer {
     protected $_serverSentDisconnect = FALSE;
 
     /**
-     * If we've send the disconnect message to the remote
+     * If we've sent the disconnect message to the remote
      * @var boolean
      */
-    protected $_clientSendDisconnect = FALSE;
+    protected $_clientSentDisconnect = FALSE;
 
     /**
      * The opcode of the current partial message
@@ -437,7 +437,7 @@ class Client implements \PHPWebSocket\IStreamContainer {
                             $this->close();
                             yield new Update\Read(Update\Read::C_SOCK_DISCONNECT, $this);
 
-                        } elseif (!$this->_clientSendDisconnect) {
+                        } elseif (!$this->_clientSentDisconnect) {
 
                             \PHPWebSocket::Log(\PHPWebSocket::LOGLEVEL_DEBUG, '  Remote initiated the disconnect, echo disconnect');
 
@@ -646,7 +646,7 @@ class Client implements \PHPWebSocket\IStreamContainer {
             $this->_didWeInitiateDisconnect = TRUE;
         }
 
-        $this->_clientSendDisconnect = TRUE;
+        $this->_clientSentDisconnect = TRUE;
 
         $this->write(pack('n', $code) . $reason, \PHPWebSocket::OPCODE_CLOSE_CONNECTION);
 
@@ -695,6 +695,14 @@ class Client implements \PHPWebSocket\IStreamContainer {
      */
     public function handshakeAccepted() : bool {
         return $this->_handshakeAccepted;
+    }
+
+    /**
+     * Returns TRUE if we are disconnecting
+     * @return boolean
+     */
+    public function isDisconnecting() : bool {
+        return $this->_clientSentDisconnect || $this->_serverSentDisconnect;
     }
 
     /**
