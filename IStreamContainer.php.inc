@@ -65,4 +65,6 @@ interface IStreamContainer {
      */
     public function getStream();
 
+    public function __toString();
+
 }

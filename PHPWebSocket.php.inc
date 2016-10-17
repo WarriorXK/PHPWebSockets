@@ -224,7 +224,7 @@ final class PHPWebSocket {
                     }
 
                     if (!is_resource($object->getStream())) { // Check if it is still open, it could have closed
-                        \PHPWebSocket::Log(\PHPWebSocket::LOGLEVEL_WARNING, 'Unable to complete write for stream container, connection was closed');
+                        \PHPWebSocket::Log(\PHPWebSocket::LOGLEVEL_WARNING, 'Unable to complete write for stream container ' . $object . ', connection was closed');
                         continue;
                     }
 

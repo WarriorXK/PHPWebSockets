@@ -104,6 +104,12 @@ class Client implements \PHPWebSocket\IStreamContainer {
     protected $_partialMessage = NULL;
 
     /**
+     * The stream's resource index
+     * @var integer|NULL
+     */
+    protected $_resourceIndex = NULL;
+
+    /**
      * The frames ready to be send
      * @var string[]
      */
@@ -216,6 +222,8 @@ class Client implements \PHPWebSocket\IStreamContainer {
      * @param string $path
      */
     protected function _afterOpen(string $address, string $path) {
+
+        $this->_resourceIndex = (int) $this->getStream();
 
         stream_set_timeout($this->_stream, 15);
         stream_set_blocking($this->_stream, FALSE);
@@ -811,6 +819,10 @@ class Client implements \PHPWebSocket\IStreamContainer {
             $this->_stream = NULL;
         }
 
+    }
+
+    public function __toString() {
+        return 'WSClient #' . $this->_resourceIndex;
     }
 
     public function __destruct() {

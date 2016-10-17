@@ -64,22 +64,28 @@ class Connection implements \PHPWebSocket\IStreamContainer {
     protected $_clientSentDisconnect = FALSE;
 
     /**
-     * If we should close the connection after our write buffer has been emptied
-     * @var boolean
-     */
-    protected $_closeAfterWrite = FALSE;
-
-    /**
      * The opcode of the current partial message
      * @var integer|NULL
      */
     protected $_partialMessageOpcode = NULL;
 
     /**
+     * If we should close the connection after our write buffer has been emptied
+     * @var boolean
+     */
+    protected $_closeAfterWrite = FALSE;
+
+    /**
      * The partial message if the current message hasn't finished yet
      * @var string|NULL
      */
     protected $_partialMessage = NULL;
+
+    /**
+     * The stream's resource index
+     * @var integer|NULL
+     */
+    protected $_resourceIndex = NULL;
 
     /**
      * If we've finished the handshake
@@ -176,6 +182,8 @@ class Connection implements \PHPWebSocket\IStreamContainer {
         if ($this->_server->usesSSL()) {
             stream_socket_enable_crypto($this->_stream, TRUE, STREAM_CRYPTO_METHOD_TLS_SERVER);
         }
+
+        $this->_resourceIndex = (int) $this->_stream;
 
         stream_set_timeout($this->_stream, 15);
         stream_set_blocking($this->_stream, FALSE);
@@ -840,7 +848,7 @@ class Connection implements \PHPWebSocket\IStreamContainer {
 
         $remoteIP = $this->getRemoteIP();
 
-        return 'connection #' . $this->getIndex() . ($remoteIP ? ' => ' . $remoteIP : '') . ' @ ' . $this->_server;
+        return 'WSConnection #' . $this->_resourceIndex . ($remoteIP ? ' => ' . $remoteIP : '') . ' @ ' . $this->_server;
     }
 
     public function __destruct() {

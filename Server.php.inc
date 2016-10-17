@@ -52,6 +52,12 @@ class Server {
     const ACCEPT_TIMEOUT = 1.0;
 
     /**
+     * The counter to provide all websocket servers with an unique ID
+     * @var integer
+     */
+    static private $_ServerCounter = 0;
+
+    /**
      * If we should cleanup the accepting connection when we close it
      * @var boolean
      */
@@ -74,6 +80,12 @@ class Server {
      * @var \PHPWebSocket\Server\Connection[]
      */
     protected $_connections = [];
+
+    /**
+     * The unique ID for this server
+     * @var integer
+     */
+    protected $_serverIndex = 0;
 
 
     /**
@@ -108,7 +120,10 @@ class Server {
      */
     public function __construct(string $address = NULL) {
 
+        $this->_serverIndex = self::$_ServerCounter;
         $this->_address = $address;
+
+        self::$_ServerCounter++;
 
         $options = [];
         if ($this->usesSSL()) {
@@ -445,7 +460,7 @@ class Server {
     }
 
     public function __toString() {
-        return 'server ' . $this->_address;
+        return 'WSServer ' . $this->_serverIndex;
     }
 
 }

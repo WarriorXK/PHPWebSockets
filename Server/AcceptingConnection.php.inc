@@ -158,4 +158,8 @@ class AcceptingConnection implements \PHPWebSocket\IStreamContainer {
 
     }
 
+    public function __toString() {
+        return 'AWSConnection #' . (int) $this->getStream() . ' @ ' . $this->_server;
+    }
+
 }
