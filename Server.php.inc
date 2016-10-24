@@ -55,7 +55,7 @@ class Server {
      * The counter to provide all websocket servers with an unique ID
      * @var integer
      */
-    static private $_ServerCounter = 0;
+    private static $_ServerCounter = 0;
 
     /**
      * If we should cleanup the accepting connection when we close it

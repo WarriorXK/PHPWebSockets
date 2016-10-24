@@ -155,7 +155,7 @@ final class PHPWebSocket {
      * @return \PHPWebSocket\AUpdate[]
      * @throws \InvalidArgumentException
      */
-    static public function MultiUpdate(array $updateObjects, float $timeout = NULL) : \Generator {
+    public static function MultiUpdate(array $updateObjects, float $timeout = NULL) : \Generator {
 
         $timeInt = NULL;
         $timePart = 0;
@@ -262,7 +262,7 @@ final class PHPWebSocket {
      * @param integer $code
      * @param boolean $received If the close code is received as reason
      */
-    static public function IsValidCloseCode(int $code, bool $received = TRUE) : bool {
+    public static function IsValidCloseCode(int $code, bool $received = TRUE) : bool {
 
         switch ($code) {
             case self::CLOSECODE_NORMAL:
@@ -290,7 +290,7 @@ final class PHPWebSocket {
      * @param  integer $opcode
      * @return boolean
      */
-    static public function IsPriorityOpcode(int $opcode) : bool {
+    public static function IsPriorityOpcode(int $opcode) : bool {
         return self::IsControlOpcode($opcode);
     }
 
@@ -299,7 +299,7 @@ final class PHPWebSocket {
      * @param  integer $opcode
      * @return boolean
      */
-    static public function IsControlOpcode(int $opcode) : bool {
+    public static function IsControlOpcode(int $opcode) : bool {
         return $opcode >= 8 && $opcode <= 15;
     }
 
@@ -308,7 +308,7 @@ final class PHPWebSocket {
      * @param  integer $length
      * @return string
      */
-    static public function RandomString(int $length = 16) : string {
+    public static function RandomString(int $length = 16) : string {
 
         $key = '';
         for ($i = 0; $i < $length; $i++) {
@@ -323,7 +323,7 @@ final class PHPWebSocket {
      * @param  string $rawHeaders
      * @return array
      */
-    static public function ParseHTTPHeaders(string $rawHeaders) : array {
+    public static function ParseHTTPHeaders(string $rawHeaders) : array {
 
         $headers = [];
 
@@ -358,7 +358,7 @@ final class PHPWebSocket {
      * @param  integer $errorCode
      * @return string|NULL
      */
-    static public function GetStringForErrorCode(int $errorCode) {
+    public static function GetStringForErrorCode(int $errorCode) {
         return self::HTTP_ERRORCODES[$errorCode] ?? NULL;
     }
 
@@ -366,7 +366,7 @@ final class PHPWebSocket {
      * Returns the version of PHPWebSocket
      * @return string
      */
-    static public function Version() : string {
+    public static function Version() : string {
 
         if (self::$_Version !== NULL) {
             return self::$_Version;
@@ -381,7 +381,7 @@ final class PHPWebSocket {
      * @param string  $message   The message to log
      * @param boolean $forceShow If the message should be shown regardless of the loglevel
      */
-    static public function Log(int $logLevel, $message, bool $forceShow = FALSE) {
+    public static function Log(int $logLevel, $message, bool $forceShow = FALSE) {
 
         if (self::$_LogHandler !== NULL) {
             call_user_func_array(self::$_LogHandler, func_get_args());
@@ -398,7 +398,7 @@ final class PHPWebSocket {
      * Installs the log handler, the callable should accept the same arguments as \PHPWebSocket::Log
      * @param callable $logHandler
      */
-    static public function SetLogHandler(callable $logHandler = NULL) {
+    public static function SetLogHandler(callable $logHandler = NULL) {
         self::$_LogHandler = $logHandler;
     }
 

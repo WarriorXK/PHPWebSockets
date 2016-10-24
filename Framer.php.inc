@@ -53,7 +53,7 @@ final class Framer {
      * @param string $frame
      * @return array|NULL
      */
-    static public function GetFrameHeaders(string $frame) {
+    public static function GetFrameHeaders(string $frame) {
 
         $frameLength = strlen($frame);
         if ($frameLength < 2) {
@@ -125,7 +125,7 @@ final class Framer {
      * @param  array|NULL $headers
      * @return string|boolean|NULL
      */
-    static public function GetFramePayload(string $frame, array $headers = NULL) {
+    public static function GetFramePayload(string $frame, array $headers = NULL) {
 
         $headers = ($headers ?? self::GetFrameHeaders($frame));
         if ($headers === NULL) {
@@ -182,7 +182,7 @@ final class Framer {
      * @throws \RangeException
      * @throws \LogicException
      */
-    static public function Frame(string $data, bool $mask, int $opcode = \PHPWebSocket::OPCODE_FRAME_TEXT, bool $isFinal = TRUE, bool $rsv1 = FALSE, bool $rsv2 = FALSE, bool $rsv3 = FALSE) {
+    public static function Frame(string $data, bool $mask, int $opcode = \PHPWebSocket::OPCODE_FRAME_TEXT, bool $isFinal = TRUE, bool $rsv1 = FALSE, bool $rsv2 = FALSE, bool $rsv3 = FALSE) {
 
         if ($opcode < 0 || $opcode > 15) {
             throw new \RangeException('Invalid opcode, opcode should range between 0 and 15');
@@ -245,7 +245,7 @@ final class Framer {
      * @param  string $payload
      * @return string
      */
-    static public function ApplyMask(string $payload, string $maskingKey) : string {
+    public static function ApplyMask(string $payload, string $maskingKey) : string {
         return str_pad('', strlen($payload), $maskingKey) ^ $payload;
     }
 

@@ -29,27 +29,27 @@ namespace PHPWebSocket\Update;
 
 class Error extends \PHPWebSocket\AUpdate {
 
-    const C_UNKNOWN = 0,
-          C_SELECT = 1,
-          C_READ = 2,
-          C_READ_EMPTY = 3,
-          C_READ_UNHANDLED = 4,
-          C_READ_HANDSHAKEFAILURE = 5,
-          C_READ_HANDSHAKETOLARGE = 6,
-          C_READ_INVALID_PAYLOAD = 7,
-          C_READ_INVALID_HEADERS = 8,
-          C_READ_UNEXPECTED_DISCONNECT = 9,
-          C_READ_PROTOCOL_ERROR = 10,
-          C_READ_RVSBIT_SET = 11,
-          C_WRITE = 12,
-          C_ACCEPT_TIMEOUT_PASSED = 13;
+    const   C_UNKNOWN = 0,
+            C_SELECT = 1,
+            C_READ = 2,
+            C_READ_EMPTY = 3,
+            C_READ_UNHANDLED = 4,
+            C_READ_HANDSHAKEFAILURE = 5,
+            C_READ_HANDSHAKETOLARGE = 6,
+            C_READ_INVALID_PAYLOAD = 7,
+            C_READ_INVALID_HEADERS = 8,
+            C_READ_UNEXPECTED_DISCONNECT = 9,
+            C_READ_PROTOCOL_ERROR = 10,
+            C_READ_RVSBIT_SET = 11,
+            C_WRITE = 12,
+            C_ACCEPT_TIMEOUT_PASSED = 13;
 
     /**
      * Returns a description for the provided error code
      * @param  integer $code
      * @return string
      */
-    static public function StringForErrorCode(int $code) : string {
+    public static function StringForErrorCode(int $code) : string {
 
         switch ($code) {
             case self::C_UNKNOWN:
