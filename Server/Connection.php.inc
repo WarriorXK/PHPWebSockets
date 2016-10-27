@@ -27,7 +27,6 @@ declare(strict_types = 1);
 
 namespace PHPWebSocket\Server;
 use \PHPWebSocket\Update;
-use \PHPWebSocket\Framer;
 
 class Connection extends \PHPWebSocket\AConnection {
 
