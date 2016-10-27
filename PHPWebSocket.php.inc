@@ -27,7 +27,9 @@ declare(strict_types = 1);
 
 require_once(__DIR__ . '/IStreamContainer.php.inc');
 require_once(__DIR__ . '/TStreamContainerDefaults.php.inc');
+require_once(__DIR__ . '/AConnection.php.inc');
 require_once(__DIR__ . '/AUpdate.php.inc');
+
 require_once(__DIR__ . '/Client.php.inc');
 require_once(__DIR__ . '/Framer.php.inc');
 require_once(__DIR__ . '/Server.php.inc');

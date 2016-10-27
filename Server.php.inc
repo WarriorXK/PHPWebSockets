@@ -401,24 +401,6 @@ class Server {
     }
 
     /**
-     * Returns the maximum amount of bytes should be written per tick for the specified connection
-     * @param  \PHPWebSocket\Server\Connection $connection
-     * @return integer
-     */
-    public function getWriteRate(Server\Connection $connection) : int {
-        return 16384;
-    }
-
-    /**
-     * Returns the maximum amount of bytes should be read per tick for the specified connection
-     * @param  \PHPWebSocket\Server\Connection $connection
-     * @return integer
-     */
-    public function getReadRate(Server\Connection $connection) : int {
-        return 16384;
-    }
-
-    /**
      * Returns if this webserver uses SSL
      * @return boolean
      */

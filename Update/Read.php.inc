@@ -33,12 +33,13 @@ class Read extends \PHPWebSocket\AUpdate {
             C_NEWCONNECTION = 1,
             C_READ = 2,
             C_PING = 3,
-            C_SOCK_DISCONNECT = 4,
-            C_CONNECTION_DENIED = 5,
-            C_CONNECTION_ACCEPTED = 6,
-            C_READ_DISCONNECT = 7,
-            C_NEW_TCP_CONNECTION = 8,
-            C_NEW_TCP_CONNECTION_AVAILABLE = 9;
+            C_PONG = 4,
+            C_SOCK_DISCONNECT = 5,
+            C_CONNECTION_DENIED = 6,
+            C_CONNECTION_ACCEPTED = 7,
+            C_READ_DISCONNECT = 8,
+            C_NEW_TCP_CONNECTION = 9,
+            C_NEW_TCP_CONNECTION_AVAILABLE = 10;
 
     /**
      * The message from the client
