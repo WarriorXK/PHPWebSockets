@@ -210,21 +210,15 @@ class Server {
 
     /**
      * Gets called by the accepting web socket to notify the server that a new connection attempt has occured
-     * @param  \PHPWebSocket\Server\AcceptingConnection $acceptingConnection
      * @return \PHPWebSocket\AUpdate[]
      */
-    public function gotNewConnection(\PHPWebSocket\Server\AcceptingConnection $acceptingConnection) : \Generator {
-
-        if ($acceptingConnection !== $this->_acceptingConnection) {
-            throw new \InvalidArgumentException('Got new connection from unknown accepting socket!');
-        }
+    public function gotNewConnection() : \Generator {
 
         if (!$this->_autoAccept) {
             yield new Update\Read(Update\Read::C_NEW_TCP_CONNECTION_AVAILABLE, $this->_acceptingConnection);
-            return;
+        } else {
+            yield from $this->acceptNewConnection();
         }
-
-        yield from $this->acceptNewConnection();
 
     }
 
