@@ -192,7 +192,7 @@ class Client extends \PHPWebSocket\AConnection {
         $updates = [];
         if (strlen($newData) === 0) {
 
-            if ($this->_weSentDisconnect) {
+            if ($this->_remoteSentDisconnect && $this->_weSentDisconnect) {
                 yield new Update\Read(Update\Read::C_SOCK_DISCONNECT, $this);
             } else {
                 yield new Update\Error(Update\Error::C_READ_UNEXPECTED_DISCONNECT, $this);

@@ -123,13 +123,13 @@ class Connection extends \PHPWebSocket\AConnection {
         $updates = [];
         if (strlen($newData) === 0) {
 
-            if ($this->_remoteSentDisconnect) {
+            if ($this->_remoteSentDisconnect && $this->_weSentDisconnect) {
                 yield new Update\Read(Update\Read::C_SOCK_DISCONNECT, $this);
             } else {
                 yield new Update\Error(Update\Error::C_READ_UNEXPECTED_DISCONNECT, $this);
             }
 
-            $this->_server->removeConnection($this);
+            $this->close();
 
             return;
 
@@ -152,7 +152,7 @@ class Connection extends \PHPWebSocket\AConnection {
                     if (strlen($this->_readBuffer) > $this->getMaxHandshakeLength()) {
 
                         yield new Update\Error(Update\Error::C_READ_HANDSHAKETOLARGE, $this);
-                        $this->_server->removeConnection($this);
+                        $this->close();
 
                     }
 
