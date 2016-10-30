@@ -26,7 +26,7 @@
 declare(strict_types = 1);
 
 namespace PHPWebSocket\Server;
-use \PHPWebSocket\Update;
+use PHPWebSocket\Update;
 
 class Connection extends \PHPWebSocket\AConnection {
 
@@ -102,21 +102,6 @@ class Connection extends \PHPWebSocket\AConnection {
         stream_set_blocking($this->_stream, FALSE);
         stream_set_read_buffer($this->_stream, 0);
         stream_set_write_buffer($this->_stream, 0);
-
-    }
-
-    /**
-     * Writes the current buffer to the connection
-     * @return \PHPWebSocket\AUpdate[]
-     */
-    public function handleWrite() : \Generator {
-
-        yield from parent::handleWrite();
-
-        // If the connection was closed after the write has finished let the server know
-        if (!$this->isOpen()) {
-            $this->_server->removeConnection($this);
-        }
 
     }
 
@@ -384,6 +369,8 @@ class Connection extends \PHPWebSocket\AConnection {
             fclose($this->_stream);
             $this->_stream = NULL;
         }
+
+        $this->_server->removeConnection($this);
 
     }
 
