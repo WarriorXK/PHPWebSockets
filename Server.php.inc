@@ -70,6 +70,12 @@ class Server {
     protected $_acceptingConnection = NULL;
 
     /**
+     * If we should disable the after fork cleanup
+     * @var boolean
+     */
+    protected $_disableForkCleanup = NULL;
+
+    /**
      * The index for the next connection to be inserted at
      * @var integer
      */
@@ -87,13 +93,11 @@ class Server {
      */
     protected $_serverIndex = 0;
 
-
     /**
      * If the new connection should automatically be accepted
      * @var boolean
      */
     protected $_autoAccept = TRUE;
-
 
     /**
      * The address of the accepting socket
@@ -355,6 +359,10 @@ class Server {
      */
     public function processDidFork(int $pid) {
 
+        if ($this->_disableForkCleanup) {
+            return;
+        }
+
         if ($pid === 0) { // We are in the new fork
 
             $this->_cleanupAcceptingConnectionOnClose = FALSE;
@@ -382,6 +390,22 @@ class Server {
 
         unset($this->_connections[$connection->getIndex()]);
 
+    }
+
+    /**
+     * Sets if we should disable the cleanup which happens after forking
+     * @param boolean $disableForkCleanup
+     */
+    public function setDisableForkCleanup(bool $disableForkCleanup) {
+        $this->_disableForkCleanup = $disableForkCleanup;
+    }
+
+    /**
+     * Returns if we should disable the cleanup which happens after forking
+     * @return boolean
+     */
+    public function getDisableForkCleanup() : bool {
+        return $this->_disableForkCleanup;
     }
 
     /**
