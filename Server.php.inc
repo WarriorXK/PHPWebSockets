@@ -324,7 +324,7 @@ class Server {
 
             $acceptingConnection = $this->getAcceptingConnection();
             if ($acceptingConnection !== NULL && $acceptingConnection->isOpen()) {
-                $ret[] = $acceptingConnection;
+                array_unshift($ret, $acceptingConnection); // Insert the accepting connection on the first index
             }
 
         }
