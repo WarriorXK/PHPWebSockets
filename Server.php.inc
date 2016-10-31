@@ -157,6 +157,16 @@ class Server {
                                 throw new \Exception('Unable to unlink file "' . $path . '"');
                             }
 
+                        } else {
+
+                            $dir = pathinfo($path, PATHINFO_DIRNAME);
+                            if (!is_dir($dir)) {
+
+                                \PHPWebSocket::Log(\PHPWebSocket::LOGLEVEL_DEBUG, 'Directory "' . $dir . '" does not exist, creating..');
+                                mkdir($dir, 0770, TRUE);
+
+                            }
+
                         }
 
                         break;
