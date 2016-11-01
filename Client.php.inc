@@ -285,8 +285,16 @@ class Client extends \PHPWebSocket\AConnection {
      * Returns if the frame we are writing should be masked
      * @return boolean
      */
-    public function _shouldMask() : bool {
+    protected function _shouldMask() : bool {
         return TRUE;
+    }
+
+    /**
+     * Returns the headers set during the http request
+     * @return array
+     */
+    public function getHeaders() : array {
+        return $this->_headers;
     }
 
     /**

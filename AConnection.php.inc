@@ -583,7 +583,7 @@ abstract class AConnection implements IStreamContainer {
      * Returns if the frame we are writing should be masked
      * @return boolean
      */
-    abstract public function _shouldMask() : bool;
+    abstract protected function _shouldMask() : bool;
 
     /**
      * Returns TRUE if our connection is open
