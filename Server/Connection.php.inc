@@ -389,12 +389,4 @@ class Connection extends \PHPWebSocket\AConnection {
         return 'WSConnection #' . $this->_resourceIndex . ($remoteIP ? ' => ' . $remoteIP : '') . ' @ ' . $this->_server;
     }
 
-    public function __destruct() {
-
-        if ($this->isOpen()) {
-            $this->close();
-        }
-
-    }
-
 }

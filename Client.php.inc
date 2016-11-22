@@ -321,12 +321,4 @@ class Client extends \PHPWebSocket\AConnection {
         return 'WSClient #' . $this->_resourceIndex;
     }
 
-    public function __destruct() {
-
-        if ($this->isOpen()) {
-            $this->close();
-        }
-
-    }
-
 }
