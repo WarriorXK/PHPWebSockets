@@ -1,4 +1,5 @@
 <?php
+
 // - - - - - - - - - - - - - BEGIN LICENSE BLOCK - - - - - - - - - - - - -
 // The MIT License (MIT)
 //
@@ -28,9 +29,9 @@ declare(strict_types = 1);
 namespace PHPWebSocket;
 
 trait TStreamContainerDefaults {
-
     /**
      * Gets called just before stream_select gets called
+     *
      * @return \PHPWebSocket\AUpdate[]
      */
     public function beforeStreamSelect() : \Generator {
@@ -41,7 +42,8 @@ trait TStreamContainerDefaults {
 
     /**
      * Returns if we have (partial)frames ready to be send
-     * @return boolean
+     *
+     * @return bool
      */
     public function isWriteBufferEmpty() : bool {
         return TRUE;
@@ -49,6 +51,7 @@ trait TStreamContainerDefaults {
 
     /**
      * Handles exceptional data reads
+     *
      * @return \PHPWebSocket\AUpdate[]
      */
     public function handleExceptional() : \Generator {
@@ -59,6 +62,7 @@ trait TStreamContainerDefaults {
 
     /**
      * Writes the current buffer to the connection
+     *
      * @return \PHPWebSocket\AUpdate[]
      */
     public function handleWrite() : \Generator {
@@ -69,6 +73,7 @@ trait TStreamContainerDefaults {
 
     /**
      * Attempts to read from our connection
+     *
      * @return \PHPWebSocket\AUpdate[]
      */
     public function handleRead() : \Generator {
@@ -76,5 +81,4 @@ trait TStreamContainerDefaults {
             yield;
         }
     }
-
 }

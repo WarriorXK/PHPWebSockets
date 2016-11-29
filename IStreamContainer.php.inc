@@ -1,4 +1,5 @@
 <?php
+
 // - - - - - - - - - - - - - BEGIN LICENSE BLOCK - - - - - - - - - - - - -
 // The MIT License (MIT)
 //
@@ -28,43 +29,47 @@ declare(strict_types = 1);
 namespace PHPWebSocket;
 
 interface IStreamContainer {
-
     /**
      * Gets called just before stream_select gets called
+     *
      * @return \PHPWebSocket\AUpdate[]
      */
     public function beforeStreamSelect() : \Generator;
 
     /**
      * Returns if we have (partial)frames ready to be send
-     * @return boolean
+     *
+     * @return bool
      */
     public function isWriteBufferEmpty() : bool;
 
     /**
      * Handles exceptional data reads
+     *
      * @return \PHPWebSocket\AUpdate[]
      */
     public function handleExceptional() : \Generator;
 
     /**
      * Writes the current buffer to the connection
+     *
      * @return \PHPWebSocket\AUpdate[]
      */
     public function handleWrite() : \Generator;
 
     /**
      * Attempts to read from our connection
+     *
      * @return \PHPWebSocket\AUpdate[]
      */
     public function handleRead() : \Generator;
 
     /**
      * Returns the stream object for this connection
+     *
      * @return resource
      */
     public function getStream();
 
     public function __toString();
-
 }
