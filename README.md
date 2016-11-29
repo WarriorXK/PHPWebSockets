@@ -13,7 +13,7 @@ A basic websocket echo server would be:
 ```php
 require('PHPWebSocket/PHPWebSocket.php.inc');
 
-$websocket = new \PHPWebSocket\Server('0.0.0.0', 9001);
+$websocket = new \PHPWebSocket\Server('tcp://0.0.0.0:9001');
 
 while (TRUE) {
 
@@ -50,7 +50,7 @@ A basic websocket echo client would be:
 require('PHPWebSocket/PHPWebSocket.php.inc');
 
 $client = new \PHPWebSocket\Client();
-if (!$client->connect('localhost', 9001, '/webSocket')) {
+if (!$client->connect('tcp://localhost:9001/webSocket')) {
     die('Unable to connect to server: ' . $client->getLastError() . PHP_EOL);
 }
 
