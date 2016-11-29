@@ -1,0 +1,11 @@
+language: php
+php:
+  - '7.0'
+  - '7.1'
+script: php Tests/test.php
+notifications:
+  email:
+    recipients:
+      - kevkevm@gmail.com
+    on_success: always
+    on_failure: always
