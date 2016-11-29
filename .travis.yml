@@ -2,7 +2,13 @@ language: php
 php:
   - '7.0'
   - '7.1'
-script: php Tests/test.php
+before_script:
+  - sudo apt-get update
+  - sudo apt-get install python-pip
+  - sudo pip install autobahntestsuite
+script:
+  - php Tests/server.php
+  - php Tests/client.php
 notifications:
   email:
     recipients:
