@@ -124,7 +124,7 @@ class Client extends \PHPWebSocket\AConnection {
         stream_set_timeout($this->_stream, 15);
         stream_set_blocking($this->_stream, FALSE);
         stream_set_read_buffer($this->_stream, 0);
-        stream_set_write_buffer($this->_stream, 0);
+        stream_set_write_buffer($this->_stream, 0)
 
         $headerParts = [
             'GET ' . $path . ' HTTP/1.1',
