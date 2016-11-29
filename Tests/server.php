@@ -58,7 +58,7 @@ echo('Getting results..' . PHP_EOL);
 $outputFile = '/tmp/reports/servers/index.json';
 if (!file_exists($outputFile)) {
     echo('File "' . $outputFile . '" doesn\'t exist!');
-    die(1);
+    exit(1);
 }
 
 $hasFailures = FALSE;

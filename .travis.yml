@@ -12,6 +12,6 @@ script:
 notifications:
   email:
     recipients:
-      - kevin.meijer@thefrontdoor.nl
+      - kevkevm@gmail.com
     on_success: change
     on_failure: always
