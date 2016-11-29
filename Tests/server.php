@@ -24,13 +24,20 @@ while (proc_get_status($wstestProc)['running'] ?? FALSE) {
                 case Read::C_NEWCONNECTION:
                     $sourceObj->accept();
                     break;
-                case Read::OPCODE_CONTINUE:
-                case Read::OPCODE_FRAME_TEXT:
-                case Read::OPCODE_FRAME_BINARY:
+                case Read::C_READ:
 
-                    $msg = $update->getMessage();
-                    if ($msg !== NULL && !$sourceObj->isDisconnecting()) {
-                        $sourceObj->write($msg, $opcode);
+                    $opcode = $update->getOpcode();
+                    switch ($opcode) {
+                        case \PHPWebSocket::OPCODE_CONTINUE:
+                        case \PHPWebSocket::OPCODE_FRAME_TEXT:
+                        case \PHPWebSocket::OPCODE_FRAME_BINARY:
+
+                            $msg = $update->getMessage();
+                            if ($msg !== NULL && !$sourceObj->isDisconnecting()) {
+                                $sourceObj->write($msg, $opcode);
+                            }
+
+                            break;
                     }
 
                     break;
@@ -48,8 +55,14 @@ $websocket->close();
 
 echo('Getting results..' . PHP_EOL);
 
+$outputFile = '/tmp/reports/servers/index.json';
+if (!file_exists($outputFile)) {
+    echo('File "' . $outputFile . '" doesn\'t exist!');
+    die(1);
+}
+
 $hasFailures = FALSE;
-$testCases = json_decode(file_get_contents('/tmp/reports/servers/index.json'), TRUE)[$websocket->getServerIdentifier()];
+$testCases = json_decode(file_get_contents($outputFile), TRUE)[$websocket->getServerIdentifier()];
 foreach ($testCases as $case => $data) {
 
     echo($case . ' => ' . $data['behavior'] . PHP_EOL);
