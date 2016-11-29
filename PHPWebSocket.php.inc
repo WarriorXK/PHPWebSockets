@@ -1,4 +1,5 @@
 <?php
+
 // - - - - - - - - - - - - - BEGIN LICENSE BLOCK - - - - - - - - - - - - -
 // The MIT License (MIT)
 //
@@ -38,31 +39,31 @@ final class PHPWebSocket {
 
     const   WEBSOCKET_GUID = '258EAFA5-E914-47DA-95CA-C5AB0DC85B11';
 
-    const   LOGLEVEL_DEBUG   = 0,
-            LOGLEVEL_NORMAL  = 1,
+    const   LOGLEVEL_DEBUG = 0,
+            LOGLEVEL_NORMAL = 1,
             LOGLEVEL_WARNING = 2,
-            LOGLEVEL_ERROR   = 3;
+            LOGLEVEL_ERROR = 3;
 
-    const   OPCODE_CONTINUE         = 0,
-            OPCODE_FRAME_TEXT       = 1,
-            OPCODE_FRAME_BINARY     = 2,
+    const   OPCODE_CONTINUE = 0,
+            OPCODE_FRAME_TEXT = 1,
+            OPCODE_FRAME_BINARY = 2,
             OPCODE_CLOSE_CONNECTION = 8,
-            OPCODE_PING             = 9,
-            OPCODE_PONG             = 10;
+            OPCODE_PING = 9,
+            OPCODE_PONG = 10;
 
-    const   CLOSECODE_NORMAL                        = 1000,
-            CLOSECODE_ENDPOINT_CLOSING              = 1001,
-            CLOSECODE_PROTOCOLERROR                 = 1002,
-            CLOSECODE_UNSUPPORTED_PAYLOAD           = 1003,
+    const   CLOSECODE_NORMAL = 1000,
+            CLOSECODE_ENDPOINT_CLOSING = 1001,
+            CLOSECODE_PROTOCOLERROR = 1002,
+            CLOSECODE_UNSUPPORTED_PAYLOAD = 1003,
             // CLOSECODE_                           = 1004, // Reserved
-            CLOSECODE_NO_STATUS                     = 1005,
-            CLOSECODE_ABNORMAL_DISCONNECT           = 1006,
-            CLOSECODE_INVALID_PAYLOAD               = 1007,
-            CLOSECODE_POLICY_VIOLATION              = 1008,
-            CLOSECODE_PAYLOAD_TO_LARGE              = 1009,
+            CLOSECODE_NO_STATUS = 1005,
+            CLOSECODE_ABNORMAL_DISCONNECT = 1006,
+            CLOSECODE_INVALID_PAYLOAD = 1007,
+            CLOSECODE_POLICY_VIOLATION = 1008,
+            CLOSECODE_PAYLOAD_TO_LARGE = 1009,
             CLOSECODE_EXTENSION_NEGOTIATION_FAILURE = 1010,
-            CLOSECODE_UNEXPECTED_CONDITION          = 1011,
-            CLOSECODE_TLS_HANDSHAKE_FAILURE         = 1015;
+            CLOSECODE_UNEXPECTED_CONDITION = 1011,
+            CLOSECODE_TLS_HANDSHAKE_FAILURE = 1015;
 
     const HTTP_ERRORCODES = [
         100 => 'Continue',
@@ -129,33 +130,39 @@ final class PHPWebSocket {
         507 => 'Insufficient Storage',
         508 => 'Loop Detected',
         510 => 'Not Extended',
-        511 => 'Network Authentication Required'
+        511 => 'Network Authentication Required',
     ];
 
     /**
      * The log handler function
-     * @var callable|NULL
+     *
+     * @var callable|null
      */
     private static $_LogHandler = NULL;
 
     /**
      * The current version of PHPWebSocket
-     * @var string|NULL
+     *
+     * @var string|null
      */
     private static $_Version = NULL;
 
     /**
      * If we're currently debugging
-     * @var boolean
+     *
+     * @var bool
      */
     private static $_Debug = FALSE;
 
     /**
      * Checks for updates for the provided IStreamContainer objects
-     * @param  \PHPWebSocket\IStreamContainer $objects
-     * @param  float|NULL                     $timeout The amount of seconds to wait for updates, setting this value to NULL causes this function to block indefinitely until there is an update
-     * @return \PHPWebSocket\AUpdate[]
+     *
+     * @param \PHPWebSocket\IStreamContainer $objects
+     * @param float|null                     $timeout The amount of seconds to wait for updates, setting this value to NULL causes this function to block indefinitely until there is an update
+     *
      * @throws \InvalidArgumentException
+     *
+     * @return \PHPWebSocket\AUpdate[]
      */
     public static function MultiUpdate(array $updateObjects, float $timeout = NULL) : \Generator {
 
@@ -198,6 +205,7 @@ final class PHPWebSocket {
             $streams = @stream_select($read, $write, $exceptional, $timeInt, $timePart); // Stream select filters everything out of the arrays
             if ($streams === FALSE) {
                 yield new \PHPWebSocket\Update\Error(\PHPWebSocket\Update\Error::C_SELECT);
+
                 return;
             } else {
 
@@ -261,8 +269,9 @@ final class PHPWebSocket {
 
     /**
      * Returns TRUE if the specified code is valid
-     * @param integer $code
-     * @param boolean $received If the close code is received as reason
+     *
+     * @param int  $code
+     * @param bool $received If the close code is received as reason
      */
     public static function IsValidCloseCode(int $code, bool $received = TRUE) : bool {
 
@@ -289,8 +298,10 @@ final class PHPWebSocket {
 
     /**
      * Returns if the message with the provided opcode should be send with priority
-     * @param  integer $opcode
-     * @return boolean
+     *
+     * @param int $opcode
+     *
+     * @return bool
      */
     public static function IsPriorityOpcode(int $opcode) : bool {
         return self::IsControlOpcode($opcode);
@@ -298,8 +309,10 @@ final class PHPWebSocket {
 
     /**
      * Returns if the provided opcode is a control opcode
-     * @param  integer $opcode
-     * @return boolean
+     *
+     * @param int $opcode
+     *
+     * @return bool
      */
     public static function IsControlOpcode(int $opcode) : bool {
         return $opcode >= 8 && $opcode <= 15;
@@ -307,7 +320,9 @@ final class PHPWebSocket {
 
     /**
      * Generates a random string
-     * @param  integer $length
+     *
+     * @param int $length
+     *
      * @return string
      */
     public static function RandomString(int $length = 16) : string {
@@ -322,7 +337,9 @@ final class PHPWebSocket {
 
     /**
      * Attempts to parse the provided string into key => value pairs based on the HTTP headers syntax
-     * @param  string $rawHeaders
+     *
+     * @param string $rawHeaders
+     *
      * @return array
      */
     public static function ParseHTTPHeaders(string $rawHeaders) : array {
@@ -357,8 +374,10 @@ final class PHPWebSocket {
 
     /**
      * Returns the text related to the provided error code, returns NULL if the code is unknown
-     * @param  integer $errorCode
-     * @return string|NULL
+     *
+     * @param int $errorCode
+     *
+     * @return string|null
      */
     public static function GetStringForErrorCode(int $errorCode) {
         return self::HTTP_ERRORCODES[$errorCode] ?? NULL;
@@ -366,6 +385,7 @@ final class PHPWebSocket {
 
     /**
      * Returns the version of PHPWebSocket
+     *
      * @return string
      */
     public static function Version() : string {
@@ -374,34 +394,36 @@ final class PHPWebSocket {
             return self::$_Version;
         }
 
-        return (self::$_Version = trim(file_get_contents(__DIR__ . DIRECTORY_SEPARATOR . 'VERSION')));
+        return self::$_Version = trim(file_get_contents(__DIR__ . DIRECTORY_SEPARATOR . 'VERSION'));
     }
 
     /**
      * Logs a message
-     * @param integer $logLevel  The loglevel, @see \PHPWebSocket::LOGLEVEL_*
-     * @param string  $message   The message to log
-     * @param boolean $forceShow If the message should be shown regardless of the loglevel
+     *
+     * @param int    $logLevel  The loglevel, @see \PHPWebSocket::LOGLEVEL_*
+     * @param string $message   The message to log
+     * @param bool   $forceShow If the message should be shown regardless of the loglevel
      */
     public static function Log(int $logLevel, $message, bool $forceShow = FALSE) {
 
         if (self::$_LogHandler !== NULL) {
             call_user_func_array(self::$_LogHandler, func_get_args());
+
             return;
         }
 
         if ($logLevel > self::LOGLEVEL_DEBUG || self::$_Debug || $forceShow) {
-            echo('PHPWebSocket: ' . $logLevel . ') ' . ((string) $message) . PHP_EOL);
+            echo 'PHPWebSocket: ' . $logLevel . ') ' . ((string) $message) . PHP_EOL;
         }
 
     }
 
     /**
      * Installs the log handler, the callable should accept the same arguments as \PHPWebSocket::Log
+     *
      * @param callable $logHandler
      */
     public static function SetLogHandler(callable $logHandler = NULL) {
         self::$_LogHandler = $logHandler;
     }
-
 }

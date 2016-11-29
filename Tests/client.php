@@ -14,7 +14,7 @@ sleep(2);
 
 $client = new \PHPWebSocket\Client();
 if (!$client->connect($address, '/getCaseCount')) {
-    echo('Unable to connect to server: ' . $client->getLastError() . PHP_EOL);
+    echo 'Unable to connect to server: ' . $client->getLastError() . PHP_EOL;
     exit(1);
 }
 
@@ -28,7 +28,7 @@ while ($client->isOpen()) {
     }
 }
 
-echo('Will run ' . $caseCount . ' test cases' . PHP_EOL);
+echo 'Will run ' . $caseCount . ' test cases' . PHP_EOL;
 
 for ($i = 0; $i < $caseCount; $i++) {
 
@@ -50,7 +50,7 @@ for ($i = 0; $i < $caseCount; $i++) {
 
 }
 
-echo('All test cases ran, asking for report update' . PHP_EOL);
+echo 'All test cases ran, asking for report update' . PHP_EOL;
 
 $client = new \PHPWebSocket\Client();
 $client->connect($address, '/updateReports?agent=' . $client->getUserAgent());
@@ -61,11 +61,11 @@ while ($client->isOpen()) {
     }
 }
 
-echo('Reports finished, getting results..' . PHP_EOL);
+echo 'Reports finished, getting results..' . PHP_EOL;
 
 $outputFile = '/tmp/reports/clients/index.json';
 if (!file_exists($outputFile)) {
-    echo('File "' . $outputFile . '" doesn\'t exist!');
+    echo 'File "' . $outputFile . '" doesn\'t exist!';
     exit(1);
 }
 
@@ -73,7 +73,7 @@ $hasFailures = FALSE;
 $testCases = json_decode(file_get_contents($outputFile), TRUE)[$client->getUserAgent()];
 foreach ($testCases as $case => $data) {
 
-    echo($case . ' => ' . $data['behavior'] . PHP_EOL);
+    echo $case . ' => ' . $data['behavior'] . PHP_EOL;
 
     switch ($data['behavior']) {
         case 'OK':
@@ -88,7 +88,7 @@ foreach ($testCases as $case => $data) {
 
 }
 
-echo('Exiting' . PHP_EOL);
+echo 'Exiting' . PHP_EOL;
 
 exit((int) $hasFailures);
 
