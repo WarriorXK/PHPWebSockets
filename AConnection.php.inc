@@ -443,21 +443,28 @@ abstract class AConnection implements IStreamContainer {
     }
 
     /**
+     * Writes a raw string to the buffer, if priority is set to TRUE it will be send before normal priority messages
+     * @param string  $data
+     * @param boolean $priority
+     */
+    public function writeRaw(string $data, bool $priority) {
+
+        if ($priority) {
+            $this->_priorityFramesBuffer[] = $data;
+        } else {
+            $this->_framesBuffer[] = $data;
+        }
+
+    }
+
+    /**
      * Queues a string to be written to the remote
      * @param string  $data
      * @param integer $opcode
      * @param boolean $isFinal
      */
     public function write(string $data, int $opcode = \PHPWebSocket::OPCODE_FRAME_TEXT, bool $isFinal = TRUE) {
-
-        $frame = Framer::Frame($data, $this->_shouldMask(), $opcode, $isFinal);
-
-        if (\PHPWebSocket::IsPriorityOpcode($opcode)) {
-            $this->_priorityFramesBuffer[] = $frame;
-        } else {
-            $this->_framesBuffer[] = $frame;
-        }
-
+        $this->writeRaw(Framer::Frame($data, $this->_shouldMask(), $opcode, $isFinal), \PHPWebSocket::IsPriorityOpcode($opcode));
     }
 
     /**

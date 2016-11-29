@@ -136,7 +136,7 @@ class Client extends \PHPWebSocket\AConnection {
             'Sec-WebSocket-Version: 13'
         ];
 
-        $this->_framesBuffer[] = implode("\r\n", $headerParts) . "\r\n\r\n";
+        $this->writeRaw(implode("\r\n", $headerParts) . "\r\n\r\n", FALSE);
 
     }
 
