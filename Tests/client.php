@@ -4,13 +4,13 @@ require_once(__DIR__ . '/../PHPWebSocket.php.inc');
 
 use \PHPWebSocket\Update\Read;
 
-$address = 'tcp://localhost:9001';
+$address = 'tcp://127.0.0.1:9001';
 $port = 9001;
 
 $descriptorSpec = [['pipe', 'r'], STDOUT, STDERR];
-$wstestProc = proc_open('wstest -m fuzzingclient -s Autobahn/fuzzingclient.json', $descriptorSpec, $pipes, __DIR__);
+$wstestProc = proc_open('wstest -m fuzzingserver -s Autobahn/fuzzingserver.json', $descriptorSpec, $pipes, __DIR__);
 
-sleep(1); // Just to be sure
+sleep(2);
 
 $client = new \PHPWebSocket\Client();
 if (!$client->connect($address, '/getCaseCount')) {
