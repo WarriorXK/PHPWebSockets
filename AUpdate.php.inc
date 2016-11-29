@@ -1,4 +1,5 @@
 <?php
+
 // - - - - - - - - - - - - - BEGIN LICENSE BLOCK - - - - - - - - - - - - -
 // The MIT License (MIT)
 //
@@ -34,13 +35,15 @@ abstract class AUpdate {
 
     /**
      * The source object related to this update
-     * @var object|NULL
+     *
+     * @var object|null
      */
     protected $_sourceObject = NULL;
 
     /**
      * The code for this update
-     * @var integer
+     *
+     * @var int
      */
     protected $_code = 0;
 
@@ -53,7 +56,8 @@ abstract class AUpdate {
 
     /**
      * Returns the source object related to this update
-     * @return object|NULL
+     *
+     * @return object|null
      */
     public function getSourceObject() {
         return $this->_sourceObject;
@@ -61,7 +65,8 @@ abstract class AUpdate {
 
     /**
      * Returns the code for this update
-     * @return integer
+     *
+     * @return int
      */
     public function getCode() : int {
         return $this->_code;
@@ -70,5 +75,4 @@ abstract class AUpdate {
     public function __toString() {
         return 'AUpdate) (C: ' . $code . ')';
     }
-
 }

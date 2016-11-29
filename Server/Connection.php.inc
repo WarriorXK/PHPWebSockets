@@ -1,4 +1,5 @@
 <?php
+
 // - - - - - - - - - - - - - BEGIN LICENSE BLOCK - - - - - - - - - - - - -
 // The MIT License (MIT)
 //
@@ -26,61 +27,71 @@
 declare(strict_types = 1);
 
 namespace PHPWebSocket\Server;
+
 use PHPWebSocket\Update;
 
 class Connection extends \PHPWebSocket\AConnection {
 
     /**
      * The stream's resource index
-     * @var integer|NULL
+     *
+     * @var int|null
      */
     protected $_resourceIndex = NULL;
 
     /**
      * If we've finished the handshake
-     * @var boolean
+     *
+     * @var bool
      */
     protected $_hasHandshake = FALSE;
 
     /**
      * If the connection has been accepted
-     * @var boolean
+     *
+     * @var bool
      */
     protected $_accepted = FALSE;
 
     /**
      * The remote IP
-     * @var string|NULL
+     *
+     * @var string|null
      */
     protected $_remoteIP = NULL;
 
     /**
      * The websocket token
+     *
      * @var string
      */
     protected $_rawToken = NULL;
 
     /**
      * The headers sent during the handshake
+     *
      * @var array
      */
     protected $_headers = NULL;
 
     /**
      * The websocket server related to this connection
+     *
      * @var \PHPWebSocket\Server
      */
     protected $_server = NULL;
 
     /**
      * The resource stream
+     *
      * @var resource
      */
     protected $_stream = NULL;
 
     /**
      * The connection's index in the connections array
-     * @var integer
+     *
+     * @var int
      */
     private $_index = NULL;
 
@@ -107,6 +118,7 @@ class Connection extends \PHPWebSocket\AConnection {
 
     /**
      * Attempts to read from our connection
+     *
      * @return \PHPWebSocket\AUpdate[]
      */
     public function handleRead() : \Generator {
@@ -117,6 +129,7 @@ class Connection extends \PHPWebSocket\AConnection {
         $newData = fread($this->getStream(), min($this->_currentFrameRemainingBytes ?? $readRate, $readRate));
         if ($newData === FALSE) {
             yield new Update\Error(Update\Error::C_READ, $this);
+
             return;
         }
 
@@ -198,6 +211,7 @@ class Connection extends \PHPWebSocket\AConnection {
 
     /**
      * Gets called just before stream_select gets called
+     *
      * @return \PHPWebSocket\AUpdate[]
      */
     public function beforeStreamSelect() : \Generator {
@@ -213,8 +227,10 @@ class Connection extends \PHPWebSocket\AConnection {
 
     /**
      * Handles the handshake from the client and returns if the handshake was valid
-     * @param  string $rawHandshake
-     * @return boolean
+     *
+     * @param string $rawHandshake
+     *
+     * @return bool
      */
     protected function _doHandshake(string $rawHandshake, int &$responseCode) : bool {
 
@@ -223,7 +239,7 @@ class Connection extends \PHPWebSocket\AConnection {
         $responseCode = 101;
         if (!isset($headers['get'])) {
             $responseCode = 405;
-        } else if (!isset($headers['host'])) {
+        } elseif (!isset($headers['host'])) {
             $responseCode = 400;
         } elseif (!isset($headers['upgrade']) || strtolower($headers['upgrade']) !== 'websocket') {
             $responseCode = 400;
@@ -254,7 +270,9 @@ class Connection extends \PHPWebSocket\AConnection {
 
     /**
      * Accepts the connection
-     * @param  string|NULL $protocol The accepted protocol
+     *
+     * @param string|null $protocol The accepted protocol
+     *
      * @throws \Exception
      */
     public function accept(string $protocol = NULL) {
@@ -276,7 +294,8 @@ class Connection extends \PHPWebSocket\AConnection {
 
     /**
      * Denies the websocket connection, a HTTP error code has to be provided indicating what went wrong
-     * @param integer $errCode
+     *
+     * @param int $errCode
      */
     public function deny(int $errCode) {
 
@@ -291,7 +310,8 @@ class Connection extends \PHPWebSocket\AConnection {
 
     /**
      * Returns if the websocket connection has been accepted
-     * @return boolean
+     *
+     * @return bool
      */
     public function isAccepted() : bool {
         return $this->_accepted;
@@ -299,6 +319,7 @@ class Connection extends \PHPWebSocket\AConnection {
 
     /**
      * Returns the related websocket server
+     *
      * @return \PHPWebSocket\Server
      */
     public function getServer() : \PHPWebSocket\Server {
@@ -307,7 +328,8 @@ class Connection extends \PHPWebSocket\AConnection {
 
     /**
      * Returns if we've received the handshake
-     * @return boolean
+     *
+     * @return bool
      */
     public function hasHandshake() : bool {
         return $this->_hasHandshake;
@@ -322,7 +344,8 @@ class Connection extends \PHPWebSocket\AConnection {
 
     /**
      * Returns if the frame we are writing should be masked
-     * @return boolean
+     *
+     * @return bool
      */
     protected function _shouldMask() : bool {
         return FALSE;
@@ -330,6 +353,7 @@ class Connection extends \PHPWebSocket\AConnection {
 
     /**
      * Returns the headers set during the http request
+     *
      * @return array
      */
     public function getHeaders() : array {
@@ -338,7 +362,8 @@ class Connection extends \PHPWebSocket\AConnection {
 
     /**
      * Returns the remote IP address of the client
-     * @return string|NULL
+     *
+     * @return string|null
      */
     public function getRemoteIP() {
         return $this->_remoteIP;
@@ -346,6 +371,7 @@ class Connection extends \PHPWebSocket\AConnection {
 
     /**
      * Returns the stream object for this connection
+     *
      * @return resource
      */
     public function getStream() {
@@ -354,7 +380,8 @@ class Connection extends \PHPWebSocket\AConnection {
 
     /**
      * Returns the index for this connection
-     * @return integer
+     *
+     * @return int
      */
     public function getIndex() : int {
         return $this->_index;
@@ -362,7 +389,8 @@ class Connection extends \PHPWebSocket\AConnection {
 
     /**
      * Returns if our connection is open
-     * @return boolean
+     *
+     * @return bool
      */
     public function isOpen() : bool {
         return is_resource($this->_stream);
@@ -388,5 +416,4 @@ class Connection extends \PHPWebSocket\AConnection {
 
         return 'WSConnection #' . $this->_resourceIndex . ($remoteIP ? ' => ' . $remoteIP : '') . ' @ ' . $this->_server;
     }
-
 }

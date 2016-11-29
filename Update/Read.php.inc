@@ -1,4 +1,5 @@
 <?php
+
 // - - - - - - - - - - - - - BEGIN LICENSE BLOCK - - - - - - - - - - - - -
 // The MIT License (MIT)
 //
@@ -43,13 +44,15 @@ class Read extends \PHPWebSocket\AUpdate {
 
     /**
      * The message from the client
-     * @var string|NULL
+     *
+     * @var string|null
      */
     protected $_message = NULL;
 
     /**
      * The opcode for this message
-     * @var integer|NULL
+     *
+     * @var int|null
      */
     protected $_opcode = NULL;
 
@@ -64,7 +67,9 @@ class Read extends \PHPWebSocket\AUpdate {
 
     /**
      * Returns a description for the provided code
-     * @param  integer $code
+     *
+     * @param int $code
+     *
      * @return string
      */
     public static function StringForErrorCode(int $code) : string {
@@ -98,7 +103,8 @@ class Read extends \PHPWebSocket\AUpdate {
 
     /**
      * Returns the message from the client
-     * @return string|NULL
+     *
+     * @return string|null
      */
     public function getMessage() {
         return $this->_message;
@@ -106,7 +112,8 @@ class Read extends \PHPWebSocket\AUpdate {
 
     /**
      * Returns the opcode for this message
-     * @return integer|NULL
+     *
+     * @return int|null
      */
     public function getOpcode() {
         return $this->_opcode;
@@ -114,7 +121,7 @@ class Read extends \PHPWebSocket\AUpdate {
 
     public function __toString() {
         $code = $this->getCode();
+
         return 'Read) ' . self::StringForErrorCode($code) . ' (C: ' . $code . ')';
     }
-
 }

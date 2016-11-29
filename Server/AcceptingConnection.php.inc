@@ -1,4 +1,5 @@
 <?php
+
 // - - - - - - - - - - - - - BEGIN LICENSE BLOCK - - - - - - - - - - - - -
 // The MIT License (MIT)
 //
@@ -26,7 +27,6 @@
 declare(strict_types = 1);
 
 namespace PHPWebSocket\Server;
-use PHPWebSocket\Update;
 
 class AcceptingConnection implements \PHPWebSocket\IStreamContainer {
 
@@ -34,12 +34,14 @@ class AcceptingConnection implements \PHPWebSocket\IStreamContainer {
 
     /**
      * The websocket server related to this connection
+     *
      * @var \PHPWebSocket\Server
      */
     protected $_server = NULL;
 
     /**
      * The resource stream
+     *
      * @var resource
      */
     protected $_stream = NULL;
@@ -58,6 +60,7 @@ class AcceptingConnection implements \PHPWebSocket\IStreamContainer {
 
     /**
      * Handles exceptional data reads
+     *
      * @return \PHPWebSocket\AUpdate[]
      */
     public function handleExceptional() : \Generator {
@@ -66,6 +69,7 @@ class AcceptingConnection implements \PHPWebSocket\IStreamContainer {
 
     /**
      * Writes the current buffer to the connection
+     *
      * @return \PHPWebSocket\AUpdate[]
      */
     public function handleWrite() : \Generator {
@@ -74,6 +78,7 @@ class AcceptingConnection implements \PHPWebSocket\IStreamContainer {
 
     /**
      * Attempts to read from our connection
+     *
      * @return \PHPWebSocket\AUpdate[]
      */
     public function handleRead() : \Generator {
@@ -82,6 +87,7 @@ class AcceptingConnection implements \PHPWebSocket\IStreamContainer {
 
     /**
      * Returns the related websocket server
+     *
      * @return \PHPWebSocket\Server
      */
     public function getServer() : \PHPWebSocket\Server {
@@ -90,6 +96,7 @@ class AcceptingConnection implements \PHPWebSocket\IStreamContainer {
 
     /**
      * Returns the stream object for this connection
+     *
      * @return resource
      */
     public function getStream() {
@@ -98,7 +105,8 @@ class AcceptingConnection implements \PHPWebSocket\IStreamContainer {
 
     /**
      * Returns if our connection is open
-     * @return boolean
+     *
+     * @return bool
      */
     public function isOpen() : bool {
         return is_resource($this->_stream);
@@ -106,7 +114,8 @@ class AcceptingConnection implements \PHPWebSocket\IStreamContainer {
 
     /**
      * Closes the stream
-     * @param boolean $cleanup If we should remove our unix socket if we used one
+     *
+     * @param bool $cleanup If we should remove our unix socket if we used one
      */
     public function close(bool $cleanup = TRUE) {
 
@@ -161,5 +170,4 @@ class AcceptingConnection implements \PHPWebSocket\IStreamContainer {
     public function __toString() {
         return 'AWSConnection #' . (int) $this->getStream() . ' @ ' . $this->_server;
     }
-
 }

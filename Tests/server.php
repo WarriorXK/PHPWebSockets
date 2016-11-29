@@ -4,7 +4,7 @@ require_once(__DIR__ . '/../PHPWebSocket.php.inc');
 
 use \PHPWebSocket\Update\Read;
 
-echo('Starting test' . PHP_EOL . PHP_EOL);
+echo 'Starting test' . PHP_EOL . PHP_EOL;
 
 $websocket = new \PHPWebSocket\Server('tcp://0.0.0.0:9001');
 
@@ -49,15 +49,15 @@ while (proc_get_status($wstestProc)['running'] ?? FALSE) {
 
 }
 
-echo('Test ended, closing websocket' . PHP_EOL);
+echo 'Test ended, closing websocket' . PHP_EOL;
 
 $websocket->close();
 
-echo('Getting results..' . PHP_EOL);
+echo 'Getting results..' . PHP_EOL;
 
 $outputFile = '/tmp/reports/servers/index.json';
 if (!file_exists($outputFile)) {
-    echo('File "' . $outputFile . '" doesn\'t exist!');
+    echo 'File "' . $outputFile . '" doesn\'t exist!';
     exit(1);
 }
 
@@ -65,7 +65,7 @@ $hasFailures = FALSE;
 $testCases = json_decode(file_get_contents($outputFile), TRUE)[$websocket->getServerIdentifier()];
 foreach ($testCases as $case => $data) {
 
-    echo($case . ' => ' . $data['behavior'] . PHP_EOL);
+    echo $case . ' => ' . $data['behavior'] . PHP_EOL;
 
     switch ($data['behavior']) {
         case 'OK':
@@ -80,6 +80,6 @@ foreach ($testCases as $case => $data) {
 
 }
 
-echo('Exiting' . PHP_EOL);
+echo 'Exiting' . PHP_EOL;
 
 exit((int) $hasFailures);

@@ -1,4 +1,5 @@
 <?php
+
 // - - - - - - - - - - - - - BEGIN LICENSE BLOCK - - - - - - - - - - - - -
 // The MIT License (MIT)
 //
@@ -46,7 +47,9 @@ class Error extends \PHPWebSocket\AUpdate {
 
     /**
      * Returns a description for the provided error code
-     * @param  integer $code
+     *
+     * @param int $code
+     *
      * @return string
      */
     public static function StringForErrorCode(int $code) : string {
@@ -88,7 +91,7 @@ class Error extends \PHPWebSocket\AUpdate {
 
     public function __toString() {
         $code = $this->getCode();
+
         return 'Error) ' . self::StringForErrorCode($code) . ' (C: ' . $code . ')';
     }
-
 }

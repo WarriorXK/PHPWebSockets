@@ -1,4 +1,5 @@
 <?php
+
 // - - - - - - - - - - - - - BEGIN LICENSE BLOCK - - - - - - - - - - - - -
 // The MIT License (MIT)
 //
@@ -31,46 +32,55 @@ class Client extends \PHPWebSocket\AConnection {
 
     /**
      * The last error code received from the stream
-     * @var integer|NULL
+     *
+     * @var int|null
      */
     protected $_streamLastErrorCode = NULL;
 
     /**
      * If the handshake has been accepted by the server
-     * @var boolean
+     *
+     * @var bool
      */
     protected $_handshakeAccepted = FALSE;
 
     /**
      * The last error received from the stream
-     * @var string|NULL
+     *
+     * @var string|null
      */
     protected $_streamLastError = NULL;
 
     /**
      * The stream's resource index
-     * @var integer|NULL
+     *
+     * @var int|null
      */
     protected $_resourceIndex = NULL;
 
     /**
      * The headers send back from the server when the handshake was accepted
-     * @var array|NULL
+     *
+     * @var array|null
      */
     protected $_headers = NULL;
 
     /**
      * The stream connection
+     *
      * @var null
      */
     protected $_stream = NULL;
 
     /**
      * Connects to the provided resource
-     * @param  resource $resource
-     * @return boolean
+     *
+     * @param resource $resource
+     *
      * @throws \InvalidArgumentException
      * @throws \LogicException
+     *
+     * @return bool
      */
     public function connectToResource($resource, string $path = '/') {
 
@@ -91,10 +101,13 @@ class Client extends \PHPWebSocket\AConnection {
 
     /**
      * Attempts to connect to a websocket server
-     * @param  string  $address
-     * @param  string  $path
-     * @return boolean
+     *
+     * @param string $address
+     * @param string $path
+     *
      * @throws \LogicException
+     *
+     * @return bool
      */
     public function connect(string $address, string $path = '/') {
 
@@ -114,6 +127,7 @@ class Client extends \PHPWebSocket\AConnection {
 
     /**
      * Sets the stream settings and appends the HTTP headers to the buffer
+     *
      * @param string $address
      * @param string $path
      */
@@ -133,7 +147,7 @@ class Client extends \PHPWebSocket\AConnection {
             'Upgrade: websocket',
             'Connection: Upgrade',
             'Sec-WebSocket-Key: ' . base64_encode(\PHPWebSocket::RandomString()),
-            'Sec-WebSocket-Version: 13'
+            'Sec-WebSocket-Version: 13',
         ];
 
         $this->writeRaw(implode("\r\n", $headerParts) . "\r\n\r\n", FALSE);
@@ -142,7 +156,8 @@ class Client extends \PHPWebSocket\AConnection {
 
     /**
      * Returns the code of the last error that occured
-     * @return integer|NULL
+     *
+     * @return int|null
      */
     public function getLastErrorCode() {
         return $this->_streamLastErrorCode;
@@ -150,7 +165,8 @@ class Client extends \PHPWebSocket\AConnection {
 
     /**
      * Returns the last error that occured
-     * @return string|NULL
+     *
+     * @return string|null
      */
     public function getLastError() {
         return $this->_streamLastError;
@@ -158,7 +174,8 @@ class Client extends \PHPWebSocket\AConnection {
 
     /**
      * Returns the stream resource for this client
-     * @return resource|NULL
+     *
+     * @return resource|null
      */
     public function getStream() {
         return $this->_stream;
@@ -166,9 +183,12 @@ class Client extends \PHPWebSocket\AConnection {
 
     /**
      * Checks for updates for this client
-     * @param  float|NULL $timeout The amount of seconds to wait for updates, setting this value to NULL causes this function to block indefinitely until there is an update
-     * @return \PHPWebSocket\AUpdate[]
+     *
+     * @param float|null $timeout The amount of seconds to wait for updates, setting this value to NULL causes this function to block indefinitely until there is an update
+     *
      * @throws \Exception
+     *
+     * @return \PHPWebSocket\AUpdate[]
      */
     public function update(float $timeout = NULL) : \Generator {
         yield from \PHPWebSocket::MultiUpdate([$this], $timeout);
@@ -176,6 +196,7 @@ class Client extends \PHPWebSocket\AConnection {
 
     /**
      * Attempts to read from our connection
+     *
      * @return \PHPWebSocket\AUpdate[]
      */
     public function handleRead() : \Generator {
@@ -186,6 +207,7 @@ class Client extends \PHPWebSocket\AConnection {
         $newData = fread($this->getStream(), min($this->_currentFrameRemainingBytes ?? $readRate, $readRate));
         if ($newData === FALSE) {
             yield new Update\Error(Update\Error::C_READ, $this);
+
             return;
         }
 
@@ -267,7 +289,8 @@ class Client extends \PHPWebSocket\AConnection {
 
     /**
      * Sets that we should close the connection after all our writes have finished
-     * @return boolean
+     *
+     * @return bool
      */
     public function handshakeAccepted() : bool {
         return $this->_handshakeAccepted;
@@ -275,6 +298,7 @@ class Client extends \PHPWebSocket\AConnection {
 
     /**
      * Returns the user agent string that is reported to the server that we are connecting to
+     *
      * @return string
      */
     public function getUserAgent() : string {
@@ -283,7 +307,8 @@ class Client extends \PHPWebSocket\AConnection {
 
     /**
      * Returns if the frame we are writing should be masked
-     * @return boolean
+     *
+     * @return bool
      */
     protected function _shouldMask() : bool {
         return TRUE;
@@ -291,6 +316,7 @@ class Client extends \PHPWebSocket\AConnection {
 
     /**
      * Returns the headers set during the http request
+     *
      * @return array
      */
     public function getHeaders() : array {
@@ -299,7 +325,8 @@ class Client extends \PHPWebSocket\AConnection {
 
     /**
      * Returns if our connection is open
-     * @return boolean
+     *
+     * @return bool
      */
     public function isOpen() : bool {
         return is_resource($this->_stream);
@@ -320,5 +347,4 @@ class Client extends \PHPWebSocket\AConnection {
     public function __toString() {
         return 'WSClient #' . $this->_resourceIndex;
     }
-
 }
