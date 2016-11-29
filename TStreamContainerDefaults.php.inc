@@ -27,39 +27,54 @@ declare(strict_types = 1);
 
 namespace PHPWebSocket;
 
-require_once(__DIR__ . '/Error.php.inc');
-require_once(__DIR__ . '/Read.php.inc');
+trait TStreamContainerDefaults {
 
-abstract class AUpdate {
-
-    protected $_sourceObject = NULL;
-    protected $_code = 0;
-
-    public function __construct(int $code, $sourceObject = NULL) {
-
-        $this->_sourceObject = $sourceObject;
-        $this->_code = $code;
-
+    /**
+     * Gets called just before stream_select gets called
+     * @return \PHPWebSocket\AUpdate[]
+     */
+    public function beforeStreamSelect() : \Generator {
+        if (FALSE) {
+            yield;
+        }
     }
 
     /**
-     * Returns the source object related to this update
-     * @return object|NULL
+     * Returns if we have (partial)frames ready to be send
+     * @return boolean
      */
-    public function getSourceObject() {
-        return $this->_sourceObject;
+    public function isWriteBufferEmpty() : bool {
+        return TRUE;
     }
 
     /**
-     * Returns the code for this update
-     * @return integer
+     * Handles exceptional data reads
+     * @return \PHPWebSocket\AUpdate[]
      */
-    public function getCode() : int {
-        return $this->_code;
+    public function handleExceptional() : \Generator {
+        if (FALSE) {
+            yield;
+        }
     }
 
-    public function __toString() {
-        return 'AUpdate) ' . $this->getCode();
+    /**
+     * Writes the current buffer to the connection
+     * @return \PHPWebSocket\AUpdate[]
+     */
+    public function handleWrite() : \Generator {
+        if (FALSE) {
+            yield;
+        }
+    }
+
+    /**
+     * Attempts to read from our connection
+     * @return \PHPWebSocket\AUpdate[]
+     */
+    public function handleRead() : \Generator {
+        if (FALSE) {
+            yield;
+        }
     }
 
 }

@@ -29,14 +29,17 @@ namespace PHPWebSocket\Update;
 
 class Read extends \PHPWebSocket\AUpdate {
 
-    const C_UNKNOWN = 0;
-    const C_NEWCONNECTION = 1;
-    const C_READ = 2;
-    const C_PING = 3;
-    const C_SOCK_DISCONNECT = 4;
-    const C_CONNECTION_DENIED = 5;
-    const C_CONNECTION_ACCEPTED = 6;
-    const C_READ_DISCONNECT = 7;
+    const   C_UNKNOWN = 0,
+            C_NEWCONNECTION = 1,
+            C_READ = 2,
+            C_PING = 3,
+            C_PONG = 4,
+            C_SOCK_DISCONNECT = 5,
+            C_CONNECTION_DENIED = 6,
+            C_CONNECTION_ACCEPTED = 7,
+            C_READ_DISCONNECT = 8,
+            C_NEW_TCP_CONNECTION = 9,
+            C_NEW_TCP_CONNECTION_AVAILABLE = 10;
 
     /**
      * The message from the client
@@ -64,27 +67,31 @@ class Read extends \PHPWebSocket\AUpdate {
      * @param  integer $code
      * @return string
      */
-    static public function StringForErrorCode(int $code) : string {
+    public static function StringForErrorCode(int $code) : string {
 
         switch ($code) {
             case self::C_UNKNOWN:
-            return 'Unknown error';
+                return 'Unknown error';
             case self::C_NEWCONNECTION:
-            return 'New connection';
+                return 'New connection';
             case self::C_READ:
-            return 'Read';
+                return 'Read';
             case self::C_PING:
-            return 'Ping';
+                return 'Ping';
             case self::C_SOCK_DISCONNECT:
-            return 'Socket disconnected';
+                return 'Socket disconnected';
             case self::C_CONNECTION_DENIED:
-            return 'Connection denied';
+                return 'Connection denied';
             case self::C_CONNECTION_ACCEPTED:
-            return 'Connection accepted';
+                return 'Connection accepted';
             case self::C_READ_DISCONNECT:
-            return 'Disconnect';
+                return 'Disconnect';
+            case self::C_NEW_TCP_CONNECTION:
+                return 'New TCP connection accepted';
+            case self::C_NEW_TCP_CONNECTION_AVAILABLE:
+                return 'New TCP connection available';
             default:
-            return 'Unknown read code ' . $code;
+                return 'Unknown read code ' . $code;
         }
 
     }
@@ -106,7 +113,8 @@ class Read extends \PHPWebSocket\AUpdate {
     }
 
     public function __toString() {
-        return 'Read) ' . self::StringForErrorCode($this->getCode());
+        $code = $this->getCode();
+        return 'Read) ' . self::StringForErrorCode($code) . ' (C: ' . $code . ')';
     }
 
 }

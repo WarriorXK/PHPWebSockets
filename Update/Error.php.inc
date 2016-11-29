@@ -29,65 +29,66 @@ namespace PHPWebSocket\Update;
 
 class Error extends \PHPWebSocket\AUpdate {
 
-    const C_UNKNOWN = 0;
-    const C_SELECT = 1;
-    const C_READ = 2;
-    const C_READ_EMPTY = 3;
-    const C_READ_UNHANDLED = 4;
-    const C_READ_HANDSHAKEFAILURE = 5;
-    const C_READ_HANDSHAKETOLARGE = 6;
-    const C_READ_INVALID_PAYLOAD = 7;
-    const C_READ_INVALID_HEADERS = 8;
-    const C_READ_UNEXPECTED_DISCONNECT = 9;
-    const C_READ_PROTOCOL_ERROR = 10;
-    const C_READ_RVSBIT_SET = 11;
-    const C_WRITE = 12;
-    const C_ACCEPT_TIMEOUT_PASSED = 13;
+    const   C_UNKNOWN = 0,
+            C_SELECT = 1,
+            C_READ = 2,
+            C_READ_EMPTY = 3,
+            C_READ_UNHANDLED = 4,
+            C_READ_HANDSHAKEFAILURE = 5,
+            C_READ_HANDSHAKETOLARGE = 6,
+            C_READ_INVALID_PAYLOAD = 7,
+            C_READ_INVALID_HEADERS = 8,
+            C_READ_UNEXPECTED_DISCONNECT = 9,
+            C_READ_PROTOCOL_ERROR = 10,
+            C_READ_RVSBIT_SET = 11,
+            C_WRITE = 12,
+            C_ACCEPT_TIMEOUT_PASSED = 13;
 
     /**
      * Returns a description for the provided error code
      * @param  integer $code
      * @return string
      */
-    static public function StringForErrorCode(int $code) : string {
+    public static function StringForErrorCode(int $code) : string {
 
         switch ($code) {
             case self::C_UNKNOWN:
-            return 'Unknown error';
+                return 'Unknown error';
             case self::C_SELECT:
-            return 'Select error';
+                return 'Select error';
             case self::C_READ:
-            return 'Read error';
+                return 'Read error';
             case self::C_READ_EMPTY:
-            return 'Empty read';
+                return 'Empty read';
             case self::C_READ_UNHANDLED:
-            return 'Unhandled read';
+                return 'Unhandled read';
             case self::C_READ_HANDSHAKEFAILURE:
-            return 'Handshake failure';
+                return 'Handshake failure';
             case self::C_READ_HANDSHAKETOLARGE:
-            return 'Handshake to large';
+                return 'Handshake to large';
             case self::C_READ_INVALID_PAYLOAD:
-            return 'Invalid payload';
+                return 'Invalid payload';
             case self::C_READ_INVALID_HEADERS:
-            return 'Invalid headers';
+                return 'Invalid headers';
             case self::C_READ_UNEXPECTED_DISCONNECT:
-            return 'Unexpected disconnect';
+                return 'Unexpected disconnect';
             case self::C_READ_PROTOCOL_ERROR:
-            return 'Protocol error';
+                return 'Protocol error';
             case self::C_READ_RVSBIT_SET:
-            return 'RVS bit set while not being expected';
+                return 'RVS bit set while not being expected';
             case self::C_WRITE:
-            return 'Write failure';
+                return 'Write failure';
             case self::C_ACCEPT_TIMEOUT_PASSED:
-            return 'Accept timeout passed';
+                return 'Accept timeout passed';
             default:
-            return 'Unknown error code ' . $code;
+                return 'Unknown error code ' . $code;
         }
 
     }
 
     public function __toString() {
-        return 'Error) ' . self::StringForErrorCode($this->getCode());
+        $code = $this->getCode();
+        return 'Error) ' . self::StringForErrorCode($code) . ' (C: ' . $code . ')';
     }
 
 }

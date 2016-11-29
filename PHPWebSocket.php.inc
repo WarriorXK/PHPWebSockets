@@ -25,42 +25,46 @@
 
 declare(strict_types = 1);
 
-require_once(__DIR__ . '/Client/Client.php.inc');
-require_once(__DIR__ . '/Server/Server.php.inc');
-require_once(__DIR__ . '/Update/AUpdate.php.inc');
+require_once(__DIR__ . '/IStreamContainer.php.inc');
+require_once(__DIR__ . '/TStreamContainerDefaults.php.inc');
+require_once(__DIR__ . '/AConnection.php.inc');
+require_once(__DIR__ . '/AUpdate.php.inc');
+
+require_once(__DIR__ . '/Client.php.inc');
 require_once(__DIR__ . '/Framer.php.inc');
+require_once(__DIR__ . '/Server.php.inc');
 
 final class PHPWebSocket {
 
-    const LOGLEVEL_DEBUG = 0;
-    const LOGLEVEL_NORMAL = 1;
-    const LOGLEVEL_WARNING = 2;
-    const LOGLEVEL_ERROR = 3;
+    const   WEBSOCKET_GUID = '258EAFA5-E914-47DA-95CA-C5AB0DC85B11';
 
-    const WEBSOCKET_GUID = '258EAFA5-E914-47DA-95CA-C5AB0DC85B11';
+    const   LOGLEVEL_DEBUG   = 0,
+            LOGLEVEL_NORMAL  = 1,
+            LOGLEVEL_WARNING = 2,
+            LOGLEVEL_ERROR   = 3;
 
-    const OPCODE_CONTINUE = 0;
-    const OPCODE_FRAME_TEXT = 1;
-    const OPCODE_FRAME_BINARY = 2;
-    const OPCODE_CLOSE_CONNECTION = 8;
-    const OPCODE_PING = 9;
-    const OPCODE_PONG = 10;
+    const   OPCODE_CONTINUE         = 0,
+            OPCODE_FRAME_TEXT       = 1,
+            OPCODE_FRAME_BINARY     = 2,
+            OPCODE_CLOSE_CONNECTION = 8,
+            OPCODE_PING             = 9,
+            OPCODE_PONG             = 10;
 
-    const CLOSECODE_NORMAL = 1000;
-    const CLOSECODE_ENDPOINT_CLOSING = 1001;
-    const CLOSECODE_PROTOCOLERROR = 1002;
-    const CLOSECODE_UNSUPPORTED_PAYLOAD = 1003;
-    //const CLOSECODE_ = 1004; // Reserved
-    const CLOSECODE_NO_STATUS = 1005;
-    const CLOSECODE_ABNORMAL_DISCONNECT = 1006;
-    const CLOSECODE_INVALID_PAYLOAD = 1007;
-    const CLOSECODE_POLICY_VIOLATION = 1008;
-    const CLOSECODE_PAYLOAD_TO_LARGE = 1009;
-    const CLOSECODE_EXTENSION_NEGOTIATION_FAILURE = 1010;
-    const CLOSECODE_UNEXPECTED_CONDITION = 1011;
-    const CLOSECODE_TLS_HANDSHAKE_FAILURE = 1015;
+    const   CLOSECODE_NORMAL                        = 1000,
+            CLOSECODE_ENDPOINT_CLOSING              = 1001,
+            CLOSECODE_PROTOCOLERROR                 = 1002,
+            CLOSECODE_UNSUPPORTED_PAYLOAD           = 1003,
+            // CLOSECODE_                           = 1004, // Reserved
+            CLOSECODE_NO_STATUS                     = 1005,
+            CLOSECODE_ABNORMAL_DISCONNECT           = 1006,
+            CLOSECODE_INVALID_PAYLOAD               = 1007,
+            CLOSECODE_POLICY_VIOLATION              = 1008,
+            CLOSECODE_PAYLOAD_TO_LARGE              = 1009,
+            CLOSECODE_EXTENSION_NEGOTIATION_FAILURE = 1010,
+            CLOSECODE_UNEXPECTED_CONDITION          = 1011,
+            CLOSECODE_TLS_HANDSHAKE_FAILURE         = 1015;
 
-    const HTTP_ERRORCODES = array(
+    const HTTP_ERRORCODES = [
         100 => 'Continue',
         101 => 'Switching Protocols',
         102 => 'Processing',
@@ -126,7 +130,7 @@ final class PHPWebSocket {
         508 => 'Loop Detected',
         510 => 'Not Extended',
         511 => 'Network Authentication Required'
-    );
+    ];
 
     /**
      * The log handler function
@@ -144,14 +148,123 @@ final class PHPWebSocket {
      * If we're currently debugging
      * @var boolean
      */
-    private static $_Debug = TRUE;
+    private static $_Debug = FALSE;
+
+    /**
+     * Checks for updates for the provided IStreamContainer objects
+     * @param  \PHPWebSocket\IStreamContainer $objects
+     * @param  float|NULL                     $timeout The amount of seconds to wait for updates, setting this value to NULL causes this function to block indefinitely until there is an update
+     * @return \PHPWebSocket\AUpdate[]
+     * @throws \InvalidArgumentException
+     */
+    public static function MultiUpdate(array $updateObjects, float $timeout = NULL) : \Generator {
+
+        $timeInt = NULL;
+        $timePart = 0;
+
+        if ($timeout !== NULL) {
+
+            $timeInt = (int) floor($timeout);
+            $timePart = (int) (fmod($timeout, 1) * 1000000);
+
+        }
+
+        $objectStreamMap = [];
+        $exceptional = [];
+        $write = [];
+        $read = [];
+
+        foreach ($updateObjects as $object) {
+
+            if (!$object instanceof \PHPWebSocket\IStreamContainer) {
+                throw new \InvalidArgumentException('Got invalid object, all provided objects should implement of \PHPWebSocket\IStreamContainer');
+            }
+
+            yield from $object->beforeStreamSelect();
+
+            $stream = $object->getStream();
+
+            $objectStreamMap[(int) $object->getStream()] = $object;
+            $exceptional[] = $stream;
+            if (!$object->isWriteBufferEmpty()) {
+                $write[] = $stream;
+            }
+            $read[] = $stream;
+
+        }
+
+        if (!empty($read) || !empty($write) || !empty($exceptional)) {
+
+            $streams = @stream_select($read, $write, $exceptional, $timeInt, $timePart); // Stream select filters everything out of the arrays
+            if ($streams === FALSE) {
+                yield new \PHPWebSocket\Update\Error(\PHPWebSocket\Update\Error::C_SELECT);
+                return;
+            } else {
+
+                if (!empty($read) || !empty($write) || !empty($exceptional)) {
+                    \PHPWebSocket::Log(\PHPWebSocket::LOGLEVEL_DEBUG, 'Read: ' . count($read) . ' Write: ' . count($write) . ' Except: ' . count($exceptional));
+                }
+
+                foreach ($read as $stream) {
+
+                    $object = $objectStreamMap[(int) $stream];
+                    if ($object === NULL) {
+                        \PHPWebSocket::Log(\PHPWebSocket::LOGLEVEL_ERROR, 'Unable to find stream container related to stream during read!');
+                        continue;
+                    }
+
+                    yield from $object->handleRead();
+
+                }
+
+                foreach ($write as $stream) {
+
+                    $object = $objectStreamMap[(int) $stream];
+                    if ($object === NULL) {
+                        \PHPWebSocket::Log(\PHPWebSocket::LOGLEVEL_ERROR, 'Unable to find stream container related to stream during write!');
+                        continue;
+                    }
+
+                    if (!is_resource($object->getStream())) { // Check if it is still open, it could have closed
+                        \PHPWebSocket::Log(\PHPWebSocket::LOGLEVEL_WARNING, 'Unable to complete write for stream container ' . $object . ', connection was closed');
+                        continue;
+                    }
+
+                    yield from $object->handleWrite();
+
+                }
+
+                foreach ($exceptional as $stream) {
+
+                    $object = $objectStreamMap[(int) $stream];
+                    if ($object === NULL) {
+                        \PHPWebSocket::Log(\PHPWebSocket::LOGLEVEL_ERROR, 'Unable to find stream container related to stream during exceptional read!');
+                        continue;
+                    }
+
+                    if (!is_resource($object->getStream())) { // Check if it is still open, it could have closed
+                        \PHPWebSocket::Log(\PHPWebSocket::LOGLEVEL_WARNING, 'Unable to complete exceptional read for stream container, connection was closed');
+                        continue;
+                    }
+
+                    \PHPWebSocket::Log(\PHPWebSocket::LOGLEVEL_ERROR, 'Got exceptional for ' . $object);
+
+                    yield from $object->handleExceptional();
+
+                }
+
+            }
+
+        }
+
+    }
 
     /**
      * Returns TRUE if the specified code is valid
      * @param integer $code
      * @param boolean $received If the close code is received as reason
      */
-    static public function IsValidCloseCode(int $code, bool $received = TRUE) : bool {
+    public static function IsValidCloseCode(int $code, bool $received = TRUE) : bool {
 
         switch ($code) {
             case self::CLOSECODE_NORMAL:
@@ -163,15 +276,24 @@ final class PHPWebSocket {
             case self::CLOSECODE_PAYLOAD_TO_LARGE:
             case self::CLOSECODE_EXTENSION_NEGOTIATION_FAILURE:
             case self::CLOSECODE_UNEXPECTED_CONDITION:
-            return TRUE;
+                return TRUE;
             case self::CLOSECODE_NO_STATUS:
             case self::CLOSECODE_ABNORMAL_DISCONNECT:
             case self::CLOSECODE_TLS_HANDSHAKE_FAILURE:
-            return !$received;
+                return !$received;
             default:
-            return $code >= 3000 && $code <= 4999;
+                return $code >= 3000 && $code <= 4999;
         }
 
+    }
+
+    /**
+     * Returns if the message with the provided opcode should be send with priority
+     * @param  integer $opcode
+     * @return boolean
+     */
+    public static function IsPriorityOpcode(int $opcode) : bool {
+        return self::IsControlOpcode($opcode);
     }
 
     /**
@@ -179,7 +301,7 @@ final class PHPWebSocket {
      * @param  integer $opcode
      * @return boolean
      */
-    static public function IsControlOpcode(int $opcode) : bool {
+    public static function IsControlOpcode(int $opcode) : bool {
         return $opcode >= 8 && $opcode <= 15;
     }
 
@@ -188,7 +310,7 @@ final class PHPWebSocket {
      * @param  integer $length
      * @return string
      */
-    static public function RandomString(int $length = 16) : string {
+    public static function RandomString(int $length = 16) : string {
 
         $key = '';
         for ($i = 0; $i < $length; $i++) {
@@ -203,9 +325,9 @@ final class PHPWebSocket {
      * @param  string $rawHeaders
      * @return array
      */
-    static public function ParseHTTPHeaders(string $rawHeaders) : array {
+    public static function ParseHTTPHeaders(string $rawHeaders) : array {
 
-        $headers = array();
+        $headers = [];
 
         $lines = explode("\n", $rawHeaders);
         foreach ($lines as $line) {
@@ -238,7 +360,7 @@ final class PHPWebSocket {
      * @param  integer $errorCode
      * @return string|NULL
      */
-    static public function GetStringForErrorCode(int $errorCode) {
+    public static function GetStringForErrorCode(int $errorCode) {
         return self::HTTP_ERRORCODES[$errorCode] ?? NULL;
     }
 
@@ -246,7 +368,7 @@ final class PHPWebSocket {
      * Returns the version of PHPWebSocket
      * @return string
      */
-    static public function Version() : string {
+    public static function Version() : string {
 
         if (self::$_Version !== NULL) {
             return self::$_Version;
@@ -261,7 +383,7 @@ final class PHPWebSocket {
      * @param string  $message   The message to log
      * @param boolean $forceShow If the message should be shown regardless of the loglevel
      */
-    static public function Log(int $logLevel, $message, bool $forceShow = FALSE) {
+    public static function Log(int $logLevel, $message, bool $forceShow = FALSE) {
 
         if (self::$_LogHandler !== NULL) {
             call_user_func_array(self::$_LogHandler, func_get_args());
@@ -278,7 +400,7 @@ final class PHPWebSocket {
      * Installs the log handler, the callable should accept the same arguments as \PHPWebSocket::Log
      * @param callable $logHandler
      */
-    static public function SetLogHandler(callable $logHandler = NULL) {
+    public static function SetLogHandler(callable $logHandler = NULL) {
         self::$_LogHandler = $logHandler;
     }
 
