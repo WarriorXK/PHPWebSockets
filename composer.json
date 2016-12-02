@@ -1,5 +1,5 @@
 {
-    "name": "warriorxk/php-web-sockets",
+    "name": "warriorxk/phpwebsockets",
     "type": "library",
     "description": "A websocket library for PHP 7.0+ with support for IPC using socket pairs",
     "keywords": ["websocket", "php", "phpwebsockets", "ipc", "socket", "client", "server"],
