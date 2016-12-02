@@ -1,0 +1,23 @@
+{
+    "name": "WarriorXK/PHPWebSockets",
+    "type": "library",
+    "description": "A websocket library for PHP 7.0+ with support for IPC using socket pairs",
+    "keywords": ["websocket", "php", "phpwebsockets", "ipc", "socket", "client", "server"],
+    "homepage": "https://github.com/WarriorXK/PHPWebSockets",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Kevin Meijer",
+            "email": "admin@kevinmeijer.nl",
+            "homepage": "https://kevinmeijer.nl",
+            "role": "Developer"
+        }
+    ],
+    "require": {
+        "php": ">=7.0.0",
+        "ext-sockets": "*"
+    },
+    "autoload": {
+        "files": ["PHPWebSocket.php.inc"]
+    }
+}

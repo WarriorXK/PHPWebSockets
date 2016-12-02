@@ -1,4 +1,5 @@
 <?php
+
 // - - - - - - - - - - - - - BEGIN LICENSE BLOCK - - - - - - - - - - - - -
 // The MIT License (MIT)
 //
@@ -29,29 +30,31 @@ namespace PHPWebSocket;
 
 final class Framer {
 
-    const   BYTE1_FIN    = 0b10000000,
-            BYTE1_RSV1   = 0b01000000,
-            BYTE1_RSV2   = 0b00100000,
-            BYTE1_RSV3   = 0b00010000,
+    const   BYTE1_FIN = 0b10000000,
+            BYTE1_RSV1 = 0b01000000,
+            BYTE1_RSV2 = 0b00100000,
+            BYTE1_RSV3 = 0b00010000,
             BYTE1_OPCODE = 0b00001111;
 
     const   BYTE2_MASKED = 0b10000000,
             BYTE2_LENGTH = 0b01111111;
 
-    const   IND_FIN           = 'fin',
-            IND_RSV1          = 'rsv1',
-            IND_RSV2          = 'rsv2',
-            IND_RSV3          = 'rsv3',
-            IND_OPCODE        = 'opcode',
-            IND_MASK          = 'mask',
-            IND_LENGTH        = 'length',
-            IND_MASKINGKEY    = 'masking-key',
+    const   IND_FIN = 'fin',
+            IND_RSV1 = 'rsv1',
+            IND_RSV2 = 'rsv2',
+            IND_RSV3 = 'rsv3',
+            IND_OPCODE = 'opcode',
+            IND_MASK = 'mask',
+            IND_LENGTH = 'length',
+            IND_MASKINGKEY = 'masking-key',
             IND_PAYLOADOFFSET = 'payload-offset';
 
     /**
      * Extracts the headers out of the provided frame, returns NULL if the provided frame has invalid headers
+     *
      * @param string $frame
-     * @return array|NULL
+     *
+     * @return array|null
      */
     public static function GetFrameHeaders(string $frame) {
 
@@ -68,11 +71,11 @@ final class Framer {
             self::IND_RSV1           => (bool) ($byte1 & self::BYTE1_RSV1),
             self::IND_RSV2           => (bool) ($byte1 & self::BYTE1_RSV2),
             self::IND_RSV3           => (bool) ($byte1 & self::BYTE1_RSV3),
-            self::IND_OPCODE         =>        ($byte1 & self::BYTE1_OPCODE),
+            self::IND_OPCODE         => ($byte1 & self::BYTE1_OPCODE),
             self::IND_MASK           => (bool) ($byte2 & self::BYTE2_MASKED),
-            self::IND_LENGTH         =>        ($byte2 & self::BYTE2_LENGTH),
+            self::IND_LENGTH         => ($byte2 & self::BYTE2_LENGTH),
             self::IND_MASKINGKEY     => NULL,
-            self::IND_PAYLOADOFFSET  => 2
+            self::IND_PAYLOADOFFSET  => 2,
         ];
 
         if ($headers[self::IND_LENGTH] === 126) { // 16 bits
@@ -121,9 +124,11 @@ final class Framer {
 
     /**
      * Returns the payload from the frame, returns NULL for incomplete frames and FALSE for protocol error
-     * @param  string     $frame
-     * @param  array|NULL $headers
-     * @return string|boolean|NULL
+     *
+     * @param string     $frame
+     * @param array|null $headers
+     *
+     * @return string|bool|null
      */
     public static function GetFramePayload(string $frame, array $headers = NULL) {
 
@@ -143,7 +148,7 @@ final class Framer {
             case \PHPWebSocket::OPCODE_PING:
             case \PHPWebSocket::OPCODE_PONG:
 
-                if ($headers[self::IND_LENGTH] === 1 || $headers[self::IND_LENGTH] > 125 || !$headers[Framer::IND_FIN]) {
+                if ($headers[self::IND_LENGTH] === 1 || $headers[self::IND_LENGTH] > 125 || !$headers[self::IND_FIN]) {
                     return FALSE;
                 }
 
@@ -164,6 +169,7 @@ final class Framer {
                 return $payload;
             default:
                 \PHPWebSocket::Log(\PHPWebSocket::LOGLEVEL_WARNING, 'Encountered unknown opcode: ' . $opcode);
+
                 return FALSE; // Failure, unknown action
         }
 
@@ -171,16 +177,19 @@ final class Framer {
 
     /**
      * Frames a message
-     * @param  string  $data
-     * @param  bool    $mask
-     * @param  integer $opcode
-     * @param  boolean $isFinal
-     * @param  boolean $rsv1
-     * @param  boolean $rsv2
-     * @param  boolean $rsv3
-     * @return string
+     *
+     * @param string $data
+     * @param bool   $mask
+     * @param int    $opcode
+     * @param bool   $isFinal
+     * @param bool   $rsv1
+     * @param bool   $rsv2
+     * @param bool   $rsv3
+     *
      * @throws \RangeException
      * @throws \LogicException
+     *
+     * @return string
      */
     public static function Frame(string $data, bool $mask, int $opcode = \PHPWebSocket::OPCODE_FRAME_TEXT, bool $isFinal = TRUE, bool $rsv1 = FALSE, bool $rsv2 = FALSE, bool $rsv3 = FALSE) {
 
@@ -241,12 +250,13 @@ final class Framer {
 
     /**
      * Applies the mask to the provided payload
-     * @param  array  $headers
-     * @param  string $payload
+     *
+     * @param array  $headers
+     * @param string $payload
+     *
      * @return string
      */
     public static function ApplyMask(string $payload, string $maskingKey) : string {
         return str_pad('', strlen($payload), $maskingKey) ^ $payload;
     }
-
 }

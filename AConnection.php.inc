@@ -1,4 +1,5 @@
 <?php
+
 // - - - - - - - - - - - - - BEGIN LICENSE BLOCK - - - - - - - - - - - - -
 // The MIT License (MIT)
 //
@@ -33,109 +34,127 @@ abstract class AConnection implements IStreamContainer {
 
     /**
      * The amount of bytes to read to complete our current frame
-     * @var integer|NULL
+     *
+     * @var int|null
      */
     protected $_currentFrameRemainingBytes = NULL;
 
     /**
      * The opcode of the current partial message
-     * @var integer|NULL
+     *
+     * @var int|null
      */
     protected $_partialMessageOpcode = NULL;
 
     /**
      * If we've initiated the disconnect
-     * @var boolean
+     *
+     * @var bool
      */
     protected $_weInitiateDisconnect = FALSE;
 
     /**
      * If we've received the disconnect message from the remote
-     * @var boolean
+     *
+     * @var bool
      */
     protected $_remoteSentDisconnect = FALSE;
 
     /**
      * The priority frames ready to be send (Takes priority over the normal frames buffer)
+     *
      * @var string[]
      */
     protected $_priorityFramesBuffer = [];
 
     /**
      * The maximum size the handshake can become
-     * @var integer
+     *
+     * @var int
      */
     protected $_maxHandshakeLength = 8192;
 
     /**
      * If we've sent the disconnect message to the remote
-     * @var boolean
+     *
+     * @var bool
      */
     protected $_weSentDisconnect = FALSE;
 
     /**
      * If we should close the connection after our write buffer has been emptied
-     * @var boolean
+     *
+     * @var bool
      */
     protected $_closeAfterWrite = FALSE;
 
     /**
      * The partial message if the current message hasn't finished yet
-     * @var string|NULL
+     *
+     * @var string|null
      */
     protected $_partialMessage = NULL;
 
     /**
      * The frames ready to be send
+     *
      * @var string[]
      */
     protected $_framesBuffer = [];
 
     /**
      * The write buffer
-     * @var string|NULL
+     *
+     * @var string|null
      */
     protected $_writeBuffer = NULL;
 
     /**
      * The read buffer
-     * @var string|NULL
+     *
+     * @var string|null
      */
     protected $_readBuffer = NULL;
 
     /**
      * If the RSV1 property is allowed on this connection
-     * @var boolean
+     *
+     * @var bool
      */
     protected $_allowRSV1 = FALSE;
 
     /**
      * If the RSV2 property is allowed on this connection
-     * @var boolean
+     *
+     * @var bool
      */
     protected $_allowRSV2 = FALSE;
 
     /**
      * If the RSV3 property is allowed on this connection
-     * @var boolean
+     *
+     * @var bool
      */
     protected $_allowRSV3 = FALSE;
 
     /**
      * The amount of bytes we write per cycle
-     * @var integer
+     *
+     * @var int
      */
     protected $_writeRate = 16384;
 
     /**
      * The amount of bytes we read per cycle
-     * @var integer
+     *
+     * @var int
      */
     protected $_readRate = 16384;
 
     /**
      * Sets the maximum size for the handshake in bytes
-     * @param integer $maxLength
+     *
+     * @param int $maxLength
      */
     public function setMaxHandshakeLength(int $maxLength) {
         $this->_maxHandshakeLength = $maxLength;
@@ -143,7 +162,8 @@ abstract class AConnection implements IStreamContainer {
 
     /**
      * Returns the maximum size for the handshake in bytes
-     * @return integer
+     *
+     * @return int
      */
     public function getMaxHandshakeLength() : int {
         return $this->_maxHandshakeLength;
@@ -151,7 +171,8 @@ abstract class AConnection implements IStreamContainer {
 
     /**
      * Returns if we have (partial)frames ready to be send
-     * @return boolean
+     *
+     * @return bool
      */
     public function isWriteBufferEmpty() : bool {
         return empty($this->_priorityFramesBuffer) && empty($this->_framesBuffer) && empty($this->_writeBuffer);
@@ -166,7 +187,9 @@ abstract class AConnection implements IStreamContainer {
 
     /**
      * In here we attempt to find frames and unmask them, returns finished messages if available
+     *
      * @param string $newData
+     *
      * @return \PHPWebSocket\AUpdate[]
      */
     protected function _handlePacket(string $newData) : \Generator {
@@ -369,6 +392,7 @@ abstract class AConnection implements IStreamContainer {
 
     /**
      * Writes the current buffer to the connection
+     *
      * @return \PHPWebSocket\AUpdate[]
      */
     public function handleWrite() : \Generator {
@@ -418,9 +442,11 @@ abstract class AConnection implements IStreamContainer {
 
     /**
      * Splits the provided data into frames of the specified size and sends them to the remote
-     * @param  string  $data
-     * @param  integer $opcode
-     * @param  integer $frameSize
+     *
+     * @param string $data
+     * @param int    $opcode
+     * @param int    $frameSize
+     *
      * @throws \Exception
      */
     public function writeMultiFramed(string $data, int $opcode = \PHPWebSocket::OPCODE_FRAME_TEXT, int $frameSize = 65535) {
@@ -444,8 +470,9 @@ abstract class AConnection implements IStreamContainer {
 
     /**
      * Writes a raw string to the buffer, if priority is set to TRUE it will be send before normal priority messages
-     * @param string  $data
-     * @param boolean $priority
+     *
+     * @param string $data
+     * @param bool   $priority
      */
     public function writeRaw(string $data, bool $priority) {
 
@@ -459,9 +486,10 @@ abstract class AConnection implements IStreamContainer {
 
     /**
      * Queues a string to be written to the remote
-     * @param string  $data
-     * @param integer $opcode
-     * @param boolean $isFinal
+     *
+     * @param string $data
+     * @param int    $opcode
+     * @param bool   $isFinal
      */
     public function write(string $data, int $opcode = \PHPWebSocket::OPCODE_FRAME_TEXT, bool $isFinal = TRUE) {
         $this->writeRaw(Framer::Frame($data, $this->_shouldMask(), $opcode, $isFinal), \PHPWebSocket::IsPriorityOpcode($opcode));
@@ -469,8 +497,9 @@ abstract class AConnection implements IStreamContainer {
 
     /**
      * Sends a disconnect message to the remote, this causes the connection to be closed once they responds with its disconnect message
-     * @param integer $code
-     * @param string  $reason
+     *
+     * @param int    $code
+     * @param string $reason
      */
     public function sendDisconnect(int $code, string $reason = '') {
 
@@ -486,7 +515,8 @@ abstract class AConnection implements IStreamContainer {
 
     /**
      * Returns TRUE if we are disconnecting
-     * @return boolean
+     *
+     * @return bool
      */
     public function isDisconnecting() : bool {
         return $this->_weSentDisconnect || $this->_remoteSentDisconnect;
@@ -494,8 +524,10 @@ abstract class AConnection implements IStreamContainer {
 
     /**
      * Checks if the remote is in error by sending us one of the RSV bits
-     * @param  array  $headers
-     * @return boolean
+     *
+     * @param array $headers
+     *
+     * @return bool
      */
     protected function _checkRSVBits(array $headers) : bool {
 
@@ -508,7 +540,8 @@ abstract class AConnection implements IStreamContainer {
 
     /**
      * Sets if we allow the RSV1 bit to be set
-     * @param boolean $allow
+     *
+     * @param bool $allow
      */
     public function setAllowRSV1(bool $allow) {
         $this->_allowRSV1 = $allow;
@@ -516,7 +549,8 @@ abstract class AConnection implements IStreamContainer {
 
     /**
      * Returns if we allow the RSV1 bit to be set
-     * @return boolean
+     *
+     * @return bool
      */
     public function getAllowRSV1() : bool {
         return $this->_allowRSV1;
@@ -524,7 +558,8 @@ abstract class AConnection implements IStreamContainer {
 
     /**
      * Returns if we allow the RSV2 bit to be set
-     * @param boolean $allow
+     *
+     * @param bool $allow
      */
     public function setAllowRSV2(bool $allow) {
         $this->_allowRSV2 = $allow;
@@ -532,7 +567,8 @@ abstract class AConnection implements IStreamContainer {
 
     /**
      * Returns if we allow the RSV2 bit to be set
-     * @return boolean
+     *
+     * @return bool
      */
     public function getAllowRSV2() : bool {
         return $this->_allowRSV2;
@@ -540,7 +576,8 @@ abstract class AConnection implements IStreamContainer {
 
     /**
      * Returns if we allow the RSV3 bit to be set
-     * @param boolean $allow
+     *
+     * @param bool $allow
      */
     public function setAllowRSV3(bool $allow) {
         $this->_allowRSV3 = $allow;
@@ -548,7 +585,8 @@ abstract class AConnection implements IStreamContainer {
 
     /**
      * Returns if we allow the RSV3 bit to be set
-     * @return boolean
+     *
+     * @return bool
      */
     public function getAllowRSV3() : bool {
         return $this->_allowRSV3;
@@ -556,7 +594,8 @@ abstract class AConnection implements IStreamContainer {
 
     /**
      * Sets the maximum amount of bytes to write per cycle
-     * @param integer $rate
+     *
+     * @param int $rate
      */
     public function setWriteRate(int $rate) {
         $this->_writeRate = $rate;
@@ -564,7 +603,8 @@ abstract class AConnection implements IStreamContainer {
 
     /**
      * Returns the maximum amount of bytes to write per cycle
-     * @return integer
+     *
+     * @return int
      */
     public function getWriteRate() : int {
         return $this->_writeRate;
@@ -572,7 +612,8 @@ abstract class AConnection implements IStreamContainer {
 
     /**
      * Sets the maximum amount of bytes to read per cycle
-     * @param integer $rate
+     *
+     * @param int $rate
      */
     public function setReadRate(int $rate) {
         $this->_readRate = $rate;
@@ -580,7 +621,8 @@ abstract class AConnection implements IStreamContainer {
 
     /**
      * Returns the maximum amount of bytes to read per cycle
-     * @return integer
+     *
+     * @return int
      */
     public function getReadRate() : int {
         return $this->_readRate;
@@ -588,13 +630,15 @@ abstract class AConnection implements IStreamContainer {
 
     /**
      * Returns if the frame we are writing should be masked
-     * @return boolean
+     *
+     * @return bool
      */
     abstract protected function _shouldMask() : bool;
 
     /**
      * Returns TRUE if our connection is open
-     * @return boolean
+     *
+     * @return bool
      */
     abstract public function isOpen() : bool;
 
@@ -610,5 +654,4 @@ abstract class AConnection implements IStreamContainer {
         }
 
     }
-
 }
