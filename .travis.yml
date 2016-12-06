@@ -11,8 +11,8 @@ env:
 before_script:
   - sudo apt-get update
   - sudo apt-get install python-pip
-  - pip install -U pip wheel
-  - pip install autobahntestsuite
+  - sudo pip install -U pip wheel
+  - sudo pip install autobahntestsuite
   - phpenv config-rm xdebug.ini
 script:
   - php Tests/runner.php $TESTTYPE
