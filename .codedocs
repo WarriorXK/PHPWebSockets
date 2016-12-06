@@ -1,0 +1,4 @@
+# CodeDocs.xyz Configuration File
+
+DOXYFILE = Resources/Doxygen/File.doxy
+PROJECT_LOGO = Resources/Doxygen/Logo.png
