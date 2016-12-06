@@ -1,14 +1,21 @@
 language: php
+cache:
+  directories:
+    - $HOME/.cache/pip
 php:
   - '7.0'
   - '7.1'
+env:
+  - TESTTYPE=server
+  - TESTTYPE=client
 before_script:
   - sudo apt-get update
   - sudo apt-get install python-pip
-  - sudo pip install autobahntestsuite
+  - sudo -H pip install -U pip wheel
+  - sudo -H pip install autobahntestsuite
+  - phpenv config-rm xdebug.ini
 script:
-  - php Tests/server.php
-  - php Tests/client.php
+  - php Tests/runner.php $TESTTYPE
 notifications:
   email:
     recipients:
