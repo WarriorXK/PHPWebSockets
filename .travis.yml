@@ -1,8 +1,10 @@
 language: php
+cache:
+  directories:
+    - $HOME/.cache/pip
 php:
   - '7.0'
   - '7.1'
-cache: pip
 env:
   - TESTTYPE=server
   - TESTTYPE=client
