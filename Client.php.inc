@@ -76,6 +76,7 @@ class Client extends \PHPWebSocket\AConnection {
      * Connects to the provided resource
      *
      * @param resource $resource
+     * @param string   $path
      *
      * @throws \InvalidArgumentException
      * @throws \LogicException

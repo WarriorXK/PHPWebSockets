@@ -251,8 +251,8 @@ final class Framer {
     /**
      * Applies the mask to the provided payload
      *
-     * @param array  $headers
      * @param string $payload
+     * @param string $maskingKey
      *
      * @return string
      */

@@ -229,6 +229,7 @@ class Connection extends \PHPWebSocket\AConnection {
      * Handles the handshake from the client and returns if the handshake was valid
      *
      * @param string $rawHandshake
+     * @param int    &$responseCode
      *
      * @return bool
      */

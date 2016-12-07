@@ -157,7 +157,7 @@ final class PHPWebSocket {
     /**
      * Checks for updates for the provided IStreamContainer objects
      *
-     * @param \PHPWebSocket\IStreamContainer $objects
+     * @param \PHPWebSocket\IStreamContainer $updateObjects
      * @param float|null                     $timeout The amount of seconds to wait for updates, setting this value to NULL causes this function to block indefinitely until there is an update
      *
      * @throws \InvalidArgumentException
