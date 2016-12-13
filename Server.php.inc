@@ -33,8 +33,8 @@ namespace PHPWebSocket;
 require_once(__DIR__ . '/Server/AcceptingConnection.php.inc');
 require_once(__DIR__ . '/Server/Connection.php.inc');
 
-class Server {
-
+class Server
+{
     /**
      * The maximum size in bytes for the handshake
      *

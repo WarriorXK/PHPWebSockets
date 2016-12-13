@@ -30,7 +30,8 @@ declare(strict_types = 1);
 
 namespace PHPWebSocket;
 
-trait TStreamContainerDefaults {
+trait TStreamContainerDefaults
+{
     /**
      * Gets called just before stream_select gets called
      *
