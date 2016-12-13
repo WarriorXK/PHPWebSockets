@@ -30,8 +30,8 @@ declare(strict_types = 1);
 
 namespace PHPWebSocket\Update;
 
-class Read extends \PHPWebSocket\AUpdate {
-
+class Read extends \PHPWebSocket\AUpdate
+{
     const   C_UNKNOWN = 0,
             C_NEWCONNECTION = 1,
             C_READ = 2,
