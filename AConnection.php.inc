@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types = 1);
+
 // - - - - - - - - - - - - - BEGIN LICENSE BLOCK - - - - - - - - - - - - -
 // The MIT License (MIT)
 //
@@ -23,8 +25,6 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 // - - - - - - - - - - - - - - END LICENSE BLOCK - - - - - - - - - - - - -
-
-declare(strict_types = 1);
 
 namespace PHPWebSocket;
 
