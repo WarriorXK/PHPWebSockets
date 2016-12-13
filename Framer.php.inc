@@ -2,7 +2,8 @@
 
 declare(strict_types = 1);
 
-/* - - - - - - - - - - - - - BEGIN LICENSE BLOCK - - - - - - - - - - - - -
+/*
+ * - - - - - - - - - - - - - BEGIN LICENSE BLOCK - - - - - - - - - - - - -
  * The MIT License (MIT)
  *
  * Copyright (c) 2016 Kevin Meijer
@@ -29,8 +30,8 @@ declare(strict_types = 1);
 
 namespace PHPWebSocket;
 
-final class Framer {
-
+final class Framer
+{
     const   BYTE1_FIN = 0b10000000,
             BYTE1_RSV1 = 0b01000000,
             BYTE1_RSV2 = 0b00100000,

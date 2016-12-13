@@ -2,7 +2,8 @@
 
 declare(strict_types = 1);
 
-/* - - - - - - - - - - - - - BEGIN LICENSE BLOCK - - - - - - - - - - - - -
+/*
+ * - - - - - - - - - - - - - BEGIN LICENSE BLOCK - - - - - - - - - - - - -
  * The MIT License (MIT)
  *
  * Copyright (c) 2016 Kevin Meijer
@@ -29,8 +30,8 @@ declare(strict_types = 1);
 
 namespace PHPWebSocket;
 
-class Client extends \PHPWebSocket\AConnection {
-
+class Client extends \PHPWebSocket\AConnection
+{
     /**
      * The last error code received from the stream
      *
