@@ -2,7 +2,32 @@
 
 declare(strict_types = 1);
 
-// - - - - - - - - - - - - - BEGIN LICENSE BLOCK - - - - - - - - - - - - -
+/*
+ * - - - - - - - - - - - - - BEGIN LICENSE BLOCK - - - - - - - - - - - - -
+ * The MIT License (MIT)
+ *
+ * Copyright (c) 2016 Kevin Meijer
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ * - - - - - - - - - - - - - - END LICENSE BLOCK - - - - - - - - - - - - -
+ */
+
 // The MIT License (MIT)
 //
 // Copyright (c) 2016 Kevin Meijer
@@ -31,8 +56,8 @@ namespace PHPWebSocket;
 require_once(__DIR__ . '/Server/AcceptingConnection.php.inc');
 require_once(__DIR__ . '/Server/Connection.php.inc');
 
-class Server {
-
+class Server
+{
     /**
      * The maximum size in bytes for the handshake
      *
@@ -139,7 +164,6 @@ class Server {
      * @throws \Exception
      */
     public function __construct(string $address = NULL) {
-
         $this->_serverIndex = self::$_ServerCounter;
         $this->_address = $address;
 
@@ -147,19 +171,15 @@ class Server {
 
         $options = [];
         if ($this->usesSSL()) {
-
             $options['ssl'] = [
                 'allow_self_signed' => TRUE,
                 'local_cert', $sslCert,
             ];
-
         }
 
         if ($this->_address !== NULL) {
-
             $pos = strpos($this->_address, '://');
             if ($pos !== FALSE) {
-
                 $protocol = substr($this->_address, 0, $pos);
                 switch ($protocol) {
                     case 'unix':
@@ -167,27 +187,20 @@ class Server {
 
                         $path = substr($this->_address, $pos + 3);
                         if (file_exists($path)) {
-
                             \PHPWebSocket::Log(\PHPWebSocket::LOGLEVEL_WARNING, 'Unix socket "' . $path . '" still exists, unlinking!');
                             if (!unlink($path)) {
                                 throw new \Exception('Unable to unlink file "' . $path . '"');
                             }
-
                         } else {
-
                             $dir = pathinfo($path, PATHINFO_DIRNAME);
                             if (!is_dir($dir)) {
-
                                 \PHPWebSocket::Log(\PHPWebSocket::LOGLEVEL_DEBUG, 'Directory "' . $dir . '" does not exist, creating..');
                                 mkdir($dir, 0770, TRUE);
-
                             }
-
                         }
 
                         break;
                 }
-
             }
 
             $errCode = NULL;
@@ -200,11 +213,9 @@ class Server {
             $this->_acceptingConnection = new Server\AcceptingConnection($this, $acceptingSocket);
 
             \PHPWebSocket::Log(\PHPWebSocket::LOGLEVEL_NORMAL, 'Opened websocket on ' . $this->_address, TRUE);
-
         }
 
         $this->_open = TRUE;
-
     }
 
     /**
@@ -213,7 +224,6 @@ class Server {
      * @return array
      */
     public function createServerClientPair() : array {
-
         list($server, $client) = stream_socket_pair(STREAM_PF_UNIX, STREAM_SOCK_STREAM, STREAM_IPPROTO_IP);
 
         $serverConnection = new \PHPWebSocket\Server\Connection($this, $server, '', $this->_connectionIndex);
@@ -248,13 +258,11 @@ class Server {
      * @return \PHPWebSocket\AUpdate[]
      */
     public function gotNewConnection() : \Generator {
-
         if (!$this->_autoAccept) {
             yield new Update\Read(Update\Read::C_NEW_TCP_CONNECTION_AVAILABLE, $this->_acceptingConnection);
         } else {
             yield from $this->acceptNewConnection();
         }
-
     }
 
     /**
@@ -265,7 +273,6 @@ class Server {
      * @return \PHPWebSocket\AUpdate[]
      */
     public function acceptNewConnection() : \Generator {
-
         if ($this->_acceptingConnection === NULL) {
             throw new \Exception('This server has no accepting connection, unable to accept a new connection!');
         }
@@ -284,7 +291,6 @@ class Server {
         $this->_connectionIndex++;
 
         yield new Update\Read(Update\Read::C_NEW_TCP_CONNECTION, $this->_acceptingConnection);
-
     }
 
     /**
@@ -296,7 +302,6 @@ class Server {
      * @return string
      */
     public function getErrorPageForCode(int $errorCode, string $fallbackErrorString = 'Unknown error code') : string {
-
         $replaceFields = [
             '%errorCode%'        => (string) $errorCode,
             '%errorString%'      => \PHPWebSocket::GetStringForErrorCode($errorCode) ?: $fallbackErrorString,
@@ -314,13 +319,10 @@ class Server {
      * @return \PHPWebSocket\Server\Connection|null
      */
     public function getConnectionByStream($stream) {
-
         foreach ($this->_connections as $connection) {
-
             if ($stream === $connection->getStream()) {
                 return $connection;
             }
-
         }
 
         return NULL;
@@ -359,15 +361,12 @@ class Server {
      * @return \PHPWebSocket\Server\Connection[]
      */
     public function getConnections(bool $includeAccepting = FALSE) : array {
-
         $ret = $this->_connections;
         if ($includeAccepting) {
-
             $acceptingConnection = $this->getAcceptingConnection();
             if ($acceptingConnection !== NULL && $acceptingConnection->isOpen()) {
                 array_unshift($ret, $acceptingConnection); // Insert the accepting connection on the first index
             }
-
         }
 
         return $ret;
@@ -380,11 +379,9 @@ class Server {
      * @param string $reason
      */
     public function disconnectAll(int $closeCode, string $reason = '') {
-
         foreach ($this->getConnections() as $connection) {
             $connection->sendDisconnect($closeCode, $reason);
         }
-
     }
 
     /**
@@ -402,18 +399,14 @@ class Server {
      * @param int $pid
      */
     public function processDidFork(int $pid) {
-
         if ($this->_disableForkCleanup) {
             return;
         }
 
         if ($pid === 0) { // We are in the new fork
-
             $this->_cleanupAcceptingConnectionOnClose = FALSE;
             $this->close();
-
         }
-
     }
 
     /**
@@ -422,7 +415,6 @@ class Server {
      * @param \PHPWebSocket\Server\Connection $connection
      */
     public function removeConnection(Server\Connection $connection) {
-
         if ($connection->getServer() !== $this) {
             throw new \LogicException('Unable to remove connection ' . $connection . ', this is not our connection!');
         }
@@ -434,7 +426,6 @@ class Server {
         }
 
         unset($this->_connections[$connection->getIndex()]);
-
     }
 
     /**
@@ -486,23 +477,19 @@ class Server {
      * Closes the webserver, note: clients should be notified beforehand that we are disconnecting, calling close while having connected clients will result in an improper disconnect
      */
     public function close() {
-
         foreach ($this->_connections as $connection) {
             $connection->close();
         }
 
         if ($this->_acceptingConnection !== NULL) {
-
             if ($this->_acceptingConnection->isOpen()) {
                 $this->_acceptingConnection->close($this->_cleanupAcceptingConnectionOnClose);
             }
 
             $this->_acceptingConnection = NULL;
-
         }
 
         $this->_open = FALSE;
-
     }
 
     public function __destruct() {

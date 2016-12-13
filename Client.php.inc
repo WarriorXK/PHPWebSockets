@@ -2,7 +2,32 @@
 
 declare(strict_types = 1);
 
-// - - - - - - - - - - - - - BEGIN LICENSE BLOCK - - - - - - - - - - - - -
+/*
+ * - - - - - - - - - - - - - BEGIN LICENSE BLOCK - - - - - - - - - - - - -
+ * The MIT License (MIT)
+ *
+ * Copyright (c) 2016 Kevin Meijer
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ * - - - - - - - - - - - - - - END LICENSE BLOCK - - - - - - - - - - - - -
+ */
+
 // The MIT License (MIT)
 //
 // Copyright (c) 2016 Kevin Meijer
@@ -28,8 +53,8 @@ declare(strict_types = 1);
 
 namespace PHPWebSocket;
 
-class Client extends \PHPWebSocket\AConnection {
-
+class Client extends \PHPWebSocket\AConnection
+{
     /**
      * The last error code received from the stream
      *
@@ -84,7 +109,6 @@ class Client extends \PHPWebSocket\AConnection {
      * @return bool
      */
     public function connectToResource($resource, string $path = '/') {
-
         if (!is_resource($resource)) {
             throw \InvalidArgumentException('Argument is not a resource!');
         }
@@ -111,7 +135,6 @@ class Client extends \PHPWebSocket\AConnection {
      * @return bool
      */
     public function connect(string $address, string $path = '/') {
-
         if ($this->isOpen()) {
             throw new \LogicException('The connection is already open!');
         }
@@ -133,7 +156,6 @@ class Client extends \PHPWebSocket\AConnection {
      * @param string $path
      */
     protected function _afterOpen(string $address, string $path) {
-
         $this->_resourceIndex = (int) $this->getStream();
 
         stream_set_timeout($this->_stream, 15);
@@ -152,7 +174,6 @@ class Client extends \PHPWebSocket\AConnection {
         ];
 
         $this->writeRaw(implode("\r\n", $headerParts) . "\r\n\r\n", FALSE);
-
     }
 
     /**
@@ -201,7 +222,6 @@ class Client extends \PHPWebSocket\AConnection {
      * @return \PHPWebSocket\AUpdate[]
      */
     public function handleRead() : \Generator {
-
         \PHPWebSocket::Log(\PHPWebSocket::LOGLEVEL_DEBUG, __METHOD__);
 
         $readRate = $this->getReadRate($this);
@@ -214,7 +234,6 @@ class Client extends \PHPWebSocket\AConnection {
 
         $updates = [];
         if (strlen($newData) === 0) {
-
             if ($this->_remoteSentDisconnect && $this->_weSentDisconnect) {
                 yield new Update\Read(Update\Read::C_SOCK_DISCONNECT, $this);
             } else {
@@ -224,15 +243,11 @@ class Client extends \PHPWebSocket\AConnection {
             $this->close();
 
             return;
-
         } else {
-
             $handshakeAccepted = $this->handshakeAccepted();
             if (!$handshakeAccepted) {
-
                 $headersEnd = strpos($newData, "\r\n\r\n");
                 if ($headersEnd === FALSE) {
-
                     \PHPWebSocket::Log(\PHPWebSocket::LOGLEVEL_DEBUG, 'Handshake data didn\'t finished yet, waiting..');
 
                     if ($this->_readBuffer === NULL) {
@@ -242,20 +257,16 @@ class Client extends \PHPWebSocket\AConnection {
                     $this->_readBuffer .= $newData;
 
                     if (strlen($this->_readBuffer) > $this->getMaxHandshakeLength()) {
-
                         yield new Update\Error(Update\Error::C_READ_HANDSHAKETOLARGE, $this);
                         $this->close();
-
                     }
 
                     return; // Still waiting for headers
                 }
 
                 if ($this->_readBuffer !== NULL) {
-
                     $newData = $this->_readBuffer . $newData;
                     $this->_readBuffer = NULL;
-
                 }
 
                 $rawHandshake = substr($newData, 0, $headersEnd);
@@ -269,23 +280,18 @@ class Client extends \PHPWebSocket\AConnection {
                     $this->_handshakeAccepted = TRUE;
                     yield new Update\Read(Update\Read::C_CONNECTION_ACCEPTED, $this);
                 } else {
-
                     $this->close();
 
                     yield new Update\Read(Update\Read::C_CONNECTION_DENIED, $this);
-
                 }
 
                 $handshakeAccepted = $this->handshakeAccepted();
-
             }
 
             if ($handshakeAccepted) {
                 yield from $this->_handlePacket($newData);
             }
-
         }
-
     }
 
     /**
@@ -337,12 +343,10 @@ class Client extends \PHPWebSocket\AConnection {
      * Simply closes the connection
      */
     public function close() {
-
         if (is_resource($this->_stream)) {
             fclose($this->_stream);
             $this->_stream = NULL;
         }
-
     }
 
     public function __toString() {
