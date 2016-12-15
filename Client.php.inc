@@ -31,7 +31,6 @@ declare(strict_types = 1);
 namespace PHPWebSocket;
 
 class Client extends \PHPWebSocket\AConnection {
-
     /**
      * The last error code received from the stream
      *
