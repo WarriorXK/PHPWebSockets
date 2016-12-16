@@ -30,7 +30,7 @@ declare(strict_types = 1);
  */
 
 if (php_sapi_name() !== 'cli') {
-    echo('The tests can only be executed in CLI!' . PHP_EOL);
+    echo 'The tests can only be executed in CLI!' . PHP_EOL;
     die(1);
 }
 
