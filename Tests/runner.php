@@ -1,3 +1,4 @@
+#!/usr/bin/env php
 <?php
 
 declare(strict_types = 1);
@@ -28,59 +29,17 @@ declare(strict_types = 1);
  * - - - - - - - - - - - - - - END LICENSE BLOCK - - - - - - - - - - - - -
  */
 
-namespace PHPWebSocket;
+if (php_sapi_name() !== 'cli') {
+    echo 'The tests can only be executed in CLI!' . PHP_EOL;
+    exit(1);
+}
 
-trait TStreamContainerDefaults {
-    /**
-     * Gets called just before stream_select gets called
-     *
-     * @return \PHPWebSocket\AUpdate[]
-     */
-    public function beforeStreamSelect() : \Generator {
-        if (FALSE) {
-            yield;
-        }
-    }
-
-    /**
-     * Returns if we have (partial)frames ready to be send
-     *
-     * @return bool
-     */
-    public function isWriteBufferEmpty() : bool {
-        return TRUE;
-    }
-
-    /**
-     * Handles exceptional data reads
-     *
-     * @return \PHPWebSocket\AUpdate[]
-     */
-    public function handleExceptional() : \Generator {
-        if (FALSE) {
-            yield;
-        }
-    }
-
-    /**
-     * Writes the current buffer to the connection
-     *
-     * @return \PHPWebSocket\AUpdate[]
-     */
-    public function handleWrite() : \Generator {
-        if (FALSE) {
-            yield;
-        }
-    }
-
-    /**
-     * Attempts to read from our connection
-     *
-     * @return \PHPWebSocket\AUpdate[]
-     */
-    public function handleRead() : \Generator {
-        if (FALSE) {
-            yield;
-        }
-    }
+$testCase = $argv[1] ?? NULL;
+switch ($testCase) {
+    case 'server':
+    case 'client':
+        require_once __DIR__ . DIRECTORY_SEPARATOR . $testCase . '.php.inc';
+        break;
+    default:
+        throw new \Exception('Unknown test case: ' . $testCase);
 }
