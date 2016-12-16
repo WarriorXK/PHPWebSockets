@@ -1,4 +1,7 @@
+#!/usr/bin/env php
 <?php
+
+declare(strict_types = 1);
 
 /*
  * - - - - - - - - - - - - - BEGIN LICENSE BLOCK - - - - - - - - - - - - -
@@ -25,6 +28,11 @@
  * SOFTWARE.
  * - - - - - - - - - - - - - - END LICENSE BLOCK - - - - - - - - - - - - -
  */
+
+if (php_sapi_name() !== 'cli') {
+    echo('The tests can only be executed in CLI!' . PHP_EOL);
+    die(1);
+}
 
 $testCase = $argv[1] ?? NULL;
 switch ($testCase) {
