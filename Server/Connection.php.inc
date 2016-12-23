@@ -105,11 +105,12 @@ class Connection extends \PHPWebSocket\AConnection {
         $this->_stream = $stream;
         $this->_index = $index;
 
-        if ($this->_server->usesSSL()) {
+        $this->_resourceIndex = (int) $this->_stream;
+
+        // The crypto enable HAS to happen before disabling blocking mode
+        if ($server->usesCrypto()) {
             stream_socket_enable_crypto($this->_stream, TRUE, STREAM_CRYPTO_METHOD_TLS_SERVER);
         }
-
-        $this->_resourceIndex = (int) $this->_stream;
 
         stream_set_timeout($this->_stream, 15);
         stream_set_blocking($this->_stream, FALSE);
@@ -166,8 +167,10 @@ class Connection extends \PHPWebSocket\AConnection {
 
                     if (strlen($this->_readBuffer) > $this->getMaxHandshakeLength()) {
 
+                        $this->writeRaw($this->_server->getErrorPageForCode(431), FALSE); // Request Header Fields Too Large
+                        $this->setCloseAfterWrite();
+
                         yield new Update\Error(Update\Error::C_READ_HANDSHAKETOLARGE, $this);
-                        $this->close();
 
                     }
 
@@ -221,7 +224,7 @@ class Connection extends \PHPWebSocket\AConnection {
         if (!$this->isAccepted() && $this->hasHandshake() && $this->getOpenedTimestamp() + \PHPWebSocket\Server::ACCEPT_TIMEOUT < time()) {
 
             yield new Update\Error(Update\Error::C_ACCEPT_TIMEOUT_PASSED, $this);
-            $this->deny(408);
+            $this->deny(408); // Request Timeout
 
         }
 
@@ -241,17 +244,17 @@ class Connection extends \PHPWebSocket\AConnection {
 
         $responseCode = 101;
         if (!isset($headers['get'])) {
-            $responseCode = 405;
+            $responseCode = 405; // Method Not Allowed
         } elseif (!isset($headers['host'])) {
-            $responseCode = 400;
+            $responseCode = 400; // Bad Request
         } elseif (!isset($headers['upgrade']) || strtolower($headers['upgrade']) !== 'websocket') {
-            $responseCode = 400;
+            $responseCode = 400; // Bad Request
         } elseif (!isset($headers['connection']) || strpos(strtolower($headers['connection']), 'upgrade') === FALSE) {
-            $responseCode = 400;
+            $responseCode = 400; // Bad Request
         } elseif (!isset($headers['sec-websocket-key'])) {
-            $responseCode = 400;
+            $responseCode = 400; // Bad Request
         } elseif (!isset($headers['sec-websocket-version']) || intval($headers['sec-websocket-version']) !== 13) {
-            $responseCode = 426;
+            $responseCode = 426; // Upgrade Required
         }
 
         $this->_headers = $headers;
@@ -306,7 +309,7 @@ class Connection extends \PHPWebSocket\AConnection {
             throw new \Exception('Connection has already been accepted!');
         }
 
-        $this->writeRaw('HTTP/1.1 ' . $errCode . ' ' . \PHPWebSocket::GetStringForErrorCode($errCode) . "\r\nServer: PHPWebSocket/" . \PHPWebSocket::Version() . "\r\n\r\n", FALSE);
+        $this->writeRaw('HTTP/1.1 ' . $errCode . ' ' . \PHPWebSocket::GetStringForErrorCode($errCode) . "\r\nServer: " . $this->_server->getServerIdentifier() . "\r\n\r\n", FALSE);
         $this->setCloseAfterWrite();
 
     }

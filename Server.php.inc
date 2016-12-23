@@ -120,42 +120,28 @@ class Server {
     protected $_address = NULL;
 
     /**
-     * If we're using SSL
+     * If we should enable crypto after accept
      *
      * @var bool
      */
-    protected $_usesSSL = FALSE;
-
-    /**
-     * If we're currently accepting connections
-     *
-     * @var bool
-     */
-    protected $_open = FALSE;
+    protected $_useCrypto = FALSE;
 
     /**
      * Constructs a new webserver
      *
-     * @param string $address This should be a protocol://address:port scheme url, if left NULL no accepting socket will be created
+     * @param string $address       This should be a protocol://address:port scheme url, if left NULL no accepting socket will be created
+     * @param array  $streamContext The streamcontext @see https://secure.php.net/manual/en/function.stream-context-create.php
+     * @param bool   $useCrypto     If we should enable crypro on newly accepted connections
      *
      * @throws \Exception
      */
-    public function __construct(string $address = NULL) {
+    public function __construct(string $address = NULL, array $streamContext = [], bool $useCrypto = FALSE) {
 
         $this->_serverIndex = self::$_ServerCounter;
+        $this->_useCrypto = $useCrypto;
         $this->_address = $address;
 
         self::$_ServerCounter++;
-
-        $options = [];
-        if ($this->usesSSL()) {
-
-            $options['ssl'] = [
-                'allow_self_signed' => TRUE,
-                'local_cert', $sslCert,
-            ];
-
-        }
 
         if ($this->_address !== NULL) {
 
@@ -194,7 +180,7 @@ class Server {
 
             $errCode = NULL;
             $errString = NULL;
-            $acceptingSocket = @stream_socket_server($this->_address, $errCode, $errString, STREAM_SERVER_BIND | STREAM_SERVER_LISTEN, stream_context_create($options));
+            $acceptingSocket = @stream_socket_server($this->_address, $errCode, $errString, STREAM_SERVER_BIND | STREAM_SERVER_LISTEN, stream_context_create($streamContext));
             if (!$acceptingSocket) {
                 throw new \Exception('Unable to create webserver: ' . $errString, $errCode);
             }
@@ -204,8 +190,6 @@ class Server {
             \PHPWebSocket::Log(\PHPWebSocket::LOGLEVEL_NORMAL, 'Opened websocket on ' . $this->_address, TRUE);
 
         }
-
-        $this->_open = TRUE;
 
     }
 
@@ -476,12 +460,12 @@ class Server {
     }
 
     /**
-     * Returns if this webserver uses SSL
+     * Returns if we enable crypto after stream_socket_accept
      *
      * @return bool
      */
-    public function usesSSL() : bool {
-        return $this->_usesSSL;
+    public function usesCrypto() : bool {
+        return $this->_useCrypto;
     }
 
     /**
@@ -502,8 +486,6 @@ class Server {
             $this->_acceptingConnection = NULL;
 
         }
-
-        $this->_open = FALSE;
 
     }
 
