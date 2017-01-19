@@ -85,6 +85,13 @@ class Server {
     protected $_disableForkCleanup = NULL;
 
     /**
+     * The identifier shown to connecting clients, when set to NULL the string PHPWebSocket/<ModuleVersion> will be used
+     *
+     * @var string|null
+     */
+    protected $_serverIdentifier = NULL;
+
+    /**
      * The index for the next connection to be inserted at
      *
      * @var int
@@ -318,7 +325,16 @@ class Server {
      * @return string
      */
     public function getServerIdentifier() : string {
-        return 'PHPWebSocket/' . \PHPWebSocket::Version();
+        return $this->_serverIdentifier ?? 'PHPWebSocket/' . \PHPWebSocket::Version();
+    }
+
+    /**
+     * Sets the server identifier string reported to clients
+     *
+     * @param string|null $identifier
+     */
+    public function setServerIdentifier(string $identifier = NULL) {
+        $this->_serverIdentifier = $identifier;
     }
 
     /**

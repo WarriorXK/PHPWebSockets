@@ -305,7 +305,16 @@ class Client extends \PHPWebSocket\AConnection {
      * @return string
      */
     public function getUserAgent() : string {
-        return 'PHPWebSocket/' . \PHPWebSocket::Version();
+        return $this->_userAgent ?? 'PHPWebSocket/' . \PHPWebSocket::Version();
+    }
+
+    /**
+     * Returns the user agent string that is reported to the server that we are connecting to
+     *
+     * @param string|null $userAgent
+     */
+    public function setUserAgent(string $userAgent = NULL) {
+        $this->_userAgent = $userAgent;
     }
 
     /**
