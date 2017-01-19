@@ -120,18 +120,18 @@ class Server {
     protected $_autoAccept = TRUE;
 
     /**
-     * The address of the accepting socket
-     *
-     * @var string
-     */
-    protected $_address = NULL;
-
-    /**
      * If we should enable crypto after accept
      *
      * @var bool
      */
     protected $_useCrypto = FALSE;
+
+    /**
+     * The address of the accepting socket
+     *
+     * @var string
+     */
+    protected $_address = NULL;
 
     /**
      * Constructs a new webserver
