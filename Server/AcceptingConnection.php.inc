@@ -30,7 +30,8 @@ declare(strict_types = 1);
 
 namespace PHPWebSocket\Server;
 
-class AcceptingConnection implements \PHPWebSocket\IStreamContainer {
+class AcceptingConnection implements \PHPWebSocket\IStreamContainer
+{
 
     use \PHPWebSocket\TStreamContainerDefaults;
 
