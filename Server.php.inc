@@ -47,14 +47,14 @@ class Server {
      *
      * @var float
      */
-    const SOCKET_ACCEPT_TIMEOUT = 1.0;
+    const SOCKET_ACCEPT_TIMEOUT = 5.0;
 
     /**
      * The time in seconds in which the client has to send its handshake
      *
      * @var float
      */
-    const ACCEPT_TIMEOUT = 1.0;
+    const ACCEPT_TIMEOUT = 5.0;
 
     /**
      * The counter to provide all websocket servers with an unique ID
