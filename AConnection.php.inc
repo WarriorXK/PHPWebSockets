@@ -31,7 +31,6 @@ declare(strict_types = 1);
 namespace PHPWebSocket;
 
 abstract class AConnection implements IStreamContainer {
-
     use \PHPWebSocket\TStreamContainerDefaults;
 
     /**

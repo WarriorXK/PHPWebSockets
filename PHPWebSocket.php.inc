@@ -38,7 +38,6 @@ require_once(__DIR__ . '/Framer.php.inc');
 require_once(__DIR__ . '/Server.php.inc');
 
 final class PHPWebSocket {
-
     const   WEBSOCKET_GUID = '258EAFA5-E914-47DA-95CA-C5AB0DC85B11';
 
     const   LOGLEVEL_DEBUG = 0,
