@@ -33,7 +33,6 @@ namespace PHPWebSocket\Server;
 use PHPWebSocket\Update;
 
 class Connection extends \PHPWebSocket\AConnection {
-
     /**
      * The stream's resource index
      *
