@@ -67,7 +67,7 @@ final class PHPWebSocket {
             CLOSECODE_UNEXPECTED_CONDITION = 1011,
             CLOSECODE_TLS_HANDSHAKE_FAILURE = 1015;
 
-    const HTTP_ERRORCODES = [
+    const HTTP_STATUSCODES = [
         100 => 'Continue',
         101 => 'Switching Protocols',
         102 => 'Processing',
@@ -159,8 +159,8 @@ final class PHPWebSocket {
     /**
      * Checks for updates for the provided IStreamContainer objects
      *
-     * @param \PHPWebSocket\IStreamContainer $updateObjects
-     * @param float|null                     $timeout       The amount of seconds to wait for updates, setting this value to NULL causes this function to block indefinitely until there is an update
+     * @param \PHPWebSocket\IStreamContainer[] $updateObjects
+     * @param float|null                       $timeout       The amount of seconds to wait for updates, setting this value to NULL causes this function to block indefinitely until there is an update
      *
      * @throws \InvalidArgumentException
      *
@@ -382,7 +382,7 @@ final class PHPWebSocket {
      * @return string|null
      */
     public static function GetStringForErrorCode(int $errorCode) {
-        return self::HTTP_ERRORCODES[$errorCode] ?? NULL;
+        return self::HTTP_STATUSCODES[$errorCode] ?? NULL;
     }
 
     /**
