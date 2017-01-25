@@ -196,7 +196,7 @@ abstract class AConnection implements IStreamContainer {
      */
     protected function _handlePacket(string $newData) : \Generator {
 
-        \PHPWebSocket::Log(\PHPWebSocket::LOGLEVEL_DEBUG, __METHOD__);
+        \PHPWebSocket::Log(LOG_DEBUG, __METHOD__);
 
         if ($this->_readBuffer === NULL) {
             $this->_readBuffer = $newData;
@@ -209,7 +209,7 @@ abstract class AConnection implements IStreamContainer {
         $framePos = 0;
         $pongs = [];
 
-        \PHPWebSocket::Log(\PHPWebSocket::LOGLEVEL_DEBUG, 'Handling packet, current buffer size: ' . strlen($this->_readBuffer));
+        \PHPWebSocket::Log(LOG_DEBUG, 'Handling packet, current buffer size: ' . strlen($this->_readBuffer));
 
         while ($framePos < $numBytes) {
 
@@ -231,13 +231,13 @@ abstract class AConnection implements IStreamContainer {
             $frameSize = $headers[Framer::IND_LENGTH] + $headers[Framer::IND_PAYLOADOFFSET];
             if ($numBytes < $frameSize) {
                 $this->_currentFrameRemainingBytes = $frameSize - $numBytes;
-                \PHPWebSocket::Log(\PHPWebSocket::LOGLEVEL_DEBUG, 'Setting next read size to ' . $this->_currentFrameRemainingBytes);
+                \PHPWebSocket::Log(LOG_DEBUG, 'Setting next read size to ' . $this->_currentFrameRemainingBytes);
                 break;
             }
 
             $this->_currentFrameRemainingBytes = NULL;
 
-            \PHPWebSocket::Log(\PHPWebSocket::LOGLEVEL_DEBUG, 'Expecting frame of length ' . $frameSize);
+            \PHPWebSocket::Log(LOG_DEBUG, 'Expecting frame of length ' . $frameSize);
 
             $frame = substr($orgBuffer, $framePos, $frameSize);
             $framePayload = Framer::GetFramePayload($frame, $headers);
@@ -311,7 +311,7 @@ abstract class AConnection implements IStreamContainer {
                         break;
                     case \PHPWebSocket::OPCODE_CLOSE_CONNECTION:
 
-                        \PHPWebSocket::Log(\PHPWebSocket::LOGLEVEL_DEBUG, 'Got disconnect');
+                        \PHPWebSocket::Log(LOG_DEBUG, 'Got disconnect');
 
                         $disconnectMessage = '';
                         $code = \PHPWebSocket::CLOSECODE_NORMAL;
@@ -341,14 +341,14 @@ abstract class AConnection implements IStreamContainer {
 
                         if ($this->_weInitiateDisconnect) {
 
-                            \PHPWebSocket::Log(\PHPWebSocket::LOGLEVEL_DEBUG, '  We initiated the disconnect, close the connection');
+                            \PHPWebSocket::Log(LOG_DEBUG, '  We initiated the disconnect, close the connection');
 
                             $this->close();
                             yield new Update\Read(Update\Read::C_SOCK_DISCONNECT, $this);
 
                         } elseif (!$this->_weSentDisconnect) {
 
-                            \PHPWebSocket::Log(\PHPWebSocket::LOGLEVEL_DEBUG, '  Remote initiated the disconnect, echo disconnect');
+                            \PHPWebSocket::Log(LOG_DEBUG, '  Remote initiated the disconnect, echo disconnect');
 
                             $this->sendDisconnect($code, $disconnectMessage); // Echo the disconnect
                             $this->setCloseAfterWrite();
@@ -399,18 +399,18 @@ abstract class AConnection implements IStreamContainer {
      */
     public function handleWrite() : \Generator {
 
-        \PHPWebSocket::Log(\PHPWebSocket::LOGLEVEL_DEBUG, __METHOD__);
+        \PHPWebSocket::Log(LOG_DEBUG, __METHOD__);
 
         if ($this->_writeBuffer !== NULL) { // If our current frame hasn't finished yet
-            \PHPWebSocket::Log(\PHPWebSocket::LOGLEVEL_DEBUG, 'Resuming write');
+            \PHPWebSocket::Log(LOG_DEBUG, 'Resuming write');
         } elseif (!empty($this->_priorityFramesBuffer)) { // Certain frames take priority over normal frames
 
-            \PHPWebSocket::Log(\PHPWebSocket::LOGLEVEL_DEBUG, 'Starting new write (Priority)');
+            \PHPWebSocket::Log(LOG_DEBUG, 'Starting new write (Priority)');
             $this->_writeBuffer = array_shift($this->_priorityFramesBuffer);
 
         } elseif (!empty($this->_framesBuffer)) {
 
-            \PHPWebSocket::Log(\PHPWebSocket::LOGLEVEL_DEBUG, 'Starting new write');
+            \PHPWebSocket::Log(LOG_DEBUG, 'Starting new write');
             $this->_writeBuffer = array_shift($this->_framesBuffer);
 
         }
@@ -419,24 +419,24 @@ abstract class AConnection implements IStreamContainer {
 
             $bytesToWrite = strlen($this->_writeBuffer);
 
-            \PHPWebSocket::Log(\PHPWebSocket::LOGLEVEL_DEBUG, '  Attempting to write ' . $bytesToWrite . ' bytes');
+            \PHPWebSocket::Log(LOG_DEBUG, '  Attempting to write ' . $bytesToWrite . ' bytes');
 
             $bytesWritten = fwrite($this->_stream, $this->_writeBuffer, min($this->getWriteRate($this), $bytesToWrite));
             if ($bytesWritten === FALSE) {
-                \PHPWebSocket::Log(\PHPWebSocket::LOGLEVEL_DEBUG, '    fwrite failed');
+                \PHPWebSocket::Log(LOG_DEBUG, '    fwrite failed');
                 yield new Update\Error(Update\Error::C_WRITE, $this);
             } elseif ($bytesWritten === $bytesToWrite) {
-                \PHPWebSocket::Log(\PHPWebSocket::LOGLEVEL_DEBUG, '    All bytes written');
+                \PHPWebSocket::Log(LOG_DEBUG, '    All bytes written');
                 $this->_writeBuffer = NULL;
             } else {
-                \PHPWebSocket::Log(\PHPWebSocket::LOGLEVEL_DEBUG, '    Written ' . $bytesWritten . ' bytes');
+                \PHPWebSocket::Log(LOG_DEBUG, '    Written ' . $bytesWritten . ' bytes');
                 $this->_writeBuffer = substr($this->_writeBuffer, $bytesWritten);
             }
 
         }
 
         if ($this->_closeAfterWrite && $this->isWriteBufferEmpty()) {
-            \PHPWebSocket::Log(\PHPWebSocket::LOGLEVEL_DEBUG, '      Close after write');
+            \PHPWebSocket::Log(LOG_DEBUG, '      Close after write');
             $this->close($this);
         }
 

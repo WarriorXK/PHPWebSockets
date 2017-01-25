@@ -126,7 +126,7 @@ class Connection extends \PHPWebSocket\AConnection {
      */
     public function handleRead() : \Generator {
 
-        \PHPWebSocket::Log(\PHPWebSocket::LOGLEVEL_DEBUG, __METHOD__);
+        \PHPWebSocket::Log(LOG_DEBUG, __METHOD__);
 
         $readRate = $this->getReadRate($this);
         $newData = fread($this->getStream(), min($this->_currentFrameRemainingBytes ?? $readRate, $readRate));
@@ -157,7 +157,7 @@ class Connection extends \PHPWebSocket\AConnection {
                 $headersEnd = strpos($newData, "\r\n\r\n");
                 if ($headersEnd === FALSE) {
 
-                    \PHPWebSocket::Log(\PHPWebSocket::LOGLEVEL_DEBUG, 'Handshake data hasn\'t finished yet, waiting..');
+                    \PHPWebSocket::Log(LOG_DEBUG, 'Handshake data hasn\'t finished yet, waiting..');
 
                     if ($this->_readBuffer === NULL) {
                         $this->_readBuffer = '';
