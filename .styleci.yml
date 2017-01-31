@@ -1,0 +1,23 @@
+preset: recommended
+
+enabled:
+  - concat_with_spaces
+  - dir_constant
+  - uppercase_constants
+
+disabled:
+  - braces
+  - class_definition
+  - concat_without_spaces
+  - declare_equal_normalize
+  - lowercase_constants
+  - include
+  - phpdoc_summary
+  - no_blank_lines_after_class_opening
+  - single_class_element_per_statement
+  - simplified_null_return
+
+finder:
+  name:
+    - "*.php"
+    - "*.php.inc"
