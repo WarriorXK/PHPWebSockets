@@ -10,6 +10,8 @@ engines:
   phpmd:
     enabled: true
     checks:
+      Controversial/CamelCaseMethodName:
+        enabled: false
       Controversial/CamelCasePropertyName:
         enabled: false
       CleanCode/BooleanArgumentFlag:
@@ -23,3 +25,4 @@ ratings:
   - "**.php.inc"
 exclude_paths:
   - "Tests/**"
+  - "vendor/**"
