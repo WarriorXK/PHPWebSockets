@@ -9,6 +9,15 @@ engines:
     enabled: true
   phpmd:
     enabled: true
+    checks:
+      Controversial/CamelCasePropertyName:
+        enabled: false
+      CleanCode/BooleanArgumentFlag:
+        enabled: false
+      CleanCode/ElseExpression:
+        enabled: false
+      CleanCode/StaticAccess:
+        enabled: false
 ratings:
   paths:
   - "**.php.inc"
