@@ -163,7 +163,7 @@ class Server {
                         $path = substr($this->_address, $pos + 3);
                         if (file_exists($path)) {
 
-                            \PHPWebSocket::Log(\PHPWebSocket::LOGLEVEL_WARNING, 'Unix socket "' . $path . '" still exists, unlinking!');
+                            \PHPWebSocket::Log(LOG_WARNING, 'Unix socket "' . $path . '" still exists, unlinking!');
                             if (!unlink($path)) {
                                 throw new \Exception('Unable to unlink file "' . $path . '"');
                             }
@@ -173,7 +173,7 @@ class Server {
                             $dir = pathinfo($path, PATHINFO_DIRNAME);
                             if (!is_dir($dir)) {
 
-                                \PHPWebSocket::Log(\PHPWebSocket::LOGLEVEL_DEBUG, 'Directory "' . $dir . '" does not exist, creating..');
+                                \PHPWebSocket::Log(LOG_DEBUG, 'Directory "' . $dir . '" does not exist, creating..');
                                 mkdir($dir, 0770, TRUE);
 
                             }
@@ -194,7 +194,7 @@ class Server {
 
             $this->_acceptingConnection = new Server\AcceptingConnection($this, $acceptingSocket);
 
-            \PHPWebSocket::Log(\PHPWebSocket::LOGLEVEL_NORMAL, 'Opened websocket on ' . $this->_address, TRUE);
+            \PHPWebSocket::Log(LOG_INFO, 'Opened websocket on ' . $this->_address, TRUE);
 
         }
 
@@ -212,7 +212,7 @@ class Server {
         $serverConnection = new \PHPWebSocket\Server\Connection($this, $server, '', $this->_connectionIndex);
         $this->_connections[$this->_connectionIndex] = $serverConnection;
 
-        \PHPWebSocket::Log(\PHPWebSocket::LOGLEVEL_DEBUG, 'Created new connection: ' . $serverConnection);
+        \PHPWebSocket::Log(LOG_DEBUG, 'Created new connection: ' . $serverConnection);
 
         $this->_connectionIndex++;
 
@@ -272,7 +272,7 @@ class Server {
         $newConnection = new \PHPWebSocket\Server\Connection($this, $newStream, $peername, $this->_connectionIndex);
         $this->_connections[$this->_connectionIndex] = $newConnection;
 
-        \PHPWebSocket::Log(\PHPWebSocket::LOGLEVEL_DEBUG, 'Got new connection: ' . $newConnection);
+        \PHPWebSocket::Log(LOG_DEBUG, 'Got new connection: ' . $newConnection);
 
         $this->_connectionIndex++;
 
@@ -429,7 +429,7 @@ class Server {
             throw new \LogicException('Unable to remove connection ' . $connection . ', this is not our connection!');
         }
 
-        \PHPWebSocket::Log(\PHPWebSocket::LOGLEVEL_DEBUG, 'Removing ' . $connection);
+        \PHPWebSocket::Log(LOG_DEBUG, 'Removing ' . $connection);
 
         if ($connection->isOpen()) {
             $connection->close();

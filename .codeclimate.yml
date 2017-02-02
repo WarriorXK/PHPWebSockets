@@ -1,0 +1,28 @@
+
+engines:
+  duplication:
+    enabled: true
+    config:
+      languages:
+      - php
+  fixme:
+    enabled: true
+  phpmd:
+    enabled: true
+    checks:
+      Controversial/CamelCaseMethodName:
+        enabled: false
+      Controversial/CamelCasePropertyName:
+        enabled: false
+      CleanCode/BooleanArgumentFlag:
+        enabled: false
+      CleanCode/ElseExpression:
+        enabled: false
+      CleanCode/StaticAccess:
+        enabled: false
+ratings:
+  paths:
+  - "**.php.inc"
+exclude_paths:
+  - "Tests/**"
+  - "vendor/**"

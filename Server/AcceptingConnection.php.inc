@@ -136,7 +136,7 @@ class AcceptingConnection implements \PHPWebSocket\IStreamContainer {
                 case 'udg':
 
                     if (!$cleanup) {
-                        \PHPWebSocket::Log(\PHPWebSocket::LOGLEVEL_DEBUG, 'Not cleaning up');
+                        \PHPWebSocket::Log(LOG_DEBUG, 'Not cleaning up');
                         break;
                     }
 
@@ -144,10 +144,10 @@ class AcceptingConnection implements \PHPWebSocket\IStreamContainer {
                     if (file_exists($path)) {
 
                         if (!$cleanup) {
-                            \PHPWebSocket::Log(\PHPWebSocket::LOGLEVEL_DEBUG, 'Not cleaning up ' . $path);
+                            \PHPWebSocket::Log(LOG_DEBUG, 'Not cleaning up ' . $path);
                         } else {
 
-                            \PHPWebSocket::Log(\PHPWebSocket::LOGLEVEL_DEBUG, 'Unlinking: ' . $path);
+                            \PHPWebSocket::Log(LOG_DEBUG, 'Unlinking: ' . $path);
                             unlink($path);
 
                         }

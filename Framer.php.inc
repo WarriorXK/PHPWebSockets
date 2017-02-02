@@ -170,7 +170,7 @@ final class Framer {
 
                 return $payload;
             default:
-                \PHPWebSocket::Log(\PHPWebSocket::LOGLEVEL_WARNING, 'Encountered unknown opcode: ' . $opcode);
+                \PHPWebSocket::Log(LOG_WARNING, 'Encountered unknown opcode: ' . $opcode);
 
                 return FALSE; // Failure, unknown action
         }

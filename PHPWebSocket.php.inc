@@ -41,11 +41,6 @@ final class PHPWebSocket {
 
     const   WEBSOCKET_GUID = '258EAFA5-E914-47DA-95CA-C5AB0DC85B11';
 
-    const   LOGLEVEL_DEBUG = 0,
-            LOGLEVEL_NORMAL = 1,
-            LOGLEVEL_WARNING = 2,
-            LOGLEVEL_ERROR = 3;
-
     const   OPCODE_CONTINUE = 0,
             OPCODE_FRAME_TEXT = 1,
             OPCODE_FRAME_BINARY = 2,
@@ -212,14 +207,14 @@ final class PHPWebSocket {
             } else {
 
                 if (!empty($read) || !empty($write) || !empty($exceptional)) {
-                    \PHPWebSocket::Log(\PHPWebSocket::LOGLEVEL_DEBUG, 'Read: ' . count($read) . ' Write: ' . count($write) . ' Except: ' . count($exceptional));
+                    \PHPWebSocket::Log(LOG_DEBUG, 'Read: ' . count($read) . ' Write: ' . count($write) . ' Except: ' . count($exceptional));
                 }
 
                 foreach ($read as $stream) {
 
                     $object = $objectStreamMap[(int) $stream];
                     if ($object === NULL) {
-                        \PHPWebSocket::Log(\PHPWebSocket::LOGLEVEL_ERROR, 'Unable to find stream container related to stream during read!');
+                        \PHPWebSocket::Log(LOG_ERR, 'Unable to find stream container related to stream during read!');
                         continue;
                     }
 
@@ -231,12 +226,12 @@ final class PHPWebSocket {
 
                     $object = $objectStreamMap[(int) $stream];
                     if ($object === NULL) {
-                        \PHPWebSocket::Log(\PHPWebSocket::LOGLEVEL_ERROR, 'Unable to find stream container related to stream during write!');
+                        \PHPWebSocket::Log(LOG_ERR, 'Unable to find stream container related to stream during write!');
                         continue;
                     }
 
                     if (!is_resource($object->getStream())) { // Check if it is still open, it could have closed
-                        \PHPWebSocket::Log(\PHPWebSocket::LOGLEVEL_WARNING, 'Unable to complete write for stream container ' . $object . ', connection was closed');
+                        \PHPWebSocket::Log(LOG_WARNING, 'Unable to complete write for stream container ' . $object . ', connection was closed');
                         continue;
                     }
 
@@ -248,16 +243,16 @@ final class PHPWebSocket {
 
                     $object = $objectStreamMap[(int) $stream];
                     if ($object === NULL) {
-                        \PHPWebSocket::Log(\PHPWebSocket::LOGLEVEL_ERROR, 'Unable to find stream container related to stream during exceptional read!');
+                        \PHPWebSocket::Log(LOG_ERR, 'Unable to find stream container related to stream during exceptional read!');
                         continue;
                     }
 
                     if (!is_resource($object->getStream())) { // Check if it is still open, it could have closed
-                        \PHPWebSocket::Log(\PHPWebSocket::LOGLEVEL_WARNING, 'Unable to complete exceptional read for stream container, connection was closed');
+                        \PHPWebSocket::Log(LOG_WARNING, 'Unable to complete exceptional read for stream container, connection was closed');
                         continue;
                     }
 
-                    \PHPWebSocket::Log(\PHPWebSocket::LOGLEVEL_ERROR, 'Got exceptional for ' . $object);
+                    \PHPWebSocket::Log(LOG_ERR, 'Got exceptional for ' . $object);
 
                     yield from $object->handleExceptional();
 
@@ -402,7 +397,7 @@ final class PHPWebSocket {
     /**
      * Logs a message
      *
-     * @param int    $logLevel  The loglevel, @see \PHPWebSocket::LOGLEVEL_*
+     * @param int    $logLevel  The loglevel
      * @param string $message   The message to log
      * @param bool   $forceShow If the message should be shown regardless of the loglevel
      */
@@ -414,7 +409,7 @@ final class PHPWebSocket {
             return;
         }
 
-        if ($logLevel > self::LOGLEVEL_DEBUG || self::$_Debug || $forceShow) {
+        if ($logLevel < LOG_DEBUG || self::$_Debug || $forceShow) {
             echo 'PHPWebSocket: ' . $logLevel . ') ' . ((string) $message) . PHP_EOL;
         }
 
