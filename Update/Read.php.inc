@@ -45,16 +45,16 @@ class Read extends \PHPWebSocket\AUpdate {
             C_NEW_TCP_CONNECTION_AVAILABLE = 10;
 
     const READ_STRINGS = [
-        self::C_UNKNOWN => 'Unknown error',
-        self::C_NEWCONNECTION => 'New connection',
-        self::C_READ => 'Read',
-        self::C_PING => 'Ping',
-        self::C_SOCK_DISCONNECT => 'Socket disconnected',
-        self::C_CONNECTION_DENIED => 'Connection denied',
-        self::C_CONNECTION_ACCEPTED => 'Connection accepted',
-        self::C_READ_DISCONNECT => 'Disconnect',
-        self::C_NEW_TCP_CONNECTION => 'New TCP connection accepted',
-        self::C_NEW_TCP_CONNECTION_AVAILABLE => 'New TCP connection available'
+        self::C_UNKNOWN                      => 'Unknown error',
+        self::C_NEWCONNECTION                => 'New connection',
+        self::C_READ                         => 'Read',
+        self::C_PING                         => 'Ping',
+        self::C_SOCK_DISCONNECT              => 'Socket disconnected',
+        self::C_CONNECTION_DENIED            => 'Connection denied',
+        self::C_CONNECTION_ACCEPTED          => 'Connection accepted',
+        self::C_READ_DISCONNECT              => 'Disconnect',
+        self::C_NEW_TCP_CONNECTION           => 'New TCP connection accepted',
+        self::C_NEW_TCP_CONNECTION_AVAILABLE => 'New TCP connection available',
     ];
 
     /**

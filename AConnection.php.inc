@@ -528,6 +528,7 @@ abstract class AConnection implements IStreamContainer {
 
     /**
      * Sets if the provided reserved bit is allowed to be set
+     *
      * @param int  $bit
      * @param bool $allowed
      */
@@ -543,7 +544,9 @@ abstract class AConnection implements IStreamContainer {
 
     /**
      * Returns if the provided reserved bit is allowed to be set
+     *
      * @param int $bit
+     *
      * @return bool
      */
     public function isRSVBitAllowed(int $bit) : bool {
