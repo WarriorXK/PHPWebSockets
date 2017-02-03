@@ -95,7 +95,7 @@ abstract class AConnection implements IStreamContainer {
      *
      * @var array
      */
-    protected $_allowedRSVBits = [];
+    protected $_allowedRSVBits = [1 => FALSE, 2 => FALSE, 3 => FALSE];
 
     /**
      * The partial message if the current message hasn't finished yet
