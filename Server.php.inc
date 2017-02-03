@@ -292,7 +292,7 @@ class Server {
 
         $replaceFields = [
             '%errorCode%'        => (string) $errorCode,
-            '%errorString%'      => \PHPWebSocket::GetStringForErrorCode($errorCode) ?: $fallbackErrorString,
+            '%errorString%'      => \PHPWebSocket::GetStringForStatusCode($errorCode) ?: $fallbackErrorString,
             '%serverIdentifier%' => $this->getServerIdentifier(),
         ];
 
