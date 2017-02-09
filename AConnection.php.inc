@@ -178,9 +178,9 @@ abstract class AConnection implements IStreamContainer {
      *
      * @param string $newData
      *
-     * @return \PHPWebSocket\AUpdate[]
-     *
      * @throws \UnexpectedValueException
+     *
+     * @return \PHPWebSocket\AUpdate[]
      */
     protected function _handlePacket(string $newData) : \Generator {
 
