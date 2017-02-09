@@ -179,6 +179,8 @@ abstract class AConnection implements IStreamContainer {
      * @param string $newData
      *
      * @return \PHPWebSocket\AUpdate[]
+     *
+     * @throws \UnexpectedValueException
      */
     protected function _handlePacket(string $newData) : \Generator {
 
@@ -357,7 +359,7 @@ abstract class AConnection implements IStreamContainer {
 
                         break;
                     default:
-                        throw new \Exception('Got unknown opcode from framer!');
+                        throw new \UnexpectedValueException('Got unknown opcode from framer!');
                 }
 
             }
@@ -435,15 +437,16 @@ abstract class AConnection implements IStreamContainer {
      * @param int    $opcode
      * @param int    $frameSize
      *
-     * @throws \Exception
+     * @throws \InvalidArgumentException
+     * @throws \LogicException
      */
     public function writeMultiFramed(string $data, int $opcode = \PHPWebSocket::OPCODE_FRAME_TEXT, int $frameSize = 65535) {
 
         if ($opcode !== \PHPWebSocket::OPCODE_FRAME_TEXT && $opcode !== \PHPWebSocket::OPCODE_FRAME_BINARY) {
-            throw new \Exception('Only OPCODE_FRAME_TEXT and OPCODE_FRAME_BINARY are supported in ' . __METHOD__);
+            throw new \InvalidArgumentException('Only OPCODE_FRAME_TEXT and OPCODE_FRAME_BINARY are supported in ' . __METHOD__);
         }
         if ($frameSize < 1) {
-            throw new \Exception('FrameSize should be at least 1');
+            throw new \LogicException('FrameSize should be at least 1');
         }
 
         $frames = str_split($data, $frameSize);

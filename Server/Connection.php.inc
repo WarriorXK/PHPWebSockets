@@ -279,12 +279,12 @@ class Connection extends \PHPWebSocket\AConnection {
      *
      * @param string|null $protocol The accepted protocol
      *
-     * @throws \Exception
+     * @throws \LogicException
      */
     public function accept(string $protocol = NULL) {
 
         if ($this->isAccepted()) {
-            throw new \Exception('Connection has already been accepted!');
+            throw new \LogicException('Connection has already been accepted!');
         }
 
         $misc = '';
@@ -302,11 +302,13 @@ class Connection extends \PHPWebSocket\AConnection {
      * Denies the websocket connection, a HTTP error code has to be provided indicating what went wrong
      *
      * @param int $errCode
+     *
+     * @throws \LogicException
      */
     public function deny(int $errCode) {
 
         if ($this->isAccepted()) {
-            throw new \Exception('Connection has already been accepted!');
+            throw new \LogicException('Connection has already been accepted!');
         }
 
         $this->writeRaw('HTTP/1.1 ' . $errCode . ' ' . \PHPWebSocket::GetStringForStatusCode($errCode) . "\r\nServer: " . $this->_server->getServerIdentifier() . "\r\n\r\n", FALSE);
