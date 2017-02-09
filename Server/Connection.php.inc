@@ -279,12 +279,12 @@ class Connection extends \PHPWebSocket\AConnection {
      *
      * @param string|null $protocol The accepted protocol
      *
-     * @throws \Exception
+     * @throws \LogicException
      */
     public function accept(string $protocol = NULL) {
 
         if ($this->isAccepted()) {
-            throw new \Exception('Connection has already been accepted!');
+            throw new \LogicException('Connection has already been accepted!');
         }
 
         $misc = '';
@@ -292,7 +292,7 @@ class Connection extends \PHPWebSocket\AConnection {
             $misc .= 'Sec-WebSocket-Protocol ' . $protocol . "\r\n";
         }
 
-        $this->writeRaw('HTTP/1.1 101 ' . \PHPWebSocket::GetStringForErrorCode(101) . "\r\nServer: " . $this->_server->getServerIdentifier() . "\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Accept: " . base64_encode($this->_rawToken) . "\r\n" . $misc . "\r\n", FALSE);
+        $this->writeRaw('HTTP/1.1 101 ' . \PHPWebSocket::GetStringForStatusCode(101) . "\r\nServer: " . $this->_server->getServerIdentifier() . "\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Accept: " . base64_encode($this->_rawToken) . "\r\n" . $misc . "\r\n", FALSE);
 
         $this->_accepted = TRUE;
 
@@ -302,14 +302,16 @@ class Connection extends \PHPWebSocket\AConnection {
      * Denies the websocket connection, a HTTP error code has to be provided indicating what went wrong
      *
      * @param int $errCode
+     *
+     * @throws \LogicException
      */
     public function deny(int $errCode) {
 
         if ($this->isAccepted()) {
-            throw new \Exception('Connection has already been accepted!');
+            throw new \LogicException('Connection has already been accepted!');
         }
 
-        $this->writeRaw('HTTP/1.1 ' . $errCode . ' ' . \PHPWebSocket::GetStringForErrorCode($errCode) . "\r\nServer: " . $this->_server->getServerIdentifier() . "\r\n\r\n", FALSE);
+        $this->writeRaw('HTTP/1.1 ' . $errCode . ' ' . \PHPWebSocket::GetStringForStatusCode($errCode) . "\r\nServer: " . $this->_server->getServerIdentifier() . "\r\n\r\n", FALSE);
         $this->setCloseAfterWrite();
 
     }

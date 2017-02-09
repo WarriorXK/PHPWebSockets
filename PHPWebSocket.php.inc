@@ -376,7 +376,7 @@ final class PHPWebSocket {
      *
      * @return string|null
      */
-    public static function GetStringForErrorCode(int $errorCode) {
+    public static function GetStringForStatusCode(int $errorCode) {
         return self::HTTP_STATUSCODES[$errorCode] ?? NULL;
     }
 

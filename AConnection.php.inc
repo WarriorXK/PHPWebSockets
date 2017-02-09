@@ -91,6 +91,13 @@ abstract class AConnection implements IStreamContainer {
     protected $_closeAfterWrite = FALSE;
 
     /**
+     * This array contains as key the index of the RSV bit and as value if it is allowed
+     *
+     * @var array
+     */
+    protected $_allowedRSVBits = [1 => FALSE, 2 => FALSE, 3 => FALSE];
+
+    /**
      * The partial message if the current message hasn't finished yet
      *
      * @var string|null
@@ -117,27 +124,6 @@ abstract class AConnection implements IStreamContainer {
      * @var string|null
      */
     protected $_readBuffer = NULL;
-
-    /**
-     * If the RSV1 property is allowed on this connection
-     *
-     * @var bool
-     */
-    protected $_allowRSV1 = FALSE;
-
-    /**
-     * If the RSV2 property is allowed on this connection
-     *
-     * @var bool
-     */
-    protected $_allowRSV2 = FALSE;
-
-    /**
-     * If the RSV3 property is allowed on this connection
-     *
-     * @var bool
-     */
-    protected $_allowRSV3 = FALSE;
 
     /**
      * The amount of bytes we write per cycle
@@ -192,6 +178,8 @@ abstract class AConnection implements IStreamContainer {
      *
      * @param string $newData
      *
+     * @throws \UnexpectedValueException
+     *
      * @return \PHPWebSocket\AUpdate[]
      */
     protected function _handlePacket(string $newData) : \Generator {
@@ -223,7 +211,7 @@ abstract class AConnection implements IStreamContainer {
                 $this->sendDisconnect(\PHPWebSocket::CLOSECODE_PROTOCOLERROR, 'Unexpected RSV bit set');
                 $this->setCloseAfterWrite();
 
-                yield new Update\Error(Update\Error::C_READ_RVSBIT_SET, $this);
+                yield new Update\Error(Update\Error::C_READ_RSVBIT_SET, $this);
 
                 return;
             }
@@ -371,7 +359,7 @@ abstract class AConnection implements IStreamContainer {
 
                         break;
                     default:
-                        throw new \Exception('Got unknown opcode from framer!');
+                        throw new \UnexpectedValueException('Got unknown opcode from framer!');
                 }
 
             }
@@ -449,15 +437,16 @@ abstract class AConnection implements IStreamContainer {
      * @param int    $opcode
      * @param int    $frameSize
      *
-     * @throws \Exception
+     * @throws \InvalidArgumentException
+     * @throws \LogicException
      */
     public function writeMultiFramed(string $data, int $opcode = \PHPWebSocket::OPCODE_FRAME_TEXT, int $frameSize = 65535) {
 
         if ($opcode !== \PHPWebSocket::OPCODE_FRAME_TEXT && $opcode !== \PHPWebSocket::OPCODE_FRAME_BINARY) {
-            throw new \Exception('Only OPCODE_FRAME_TEXT and OPCODE_FRAME_BINARY are supported in ' . __METHOD__);
+            throw new \InvalidArgumentException('Only OPCODE_FRAME_TEXT and OPCODE_FRAME_BINARY are supported in ' . __METHOD__);
         }
         if ($frameSize < 1) {
-            throw new \Exception('FrameSize should be at least 1');
+            throw new \LogicException('FrameSize should be at least 1');
         }
 
         $frames = str_split($data, $frameSize);
@@ -533,7 +522,7 @@ abstract class AConnection implements IStreamContainer {
      */
     protected function _checkRSVBits(array $headers) : bool {
 
-        if (($headers[Framer::IND_RSV1] && !$this->_allowRSV1) || ($headers[Framer::IND_RSV2] && !$this->_allowRSV2) || ($headers[Framer::IND_RSV3] && !$this->_allowRSV3)) {
+        if (($headers[Framer::IND_RSV1] && !$this->isRSVBitAllowed(1)) || ($headers[Framer::IND_RSV2] && !$this->isRSVBitAllowed(2)) || ($headers[Framer::IND_RSV3] && !$this->isRSVBitAllowed(3))) {
             return FALSE;
         }
 
@@ -541,57 +530,35 @@ abstract class AConnection implements IStreamContainer {
     }
 
     /**
-     * Sets if we allow the RSV1 bit to be set
+     * Sets if the provided reserved bit is allowed to be set
      *
-     * @param bool $allow
+     * @param int  $bit
+     * @param bool $allowed
      */
-    public function setAllowRSV1(bool $allow) {
-        $this->_allowRSV1 = $allow;
+    public function setRSVBitAllowed(int $bit, bool $allowed) {
+
+        if (!isset($this->_allowedRSVBits[$bit])) {
+            throw new \LogicException('Bit ' . $bit . ' is not a valid RSV bit!');
+        }
+
+        $this->_allowedRSVBits[$bit] = $allowed;
+
     }
 
     /**
-     * Returns if we allow the RSV1 bit to be set
+     * Returns if the provided reserved bit is allowed to be set
+     *
+     * @param int $bit
      *
      * @return bool
      */
-    public function getAllowRSV1() : bool {
-        return $this->_allowRSV1;
-    }
+    public function isRSVBitAllowed(int $bit) : bool {
 
-    /**
-     * Returns if we allow the RSV2 bit to be set
-     *
-     * @param bool $allow
-     */
-    public function setAllowRSV2(bool $allow) {
-        $this->_allowRSV2 = $allow;
-    }
+        if (!isset($this->_allowedRSVBits[$bit])) {
+            throw new \LogicException('Bit ' . $bit . ' is not a valid RSV bit!');
+        }
 
-    /**
-     * Returns if we allow the RSV2 bit to be set
-     *
-     * @return bool
-     */
-    public function getAllowRSV2() : bool {
-        return $this->_allowRSV2;
-    }
-
-    /**
-     * Returns if we allow the RSV3 bit to be set
-     *
-     * @param bool $allow
-     */
-    public function setAllowRSV3(bool $allow) {
-        $this->_allowRSV3 = $allow;
-    }
-
-    /**
-     * Returns if we allow the RSV3 bit to be set
-     *
-     * @return bool
-     */
-    public function getAllowRSV3() : bool {
-        return $this->_allowRSV3;
+        return $this->_allowedRSVBits[$bit];
     }
 
     /**

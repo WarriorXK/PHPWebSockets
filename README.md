@@ -30,10 +30,9 @@ while (TRUE) {
                 $update->getSourceObject()->write($update->getMessage(), $update->getOpcode());
             }
 
-            echo($update . PHP_EOL);
-        } else {
-            echo($update . '' . PHP_EOL);
         }
+
+        echo($update . PHP_EOL);
 
     }
 

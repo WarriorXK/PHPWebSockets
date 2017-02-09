@@ -140,7 +140,7 @@ class Server {
      * @param array  $streamContext The streamcontext @see https://secure.php.net/manual/en/function.stream-context-create.php
      * @param bool   $useCrypto     If we should enable crypro on newly accepted connections
      *
-     * @throws \Exception
+     * @throws \RuntimeException
      */
     public function __construct(string $address = NULL, array $streamContext = [], bool $useCrypto = FALSE) {
 
@@ -165,7 +165,7 @@ class Server {
 
                             \PHPWebSocket::Log(LOG_WARNING, 'Unix socket "' . $path . '" still exists, unlinking!');
                             if (!unlink($path)) {
-                                throw new \Exception('Unable to unlink file "' . $path . '"');
+                                throw new \RuntimeException('Unable to unlink file "' . $path . '"');
                             }
 
                         } else {
@@ -189,7 +189,7 @@ class Server {
             $errString = NULL;
             $acceptingSocket = @stream_socket_server($this->_address, $errCode, $errString, STREAM_SERVER_BIND | STREAM_SERVER_LISTEN, stream_context_create($streamContext));
             if (!$acceptingSocket) {
-                throw new \Exception('Unable to create webserver: ' . $errString, $errCode);
+                throw new \RuntimeException('Unable to create webserver: ' . $errString, $errCode);
             }
 
             $this->_acceptingConnection = new Server\AcceptingConnection($this, $acceptingSocket);
@@ -253,20 +253,21 @@ class Server {
     /**
      * Accepts a new connection from the accepting socket
      *
-     * @throws \Exception
+     * @throws \LogicException
+     * @throws \RuntimeException
      *
      * @return \PHPWebSocket\AUpdate[]
      */
     public function acceptNewConnection() : \Generator {
 
         if ($this->_acceptingConnection === NULL) {
-            throw new \Exception('This server has no accepting connection, unable to accept a new connection!');
+            throw new \LogicException('This server has no accepting connection, unable to accept a new connection!');
         }
 
         $peername = '';
         $newStream = stream_socket_accept($this->_acceptingConnection->getStream(), self::SOCKET_ACCEPT_TIMEOUT, $peername);
         if (!$newStream) {
-            throw new \Exception('Unable to accept stream socket!');
+            throw new \RuntimeException('Unable to accept stream socket!');
         }
 
         $newConnection = new \PHPWebSocket\Server\Connection($this, $newStream, $peername, $this->_connectionIndex);
@@ -292,7 +293,7 @@ class Server {
 
         $replaceFields = [
             '%errorCode%'        => (string) $errorCode,
-            '%errorString%'      => \PHPWebSocket::GetStringForErrorCode($errorCode) ?: $fallbackErrorString,
+            '%errorString%'      => \PHPWebSocket::GetStringForStatusCode($errorCode) ?: $fallbackErrorString,
             '%serverIdentifier%' => $this->getServerIdentifier(),
         ];
 
@@ -422,6 +423,8 @@ class Server {
      * Removes the specified connection from the connections array and closes it if open
      *
      * @param \PHPWebSocket\Server\Connection $connection
+     *
+     * @throws \LogicException
      */
     public function removeConnection(Server\Connection $connection) {
 
