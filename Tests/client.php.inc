@@ -117,5 +117,3 @@ foreach ($testCases as $case => $data) {
 echo 'Exiting' . PHP_EOL;
 
 exit((int) $hasFailures);
-
-exit();
