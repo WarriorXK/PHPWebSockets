@@ -514,7 +514,7 @@ abstract class AConnection implements IStreamContainer {
     /**
      * Returns the stream to write to for this specific message or NULL to use a buffer
      *
-     * @param  array $headers
+     * @param array $headers
      *
      * @return resource|null
      */
