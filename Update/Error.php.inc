@@ -45,7 +45,8 @@ class Error extends \PHPWebSocket\AUpdate {
             C_READ_PROTOCOL_ERROR = 10,
             C_READ_RSVBIT_SET = 11,
             C_WRITE = 12,
-            C_ACCEPT_TIMEOUT_PASSED = 13;
+            C_ACCEPT_TIMEOUT_PASSED = 13,
+            C_READ_INVALID_TARGET_STREAM = 14;
 
     const ERROR_STRINGS = [
         self::C_UNKNOWN                    => 'Unknown error',

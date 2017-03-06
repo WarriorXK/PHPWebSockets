@@ -42,11 +42,11 @@ abstract class AConnection implements IStreamContainer {
     protected $_currentFrameRemainingBytes = NULL;
 
     /**
-     * The opcode of the current partial message
+     * The callable that gets called after the first message part has been read to get the optional stream to write to
      *
-     * @var int|null
+     * @var callable|NULL
      */
-    protected $_partialMessageOpcode = NULL;
+    protected $_newMessageStreamCallback = NULL;
 
     /**
      * If we've initiated the disconnect
@@ -56,11 +56,25 @@ abstract class AConnection implements IStreamContainer {
     protected $_weInitiateDisconnect = FALSE;
 
     /**
+     * The opcode of the current partial message
+     *
+     * @var int|null
+     */
+    protected $_partialMessageOpcode = NULL;
+
+    /**
      * If we've received the disconnect message from the remote
      *
      * @var bool
      */
     protected $_remoteSentDisconnect = FALSE;
+
+    /**
+     * The stream to write to instead of using _partialMessage
+     *
+     * @var resource|null
+     */
+    protected $_partialMessageStream = NULL;
 
     /**
      * The priority frames ready to be send (Takes priority over the normal frames buffer)
@@ -245,7 +259,7 @@ abstract class AConnection implements IStreamContainer {
                 switch ($opcode) {
                     case \PHPWebSocket::OPCODE_CONTINUE:
 
-                        if ($this->_partialMessage === NULL) {
+                        if ($this->_partialMessage === NULL && $this->_partialMessageStream === NULL) {
 
                             $this->sendDisconnect(\PHPWebSocket::CLOSECODE_PROTOCOLERROR, 'Got OPCODE_CONTINUE but no frame that could be continued');
                             $this->setCloseAfterWrite();
@@ -259,22 +273,59 @@ abstract class AConnection implements IStreamContainer {
                     case \PHPWebSocket::OPCODE_FRAME_TEXT:
                     case \PHPWebSocket::OPCODE_FRAME_BINARY:
 
-                        if ($opcode === \PHPWebSocket::OPCODE_CONTINUE) {
-                            $this->_partialMessage .= $framePayload;
-                        } elseif ($this->_partialMessage !== NULL) {
+                        if ($opcode !== \PHPWebSocket::OPCODE_CONTINUE) {
 
-                            $this->sendDisconnect(\PHPWebSocket::CLOSECODE_PROTOCOLERROR, 'Got new frame without completing the previous');
-                            $this->setCloseAfterWrite();
+                            if ($this->_partialMessage !== NULL && $this->_partialMessageStream !== NULL) {
 
-                            yield new Update\Error(Update\Error::C_READ_INVALID_PAYLOAD, $this);
+                                $this->sendDisconnect(\PHPWebSocket::CLOSECODE_PROTOCOLERROR, 'Got new frame without completing the previous');
+                                $this->setCloseAfterWrite();
 
-                            return;
+                                yield new Update\Error(Update\Error::C_READ_INVALID_PAYLOAD, $this);
 
-                        } else {
+                                return;
+                            }
+
+                            $newMessageStream = $this->_getStreamForNewMessage($headers);
+                            if ($newMessageStream === FALSE) {
+
+                                $this->sendDisconnect(\PHPWebSocket::CLOSECODE_UNSUPPORTED_PAYLOAD);
+                                $this->setCloseAfterWrite();
+
+                                return;
+                            }
 
                             $this->_partialMessageOpcode = $opcode;
-                            $this->_partialMessage = $framePayload;
 
+                            if (is_resource($newMessageStream)) {
+
+                                $this->_partialMessageStream = $newMessageStream;
+                                $this->_partialMessage = NULL;
+
+                            } else {
+
+                                $this->_partialMessageStream = NULL;
+                                $this->_partialMessage = '';
+
+                            }
+
+                        }
+
+                        if ($this->_partialMessageStream) {
+
+                            $payloadLength = strlen($framePayload);
+                            $writtenBytes = 0;
+                            $res = NULL;
+
+                            do {
+                                $res = fwrite($this->_partialMessageStream, $framePayload);
+                            } while ($res !== FALSE && $writtenBytes < $res);
+
+                            if ($res === FALSE) {
+                                yield new Update\Error(Update\Error::C_READ_INVALID_TARGET_STREAM, $this);
+                            }
+
+                        } else {
+                            $this->_partialMessage .= $framePayload;
                         }
 
                         if ($headers[Framer::IND_FIN]) {
@@ -289,9 +340,10 @@ abstract class AConnection implements IStreamContainer {
                                 return;
                             }
 
-                            yield new Update\Read(Update\Read::C_READ, $this, $this->_partialMessageOpcode, $this->_partialMessage);
+                            yield new Update\Read(Update\Read::C_READ, $this, $this->_partialMessageOpcode, $this->_partialMessage, $this->_partialMessageStream);
 
                             $this->_partialMessageOpcode = NULL;
+                            $this->_partialMessageStream = NULL;
                             $this->_partialMessage = NULL;
 
                         }
@@ -457,6 +509,26 @@ abstract class AConnection implements IStreamContainer {
             $this->write($frame, $opcode, $key === $lastKey);
         }
 
+    }
+
+    /**
+     * Returns the stream to write to for this specific message or NULL to use a buffer
+     * @param  array $headers
+     * @return resource|NULL
+     */
+    protected function _getStreamForNewMessage(array $headers) {
+
+        $stream = TRUE;
+        if ($this->_newMessageStreamCallback) {
+
+            $stream = call_user_func($this->_newMessageStreamCallback, $headers);
+            if (!is_bool($stream) && !is_resource($stream)) {
+                throw new \UnexpectedValueException('Got an invalid return value, expected boolean or resource, got ' . gettype($stream));
+            }
+
+        }
+
+        return $stream;
     }
 
     /**
