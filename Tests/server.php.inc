@@ -119,7 +119,12 @@ if (!file_exists($outputFile)) {
 }
 
 $hasFailures = FALSE;
-$testCases = json_decode(file_get_contents($outputFile), TRUE)[$websocket->getServerIdentifier()];
+$testCases = json_decode(file_get_contents($outputFile), TRUE)[$websocket->getServerIdentifier()] ?? NULL;
+if ($testCases === NULL) {
+    echo 'Unable to get test case results!' . PHP_EOL;
+    exit(1);
+}
+
 foreach ($testCases as $case => $data) {
 
     echo $case . ' => ' . $data['behavior'] . PHP_EOL;

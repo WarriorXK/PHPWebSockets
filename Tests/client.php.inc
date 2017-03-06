@@ -134,7 +134,7 @@ if (!file_exists($outputFile)) {
 $hasFailures = FALSE;
 $testCases = json_decode(file_get_contents($outputFile), TRUE)[$client->getUserAgent()] ?? NULL;
 if ($testCases === NULL) {
-    echo 'Unable to get test cases!' . PHP_EOL;
+    echo 'Unable to get test case results!' . PHP_EOL;
     exit(1);
 }
 
