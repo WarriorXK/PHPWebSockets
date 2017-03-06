@@ -275,7 +275,7 @@ abstract class AConnection implements IStreamContainer {
 
                         if ($opcode !== \PHPWebSocket::OPCODE_CONTINUE) {
 
-                            if ($this->_partialMessage !== NULL && $this->_partialMessageStream !== NULL) {
+                            if ($this->_partialMessage !== NULL || $this->_partialMessageStream !== NULL) {
 
                                 $this->sendDisconnect(\PHPWebSocket::CLOSECODE_PROTOCOLERROR, 'Got new frame without completing the previous');
                                 $this->setCloseAfterWrite();
