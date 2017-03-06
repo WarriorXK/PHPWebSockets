@@ -6,8 +6,10 @@ php:
   - '7.0'
   - '7.1'
 env:
-  - TESTTYPE=server
-  - TESTTYPE=client
+  - TESTTYPE=server BUFFERTPE=memory
+  - TESTTYPE=server BUFFERTPE=tmpfile
+  - TESTTYPE=client BUFFERTPE=memory
+  - TESTTYPE=client BUFFERTPE=tmpfile
 before_script:
   - sudo apt-get update
   - sudo apt-get install python-pip
@@ -15,7 +17,7 @@ before_script:
   - sudo -H pip install autobahntestsuite
   - phpenv config-rm xdebug.ini
 script:
-  - php Tests/runner.php $TESTTYPE
+  - php Tests/runner.php $TESTTYPE $BUFFERTPE
 notifications:
   email:
     recipients:

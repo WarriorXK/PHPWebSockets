@@ -127,7 +127,7 @@ class Read extends \PHPWebSocket\AUpdate {
      * @return resource|null
      */
     public function getStream() {
-        return $this->_opcode;
+        return $this->_stream;
     }
 
     public function __toString() {

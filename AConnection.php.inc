@@ -604,6 +604,17 @@ abstract class AConnection implements IStreamContainer {
     }
 
     /**
+     * Sets the callable that gets called after the first message part has been read to get the optional stream to write to
+     *
+     * @param callable|null $callable
+     *
+     * @return type
+     */
+    public function setNewMessageStreamCallback(callable $callable = NULL) {
+        $this->_newMessageStreamCallback = $callable;
+    }
+
+    /**
      * Sets if the provided reserved bit is allowed to be set
      *
      * @param int  $bit

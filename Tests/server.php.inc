@@ -33,6 +33,7 @@ use \PHPWebSocket\Update\Read;
 echo 'Starting test' . PHP_EOL . PHP_EOL;
 
 $websocket = new \PHPWebSocket\Server('tcp://0.0.0.0:9001');
+$bufferType = $argv[2] ?? NULL;
 
 $descriptorSpec = [['pipe', 'r'], STDOUT, STDERR];
 $wstestProc = proc_open('wstest -m fuzzingclient -s Autobahn/fuzzingclient.json', $descriptorSpec, $pipes, __DIR__);
@@ -48,7 +49,24 @@ while (proc_get_status($wstestProc)['running'] ?? FALSE) {
             $opcode = $update->getCode();
             switch ($opcode) {
                 case Read::C_NEWCONNECTION:
+
                     $sourceObj->accept();
+
+                    switch ($bufferType) {
+                        case 'memory':
+                            // Default, do nothing
+                            break;
+                        case 'tmpfile':
+
+                            $sourceObj->setNewMessageStreamCallback(function(array $headers) {
+                                return tmpfile();
+                            });
+
+                            break;
+                        default:
+                            throw new \Exception('Unknown buffer type specified: ' . ($bufferType === NULL ? 'NULL' : $bufferType));
+                    }
+
                     break;
                 case Read::C_READ:
 
@@ -58,9 +76,25 @@ while (proc_get_status($wstestProc)['running'] ?? FALSE) {
                         case \PHPWebSocket::OPCODE_FRAME_TEXT:
                         case \PHPWebSocket::OPCODE_FRAME_BINARY:
 
-                            $msg = $update->getMessage();
-                            if ($msg !== NULL && !$sourceObj->isDisconnecting()) {
-                                $sourceObj->write($msg, $opcode);
+                            if ($sourceObj->isDisconnecting()) {
+                                break;
+                            }
+
+                            $message = $update->getMessage() ?? '';
+                            if ($message === '') {
+
+                                $stream = $update->getStream();
+                                if ($stream) {
+
+                                    rewind($stream);
+                                    $message = stream_get_contents($stream);
+
+                                }
+
+                            }
+
+                            if ($message !== NULL) {
+                                $sourceObj->write($message, $opcode);
                             }
 
                             break;
