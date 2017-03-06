@@ -66,7 +66,14 @@ $caseCount = NULL;
 while ($client->isOpen()) {
     foreach ($client->update() as $key => $value) {
         if ($value instanceof Read && $value->getCode() === Read::C_READ) {
-            $caseCount = (int) $value->getMessage();
+
+            $msg = $value->getMessage() ?? NULL;
+            if ($msg === NULL) {
+                $msg = stream_get_contents($value->getStream());
+            }
+
+            $caseCount = (int) $msg;
+
         }
     }
 }
@@ -125,7 +132,12 @@ if (!file_exists($outputFile)) {
 }
 
 $hasFailures = FALSE;
-$testCases = json_decode(file_get_contents($outputFile), TRUE)[$client->getUserAgent()];
+$testCases = json_decode(file_get_contents($outputFile), TRUE)[$client->getUserAgent()] ?? NULL;
+if ($testCases === NULL) {
+    echo 'Unable to get test cases!' . PHP_EOL;
+    exit(1);
+}
+
 foreach ($testCases as $case => $data) {
 
     echo $case . ' => ' . $data['behavior'] . PHP_EOL;

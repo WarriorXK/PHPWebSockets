@@ -318,7 +318,7 @@ abstract class AConnection implements IStreamContainer {
 
                             do {
 
-                                $res = fwrite($this->_partialMessageStream, $framePayload);
+                                $res = @fwrite($this->_partialMessageStream, $framePayload);
                                 if ($res !== FALSE) {
                                     $writtenBytes += $res;
                                 }
@@ -340,7 +340,7 @@ abstract class AConnection implements IStreamContainer {
                                 $validUTF8 = FALSE;
                                 if ($this->_partialMessageStream) {
 
-                                    // Todo: Matching for large files, maybe during the read?
+                                    // Todo: Matching for large files may consume large amount of memory, maybe test during the read? testing during read will also implement autobahn 6.4 (Fast UTF-8 fail)
 
                                     rewind($this->_partialMessageStream);
                                     $validUTF8 = preg_match('//u', stream_get_contents($this->_partialMessageStream));
@@ -486,7 +486,7 @@ abstract class AConnection implements IStreamContainer {
 
             \PHPWebSocket::Log(LOG_DEBUG, '  Attempting to write ' . $bytesToWrite . ' bytes');
 
-            $bytesWritten = fwrite($this->_stream, $this->_writeBuffer, min($this->getWriteRate($this), $bytesToWrite));
+            $bytesWritten = @fwrite($this->_stream, $this->_writeBuffer, min($this->getWriteRate($this), $bytesToWrite));
             if ($bytesWritten === FALSE) {
                 \PHPWebSocket::Log(LOG_DEBUG, '    fwrite failed');
                 yield new Update\Error(Update\Error::C_WRITE, $this);
