@@ -1,5 +1,5 @@
 {
-    "outdir": "/tmp/reports/servers",
+    "outdir": "/tmp/reports/",
     "servers": [
         {
             "url": "ws://127.0.0.1:9001"

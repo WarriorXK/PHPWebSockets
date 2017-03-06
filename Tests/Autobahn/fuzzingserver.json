@@ -1,6 +1,6 @@
 {
    "url": "ws://127.0.0.1:9001",
-   "outdir": "/tmp/reports/clients",
+   "outdir": "/tmp/reports/",
    "cases": ["*"],
    "exclude-cases": [],
    "exclude-agent-cases": {}

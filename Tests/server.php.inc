@@ -81,7 +81,7 @@ $websocket->close();
 
 echo 'Getting results..' . PHP_EOL;
 
-$outputFile = '/tmp/reports/servers/index.json';
+$outputFile = '/tmp/reports/index.json';
 if (!file_exists($outputFile)) {
     echo 'File "' . $outputFile . '" doesn\'t exist!';
     exit(1);
