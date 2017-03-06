@@ -22,6 +22,6 @@ notifications:
       - kevkevm@gmail.com
     on_success: change
     on_failure: always
-addons:
-  artifacts:
-    paths: /tmp/reports/
+# addons:
+#   artifacts:
+#     paths: /tmp/reports/
