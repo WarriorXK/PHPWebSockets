@@ -44,7 +44,7 @@ abstract class AConnection implements IStreamContainer {
     /**
      * The callable that gets called after the first message part has been read to get the optional stream to write to
      *
-     * @var callable|NULL
+     * @var callable|null
      */
     protected $_newMessageStreamCallback = NULL;
 
@@ -513,8 +513,10 @@ abstract class AConnection implements IStreamContainer {
 
     /**
      * Returns the stream to write to for this specific message or NULL to use a buffer
+     *
      * @param  array $headers
-     * @return resource|NULL
+     *
+     * @return resource|null
      */
     protected function _getStreamForNewMessage(array $headers) {
 
