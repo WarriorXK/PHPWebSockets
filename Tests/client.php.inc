@@ -47,7 +47,7 @@ switch ($bufferType) {
         break;
     case 'tmpfile':
 
-        $client->setNewMessageStreamCallback(function(array $headers) {
+        $client->setNewMessageStreamCallback(function (array $headers) {
             return tmpfile();
         });
 
@@ -90,10 +90,7 @@ for ($i = 0; $i < $caseCount; $i++) {
 
                     $stream = $update->getStream();
                     if ($stream) {
-
-                        rewind($stream);
                         $message = stream_get_contents($stream);
-
                     }
 
                 }

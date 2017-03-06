@@ -58,7 +58,7 @@ while (proc_get_status($wstestProc)['running'] ?? FALSE) {
                             break;
                         case 'tmpfile':
 
-                            $sourceObj->setNewMessageStreamCallback(function(array $headers) {
+                            $sourceObj->setNewMessageStreamCallback(function (array $headers) {
                                 return tmpfile();
                             });
 
@@ -85,10 +85,7 @@ while (proc_get_status($wstestProc)['running'] ?? FALSE) {
 
                                 $stream = $update->getStream();
                                 if ($stream) {
-
-                                    rewind($stream);
                                     $message = stream_get_contents($stream);
-
                                 }
 
                             }

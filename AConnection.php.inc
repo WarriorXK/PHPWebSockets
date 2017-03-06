@@ -330,14 +330,33 @@ abstract class AConnection implements IStreamContainer {
 
                         if ($headers[Framer::IND_FIN]) {
 
-                            if ($this->_partialMessageOpcode === \PHPWebSocket::OPCODE_FRAME_TEXT && !preg_match('//u', $this->_partialMessage)) {
+                            if ($this->_partialMessageOpcode === \PHPWebSocket::OPCODE_FRAME_TEXT) {
 
-                                $this->sendDisconnect(\PHPWebSocket::CLOSECODE_INVALID_PAYLOAD, 'Could not decode text frame as UTF-8');
-                                $this->setCloseAfterWrite();
+                                $validUTF8 = FALSE;
+                                if ($this->_partialMessageStream) {
 
-                                yield new Update\Error(Update\Error::C_READ_INVALID_PAYLOAD, $this);
+                                    // Todo: Matching for large files, maybe during the read?
 
-                                return;
+                                    $validUTF8 = preg_match('//u', stream_get_contents($this->_partialMessageStream));
+
+                                } else {
+                                    $validUTF8 = preg_match('//u', $this->_partialMessage);
+                                }
+
+                                if (!$validUTF8) {
+
+                                    $this->sendDisconnect(\PHPWebSocket::CLOSECODE_INVALID_PAYLOAD, 'Could not decode text frame as UTF-8');
+                                    $this->setCloseAfterWrite();
+
+                                    yield new Update\Error(Update\Error::C_READ_INVALID_PAYLOAD, $this);
+
+                                    return;
+                                }
+
+                            }
+
+                            if ($this->_partialMessageStream) {
+                                rewind($this->_partialMessageStream);
                             }
 
                             yield new Update\Read(Update\Read::C_READ, $this, $this->_partialMessageOpcode, $this->_partialMessage, $this->_partialMessageStream);
