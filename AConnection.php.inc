@@ -342,6 +342,7 @@ abstract class AConnection implements IStreamContainer {
 
                                     // Todo: Matching for large files, maybe during the read?
 
+                                    rewind($this->_partialMessageStream);
                                     $validUTF8 = preg_match('//u', stream_get_contents($this->_partialMessageStream));
 
                                 } else {
