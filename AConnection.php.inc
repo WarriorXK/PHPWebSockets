@@ -317,8 +317,13 @@ abstract class AConnection implements IStreamContainer {
                             $res = NULL;
 
                             do {
+
                                 $res = fwrite($this->_partialMessageStream, $framePayload);
-                            } while ($res !== FALSE && $writtenBytes < $res);
+                                if ($res !== FALSE) {
+                                    $writtenBytes += $res;
+                                }
+
+                            } while ($res !== FALSE && $writtenBytes < $payloadLength);
 
                             if ($res === FALSE) {
                                 yield new Update\Error(Update\Error::C_READ_INVALID_TARGET_STREAM, $this);
