@@ -335,6 +335,11 @@ abstract class AConnection implements IStreamContainer {
 
                         if ($headers[Framer::IND_FIN]) {
 
+                            $streamMeta = [];
+                            if ($this->_partialMessageStream) {
+                                $streamMeta = stream_get_meta_data($this->_partialMessageStream);
+                            }
+
                             if ($this->_partialMessageOpcode === \PHPWebSocket::OPCODE_FRAME_TEXT) {
 
                                 $validUTF8 = FALSE;
@@ -342,8 +347,14 @@ abstract class AConnection implements IStreamContainer {
 
                                     // Todo: Matching for large files may consume large amount of memory, maybe test during the read? testing during read will also implement autobahn 6.4 (Fast UTF-8 fail)
 
-                                    rewind($this->_partialMessageStream);
-                                    $validUTF8 = preg_match('//u', stream_get_contents($this->_partialMessageStream));
+                                    if (!$streamMeta['seekable']) {
+                                        \PHPWebSocket::Log(\PHPWebSocket::LOG_WARNING, 'Unable to check for UTF-8 requirement in stream: the stream is not seekable!');
+                                    } else {
+
+                                        rewind($this->_partialMessageStream);
+                                        $validUTF8 = preg_match('//u', stream_get_contents($this->_partialMessageStream));
+
+                                    }
 
                                 } else {
                                     $validUTF8 = preg_match('//u', $this->_partialMessage);
@@ -361,7 +372,7 @@ abstract class AConnection implements IStreamContainer {
 
                             }
 
-                            if ($this->_partialMessageStream) {
+                            if ($streamMeta['seekable'] ?? FALSE) {
                                 rewind($this->_partialMessageStream);
                             }
 
@@ -545,17 +556,17 @@ abstract class AConnection implements IStreamContainer {
      */
     protected function _getStreamForNewMessage(array $headers) {
 
-        $stream = TRUE;
+        $retValue = TRUE;
         if ($this->_newMessageStreamCallback) {
 
-            $stream = call_user_func($this->_newMessageStreamCallback, $headers);
-            if (!is_bool($stream) && !is_resource($stream)) {
-                throw new \UnexpectedValueException('Got an invalid return value, expected boolean or resource, got ' . gettype($stream));
+            $retValue = call_user_func($this->_newMessageStreamCallback, $headers);
+            if (!is_bool($retValue) && !is_resource($retValue)) {
+                throw new \UnexpectedValueException('Got an invalid return value, expected boolean or resource, got ' . gettype($retValue));
             }
 
         }
 
-        return $stream;
+        return $retValue;
     }
 
     /**
@@ -630,6 +641,8 @@ abstract class AConnection implements IStreamContainer {
 
     /**
      * Sets the callable that gets called after the first message part has been read to get the optional stream to write to
+     * If no stream but FALSE is returned in this callback the connection will be closed with code CLOSECODE_UNSUPPORTED_PAYLOAD
+     * If TRUE is returned from the callback a memory buffer will be used instead
      *
      * @param callable|null $callable
      *
