@@ -4,6 +4,8 @@ enabled:
   - concat_with_spaces
   - dir_constant
   - uppercase_constants
+  - blank_line_after_namespace
+  - no_trailing_whitespace
 
 disabled:
   - braces
@@ -16,6 +18,7 @@ disabled:
   - no_blank_lines_after_class_opening
   - single_class_element_per_statement
   - simplified_null_return
+  - alpha_ordered_imports
 
 finder:
   name:
