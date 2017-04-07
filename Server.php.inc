@@ -36,13 +36,6 @@ require_once(__DIR__ . '/Server/Connection.php.inc');
 class Server {
 
     /**
-     * The maximum size in bytes for the handshake
-     *
-     * @var int
-     */
-    const HANDSHAKE_MAXLENGTH = 8192;
-
-    /**
      * The time in seconds in which the stream_socket_accept method has to accept the connection or fail
      *
      * @var float
@@ -101,7 +94,7 @@ class Server {
     /**
      * All connections
      *
-     * @var \PHPWebSocket\Server\Connection[]
+     * @var Server\Connection[]
      */
     protected $_connections = [];
 
@@ -209,14 +202,14 @@ class Server {
 
         list($server, $client) = stream_socket_pair(STREAM_PF_UNIX, STREAM_SOCK_STREAM, STREAM_IPPROTO_IP);
 
-        $serverConnection = new \PHPWebSocket\Server\Connection($this, $server, '', $this->_connectionIndex);
+        $serverConnection = new Server\Connection($this, $server, '', $this->_connectionIndex);
         $this->_connections[$this->_connectionIndex] = $serverConnection;
 
         \PHPWebSocket::Log(LOG_DEBUG, 'Created new connection: ' . $serverConnection);
 
         $this->_connectionIndex++;
 
-        $clientConnection = new \PHPWebSocket\Client();
+        $clientConnection = new Client();
         $clientConnection->connectToResource($client);
 
         return [$serverConnection, $clientConnection];
@@ -229,7 +222,7 @@ class Server {
      *
      * @throws \Exception
      *
-     * @return \PHPWebSocket\AUpdate[]
+     * @return \Generator
      */
     public function update(float $timeout = NULL) : \Generator {
         yield from \PHPWebSocket::MultiUpdate($this->getConnections(TRUE), $timeout);
@@ -238,7 +231,7 @@ class Server {
     /**
      * Gets called by the accepting web socket to notify the server that a new connection attempt has occured
      *
-     * @return \PHPWebSocket\AUpdate[]
+     * @return \Generator
      */
     public function gotNewConnection() : \Generator {
 
@@ -256,7 +249,7 @@ class Server {
      * @throws \LogicException
      * @throws \RuntimeException
      *
-     * @return \PHPWebSocket\AUpdate[]
+     * @return \Generator
      */
     public function acceptNewConnection() : \Generator {
 
@@ -270,7 +263,7 @@ class Server {
             throw new \RuntimeException('Unable to accept stream socket!');
         }
 
-        $newConnection = new \PHPWebSocket\Server\Connection($this, $newStream, $peername, $this->_connectionIndex);
+        $newConnection = new Server\Connection($this, $newStream, $peername, $this->_connectionIndex);
         $this->_connections[$this->_connectionIndex] = $newConnection;
 
         \PHPWebSocket::Log(LOG_DEBUG, 'Got new connection: ' . $newConnection);
@@ -297,7 +290,7 @@ class Server {
             '%serverIdentifier%' => $this->getServerIdentifier(),
         ];
 
-        return str_replace(array_keys($replaceFields), array_values($replaceFields), "HTTP/1.1 %errorCode% %errorString%\r\nServer: %serverIdentifier%\r\n\r\n<html><head><title>%errorCode% %errorString%</title></head><body bgcolor='white'><center><h1>%errorCode% %errorString%</h1></center><hr><center>%serverIdentifier%</center></body></html>\r\n\r\n");
+        return str_replace(array_keys($replaceFields), array_values($replaceFields), "HTTP/1.1 %errorCode% %errorString%\r\nServer: %serverIdentifier%\r\n\r\n<html><head><title>%errorCode% %errorString%</title></head><body bgcolor='white'><h1 align=\"center\">%errorCode% %errorString%</h1><hr><div align=\"center\">%serverIdentifier%</div></body></html>\r\n\r\n");
     }
 
     /**
@@ -305,7 +298,7 @@ class Server {
      *
      * @param resource $stream
      *
-     * @return \PHPWebSocket\Server\Connection|null
+     * @return Server\Connection|null
      */
     public function getConnectionByStream($stream) {
 
@@ -341,7 +334,9 @@ class Server {
     /**
      * Returns if the provided connection in owned by this server
      *
-     * @return \PHPWebSocket\Server\Connection[]
+     * @param \PHPWebSocket\Server\Connection $connection
+     *
+     * @return bool
      */
     public function hasConnection(Server\Connection $connection) : bool {
         return in_array($connection, $this->_connections, TRUE);
@@ -359,7 +354,9 @@ class Server {
     /**
      * Returns all connections this server has
      *
-     * @return \PHPWebSocket\Server\Connection[]
+     * @param bool $includeAccepting
+     *
+     * @return array|\PHPWebSocket\Server\Connection[]
      */
     public function getConnections(bool $includeAccepting = FALSE) : array {
 
@@ -422,7 +419,7 @@ class Server {
     /**
      * Removes the specified connection from the connections array and closes it if open
      *
-     * @param \PHPWebSocket\Server\Connection $connection
+     * @param Server\Connection $connection
      *
      * @throws \LogicException
      */
@@ -515,4 +512,5 @@ class Server {
     public function __toString() {
         return 'WSServer ' . $this->_serverIndex;
     }
+
 }

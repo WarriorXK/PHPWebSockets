@@ -30,9 +30,13 @@ declare(strict_types = 1);
 
 namespace PHPWebSocket\Server;
 
-class AcceptingConnection implements \PHPWebSocket\IStreamContainer {
+use PHPWebSocket\Server;
+use PHPWebSocket\TStreamContainerDefaults;
+use PHPWebSocket\IStreamContainer;
 
-    use \PHPWebSocket\TStreamContainerDefaults;
+class AcceptingConnection implements IStreamContainer {
+
+    use TStreamContainerDefaults;
 
     /**
      * The websocket server related to this connection
@@ -48,7 +52,7 @@ class AcceptingConnection implements \PHPWebSocket\IStreamContainer {
      */
     protected $_stream = NULL;
 
-    public function __construct(\PHPWebSocket\Server $websocket, $stream) {
+    public function __construct(Server $websocket, $stream) {
 
         $this->_server = $websocket;
         $this->_stream = $stream;
@@ -63,7 +67,7 @@ class AcceptingConnection implements \PHPWebSocket\IStreamContainer {
     /**
      * Handles exceptional data reads
      *
-     * @return \PHPWebSocket\AUpdate[]
+     * @return \Generator
      */
     public function handleExceptional() : \Generator {
         throw new \LogicException('OOB data is not handled for an accepting stream!');
@@ -72,7 +76,7 @@ class AcceptingConnection implements \PHPWebSocket\IStreamContainer {
     /**
      * Writes the current buffer to the connection
      *
-     * @return \PHPWebSocket\AUpdate[]
+     * @return \Generator
      */
     public function handleWrite() : \Generator {
         throw new \LogicException('An accepting socket should never write!');
@@ -81,7 +85,7 @@ class AcceptingConnection implements \PHPWebSocket\IStreamContainer {
     /**
      * Attempts to read from our connection
      *
-     * @return \PHPWebSocket\AUpdate[]
+     * @return \Generator
      */
     public function handleRead() : \Generator {
         yield from $this->_server->gotNewConnection();
@@ -92,7 +96,7 @@ class AcceptingConnection implements \PHPWebSocket\IStreamContainer {
      *
      * @return \PHPWebSocket\Server
      */
-    public function getServer() : \PHPWebSocket\Server {
+    public function getServer() : Server {
         return $this->_server;
     }
 

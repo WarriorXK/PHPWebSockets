@@ -34,7 +34,7 @@ interface IStreamContainer {
     /**
      * Gets called just before stream_select gets called
      *
-     * @return \PHPWebSocket\AUpdate[]
+     * @return \Generator
      */
     public function beforeStreamSelect() : \Generator;
 
@@ -48,21 +48,21 @@ interface IStreamContainer {
     /**
      * Handles exceptional data reads
      *
-     * @return \PHPWebSocket\AUpdate[]
+     * @return \Generator
      */
     public function handleExceptional() : \Generator;
 
     /**
      * Writes the current buffer to the connection
      *
-     * @return \PHPWebSocket\AUpdate[]
+     * @return \Generator
      */
     public function handleWrite() : \Generator;
 
     /**
      * Attempts to read from our connection
      *
-     * @return \PHPWebSocket\AUpdate[]
+     * @return \Generator
      */
     public function handleRead() : \Generator;
 

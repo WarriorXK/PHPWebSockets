@@ -30,9 +30,11 @@ declare(strict_types = 1);
 
 namespace PHPWebSocket\Server;
 
+use PHPWebSocket\AConnection;
+use PHPWebSocket\Server;
 use PHPWebSocket\Update;
 
-class Connection extends \PHPWebSocket\AConnection {
+class Connection extends AConnection {
 
     /**
      * The stream's resource index
@@ -97,9 +99,8 @@ class Connection extends \PHPWebSocket\AConnection {
      */
     private $_index = NULL;
 
-    public function __construct(\PHPWebSocket\Server $server, $stream, string $streamName, int $index) {
+    public function __construct(Server $server, $stream, string $streamName, int $index) {
 
-        $this->_openedTimestamp = microtime(TRUE);
         $this->_server = $server;
         $this->_remoteIP = parse_url($streamName, PHP_URL_HOST);
         $this->_stream = $stream;
@@ -112,23 +113,20 @@ class Connection extends \PHPWebSocket\AConnection {
             stream_socket_enable_crypto($this->_stream, TRUE, STREAM_CRYPTO_METHOD_TLS_SERVER);
         }
 
-        stream_set_timeout($this->_stream, 15);
-        stream_set_blocking($this->_stream, FALSE);
-        stream_set_read_buffer($this->_stream, 0);
-        stream_set_write_buffer($this->_stream, 0);
+        $this->_afterOpen();
 
     }
 
     /**
      * Attempts to read from our connection
      *
-     * @return \PHPWebSocket\AUpdate[]
+     * @return \Generator
      */
     public function handleRead() : \Generator {
 
         \PHPWebSocket::Log(LOG_DEBUG, __METHOD__);
 
-        $readRate = $this->getReadRate($this);
+        $readRate = $this->getReadRate();
         $newData = fread($this->getStream(), min($this->_currentFrameRemainingBytes ?? $readRate, $readRate));
         if ($newData === FALSE) {
             yield new Update\Error(Update\Error::C_READ, $this);
@@ -136,7 +134,6 @@ class Connection extends \PHPWebSocket\AConnection {
             return;
         }
 
-        $updates = [];
         if (strlen($newData) === 0) {
 
             if ($this->_remoteSentDisconnect && $this->_weSentDisconnect) {
@@ -217,11 +214,11 @@ class Connection extends \PHPWebSocket\AConnection {
     /**
      * Gets called just before stream_select gets called
      *
-     * @return \PHPWebSocket\AUpdate[]
+     * @return \Generator
      */
     public function beforeStreamSelect() : \Generator {
 
-        if (!$this->isAccepted() && $this->hasHandshake() && $this->getOpenedTimestamp() + \PHPWebSocket\Server::ACCEPT_TIMEOUT < time()) {
+        if (!$this->isAccepted() && $this->hasHandshake() && $this->getOpenedTimestamp() + Server::ACCEPT_TIMEOUT < time()) {
 
             yield new Update\Error(Update\Error::C_ACCEPT_TIMEOUT_PASSED, $this);
             $this->deny(408); // Request Timeout
@@ -330,7 +327,7 @@ class Connection extends \PHPWebSocket\AConnection {
      *
      * @return \PHPWebSocket\Server
      */
-    public function getServer() : \PHPWebSocket\Server {
+    public function getServer() : Server {
         return $this->_server;
     }
 
@@ -341,13 +338,6 @@ class Connection extends \PHPWebSocket\AConnection {
      */
     public function hasHandshake() : bool {
         return $this->_hasHandshake;
-    }
-
-    /**
-     * Returns the timestamp at which the connection was opened
-     */
-    public function getOpenedTimestamp() : float {
-        return $this->_openedTimestamp;
     }
 
     /**

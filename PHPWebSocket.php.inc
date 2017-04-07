@@ -50,7 +50,7 @@ final class PHPWebSocket {
 
     const   CLOSECODE_NORMAL = 1000,
             CLOSECODE_ENDPOINT_CLOSING = 1001,
-            CLOSECODE_PROTOCOLERROR = 1002,
+            CLOSECODE_PROTOCOL_ERROR = 1002,
             CLOSECODE_UNSUPPORTED_PAYLOAD = 1003,
             // CLOSECODE_                           = 1004, // Reserved
             CLOSECODE_NO_STATUS = 1005,
@@ -159,7 +159,7 @@ final class PHPWebSocket {
      *
      * @throws \InvalidArgumentException
      *
-     * @return \PHPWebSocket\AUpdate[]
+     * @return \Generator
      */
     public static function MultiUpdate(array $updateObjects, float $timeout = NULL) : \Generator {
 
@@ -269,13 +269,15 @@ final class PHPWebSocket {
      *
      * @param int  $code
      * @param bool $received If the close code is received as reason
+     *
+     * @return bool
      */
     public static function IsValidCloseCode(int $code, bool $received = TRUE) : bool {
 
         switch ($code) {
             case self::CLOSECODE_NORMAL:
             case self::CLOSECODE_ENDPOINT_CLOSING:
-            case self::CLOSECODE_PROTOCOLERROR:
+            case self::CLOSECODE_PROTOCOL_ERROR:
             case self::CLOSECODE_UNSUPPORTED_PAYLOAD:
             case self::CLOSECODE_INVALID_PAYLOAD:
             case self::CLOSECODE_POLICY_VIOLATION:

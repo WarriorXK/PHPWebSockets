@@ -30,7 +30,7 @@ declare(strict_types = 1);
 
 namespace PHPWebSocket;
 
-class Client extends \PHPWebSocket\AConnection {
+class Client extends AConnection {
 
     /**
      * The last error code received from the stream
@@ -61,6 +61,11 @@ class Client extends \PHPWebSocket\AConnection {
     protected $_resourceIndex = NULL;
 
     /**
+     * @var string|null
+     */
+    protected $_userAgent = NULL;
+
+    /**
      * The headers send back from the server when the handshake was accepted
      *
      * @var array|null
@@ -73,6 +78,13 @@ class Client extends \PHPWebSocket\AConnection {
      * @var null
      */
     protected $_stream = NULL;
+
+    /**
+     * The path used in the HTTP request
+     *
+     * @var string
+     */
+    protected $_path = '/';
 
     /**
      * Connects to the provided resource
@@ -88,7 +100,7 @@ class Client extends \PHPWebSocket\AConnection {
     public function connectToResource($resource, string $path = '/') {
 
         if (!is_resource($resource)) {
-            throw \InvalidArgumentException('Argument is not a resource!');
+            throw new \InvalidArgumentException('Argument is not a resource!');
         }
 
         if ($this->isOpen()) {
@@ -96,8 +108,9 @@ class Client extends \PHPWebSocket\AConnection {
         }
 
         $this->_stream = $resource;
+        $this->_path = $path;
 
-        $this->_afterOpen((string) $resource, $path);
+        $this->_afterOpen();
 
         return TRUE;
     }
@@ -123,35 +136,32 @@ class Client extends \PHPWebSocket\AConnection {
             return FALSE;
         }
 
-        $this->_afterOpen($address, $path);
+        $this->_path = $path;
+
+        $this->_afterOpen();
 
         return TRUE;
     }
 
     /**
-     * Sets the stream settings and appends the HTTP headers to the buffer
-     *
-     * @param string $address
-     * @param string $path
+     * Should be called after the path and stream has been set to initialize
      */
-    protected function _afterOpen(string $address, string $path) {
+    protected function _afterOpen() {
 
+        parent::_afterOpen();
+
+        $streamMeta = stream_get_meta_data($this->getStream());
         $this->_resourceIndex = (int) $this->getStream();
 
-        stream_set_timeout($this->_stream, 15);
-        stream_set_blocking($this->_stream, FALSE);
-        stream_set_read_buffer($this->_stream, 0);
-        stream_set_write_buffer($this->_stream, 0);
-
-        $headerParts = [
-            'GET ' . $path . ' HTTP/1.1',
-            'Host: ' . $address,
+        $headerParts = array(
+            'GET ' . $this->_path . ' HTTP/1.1',
+            'Host: ' . $streamMeta['uri'],
             'User-Agent: ' . $this->getUserAgent(),
             'Upgrade: websocket',
             'Connection: Upgrade',
             'Sec-WebSocket-Key: ' . base64_encode(\PHPWebSocket::RandomString()),
             'Sec-WebSocket-Version: 13',
-        ];
+        );
 
         $this->writeRaw(implode("\r\n", $headerParts) . "\r\n\r\n", FALSE);
 
@@ -191,7 +201,7 @@ class Client extends \PHPWebSocket\AConnection {
      *
      * @throws \Exception
      *
-     * @return \PHPWebSocket\AUpdate[]
+     * @return \Generator
      */
     public function update(float $timeout = NULL) : \Generator {
         yield from \PHPWebSocket::MultiUpdate([$this], $timeout);
@@ -200,13 +210,13 @@ class Client extends \PHPWebSocket\AConnection {
     /**
      * Attempts to read from our connection
      *
-     * @return \PHPWebSocket\AUpdate[]
+     * @return \Generator
      */
     public function handleRead() : \Generator {
 
         \PHPWebSocket::Log(LOG_DEBUG, __METHOD__);
 
-        $readRate = $this->getReadRate($this);
+        $readRate = $this->getReadRate();
         $newData = fread($this->getStream(), min($this->_currentFrameRemainingBytes ?? $readRate, $readRate));
         if ($newData === FALSE) {
             yield new Update\Error(Update\Error::C_READ, $this);
@@ -214,7 +224,6 @@ class Client extends \PHPWebSocket\AConnection {
             return;
         }
 
-        $updates = [];
         if (strlen($newData) === 0) {
 
             if ($this->_remoteSentDisconnect && $this->_weSentDisconnect) {
@@ -342,6 +351,15 @@ class Client extends \PHPWebSocket\AConnection {
      */
     public function isOpen() : bool {
         return is_resource($this->_stream);
+    }
+
+    /**
+     * Returns the path send in the HTTP request
+     *
+     * @return string
+     */
+    public function getPath() : string {
+        return $this->_path;
     }
 
     /**

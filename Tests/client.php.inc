@@ -97,7 +97,10 @@ for ($i = 0; $i < $caseCount; $i++) {
 
                     $stream = $update->getStream();
                     if ($stream) {
+
+                        rewind($stream);
                         $message = stream_get_contents($stream);
+
                     }
 
                 }

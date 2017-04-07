@@ -30,7 +30,9 @@ declare(strict_types = 1);
 
 namespace PHPWebSocket\Update;
 
-class Read extends \PHPWebSocket\AUpdate {
+use PHPWebSocket\AUpdate;
+
+class Read extends AUpdate {
 
     const   C_UNKNOWN = 0,
             C_NEWCONNECTION = 1,
@@ -100,7 +102,7 @@ class Read extends \PHPWebSocket\AUpdate {
      * @return string
      */
     public static function StringForCode(int $code) : string {
-        return self::ERROR_STRINGS[$code] ?? 'Unknown read code ' . $code;
+        return self::READ_STRINGS[$code] ?? 'Unknown read code ' . $code;
     }
 
     /**
@@ -131,6 +133,7 @@ class Read extends \PHPWebSocket\AUpdate {
     }
 
     public function __toString() {
+
         $code = $this->getCode();
 
         return 'Read) ' . self::StringForCode($code) . ' (C: ' . $code . ')';

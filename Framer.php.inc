@@ -48,8 +48,8 @@ final class Framer {
             IND_OPCODE = 'opcode',
             IND_MASK = 'mask',
             IND_LENGTH = 'length',
-            IND_MASKINGKEY = 'masking-key',
-            IND_PAYLOADOFFSET = 'payload-offset';
+            IND_MASKING_KEY = 'masking-key',
+            IND_PAYLOAD_OFFSET = 'payload-offset';
 
     /**
      * Extracts the headers out of the provided frame, returns NULL if the provided frame has invalid headers
@@ -76,8 +76,8 @@ final class Framer {
             self::IND_OPCODE         => ($byte1 & self::BYTE1_OPCODE),
             self::IND_MASK           => (bool) ($byte2 & self::BYTE2_MASKED),
             self::IND_LENGTH         => ($byte2 & self::BYTE2_LENGTH),
-            self::IND_MASKINGKEY     => NULL,
-            self::IND_PAYLOADOFFSET  => 2,
+            self::IND_MASKING_KEY    => NULL,
+            self::IND_PAYLOAD_OFFSET => 2,
         ];
 
         if ($headers[self::IND_LENGTH] === 126) { // 16 bits
@@ -87,10 +87,10 @@ final class Framer {
             }
 
             $headers[self::IND_LENGTH] = unpack('n', substr($frame, 2, 2))[1];
-            $headers[self::IND_PAYLOADOFFSET] += 2;
+            $headers[self::IND_PAYLOAD_OFFSET] += 2;
 
             if ($headers[self::IND_MASK]) {
-                $headers[self::IND_MASKINGKEY] = substr($frame, 4, 4);
+                $headers[self::IND_MASKING_KEY] = substr($frame, 4, 4);
             }
 
         } elseif ($headers[self::IND_LENGTH] === 127) { // 64 bits
@@ -102,10 +102,10 @@ final class Framer {
             $headers[self::IND_LENGTH] = unpack('J', substr($frame, 2, 8))[1];
 
             if ($headers[self::IND_MASK]) {
-                $headers[self::IND_MASKINGKEY] = substr($frame, 10, 4);
+                $headers[self::IND_MASKING_KEY] = substr($frame, 10, 4);
             }
 
-            $headers[self::IND_PAYLOADOFFSET] += 8;
+            $headers[self::IND_PAYLOAD_OFFSET] += 8;
 
         } elseif ($headers[self::IND_MASK]) { // 7 bits
 
@@ -113,12 +113,12 @@ final class Framer {
                 return NULL;
             }
 
-            $headers[self::IND_MASKINGKEY] = substr($frame, 2, 4);
+            $headers[self::IND_MASKING_KEY] = substr($frame, 2, 4);
 
         }
 
         if ($headers[self::IND_MASK]) {
-            $headers[self::IND_PAYLOADOFFSET] += 4;
+            $headers[self::IND_PAYLOAD_OFFSET] += 4;
         }
 
         return $headers;
@@ -140,7 +140,7 @@ final class Framer {
         }
 
         $frameLength = strlen($frame);
-        if ($frameLength < $headers[self::IND_PAYLOADOFFSET]) { // Frame headers incomplete
+        if ($frameLength < $headers[self::IND_PAYLOAD_OFFSET]) { // Frame headers incomplete
             return NULL;
         }
 
@@ -159,13 +159,13 @@ final class Framer {
             case \PHPWebSocket::OPCODE_FRAME_TEXT:
             case \PHPWebSocket::OPCODE_FRAME_BINARY:
 
-                if ($frameLength < $headers[self::IND_PAYLOADOFFSET] + $headers[self::IND_LENGTH]) {
+                if ($frameLength < $headers[self::IND_PAYLOAD_OFFSET] + $headers[self::IND_LENGTH]) {
                     return NULL;
                 }
 
-                $payload = substr($frame, $headers[self::IND_PAYLOADOFFSET], $headers[self::IND_LENGTH]);
+                $payload = substr($frame, $headers[self::IND_PAYLOAD_OFFSET], $headers[self::IND_LENGTH]);
                 if ($headers[self::IND_MASK]) {
-                    $payload = self::ApplyMask($payload, $headers[self::IND_MASKINGKEY]);
+                    $payload = self::ApplyMask($payload, $headers[self::IND_MASKING_KEY]);
                 }
 
                 return $payload;
@@ -259,6 +259,7 @@ final class Framer {
      * @return string
      */
     public static function ApplyMask(string $payload, string $maskingKey) : string {
-        return str_pad('', strlen($payload), $maskingKey) ^ $payload;
+        return (string) (str_pad('', strlen($payload), $maskingKey) ^ $payload);
     }
+
 }

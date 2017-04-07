@@ -30,7 +30,9 @@ declare(strict_types = 1);
 
 namespace PHPWebSocket\Update;
 
-class Error extends \PHPWebSocket\AUpdate {
+use PHPWebSocket\AUpdate;
+
+class Error extends AUpdate {
 
     const   C_UNKNOWN = 0,
             C_SELECT = 1,
