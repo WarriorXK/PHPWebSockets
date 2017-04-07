@@ -82,7 +82,7 @@ class Client extends AConnection {
     /**
      * The remote host we are connecting to
      *
-     * @var string|NULL
+     * @var string|null
      */
     protected $_host = NULL;
 
