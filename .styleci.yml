@@ -4,7 +4,6 @@ enabled:
   - concat_with_spaces
   - dir_constant
   - uppercase_constants
-  - no_trailing_whitespace
 
 disabled:
   - braces
