@@ -324,7 +324,7 @@ final class PHPWebSocket {
      *
      * @return string
      */
-    public static function RandomString(int $length = 16) : string {
+    public static function RandomString(int $length) : string {
 
         $key = '';
         for ($i = 0; $i < $length; $i++) {

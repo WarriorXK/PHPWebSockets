@@ -80,6 +80,13 @@ class Client extends AConnection {
     protected $_stream = NULL;
 
     /**
+     * The remote host we are connecting to
+     *
+     * @var string|NULL
+     */
+    protected $_host = NULL;
+
+    /**
      * The path used in the HTTP request
      *
      * @var string
@@ -108,6 +115,7 @@ class Client extends AConnection {
         }
 
         $this->_stream = $resource;
+        $this->_host = (string) $resource;
         $this->_path = $path;
 
         $this->_afterOpen();
@@ -136,6 +144,7 @@ class Client extends AConnection {
             return FALSE;
         }
 
+        $this->_host = $address;
         $this->_path = $path;
 
         $this->_afterOpen();
@@ -150,16 +159,15 @@ class Client extends AConnection {
 
         parent::_afterOpen();
 
-        $streamMeta = stream_get_meta_data($this->getStream());
         $this->_resourceIndex = (int) $this->getStream();
 
         $headerParts = [
             'GET ' . $this->_path . ' HTTP/1.1',
-            'Host: ' . $streamMeta['uri'],
+            'Host: ' . $this->_host,
             'User-Agent: ' . $this->getUserAgent(),
             'Upgrade: websocket',
             'Connection: Upgrade',
-            'Sec-WebSocket-Key: ' . base64_encode(\PHPWebSocket::RandomString()),
+            'Sec-WebSocket-Key: ' . base64_encode(\PHPWebSocket::RandomString(16)),
             'Sec-WebSocket-Version: 13',
         ];
 
