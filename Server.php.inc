@@ -512,5 +512,4 @@ class Server {
     public function __toString() {
         return 'WSServer ' . $this->_serverIndex;
     }
-
 }

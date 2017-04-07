@@ -261,5 +261,4 @@ final class Framer {
     public static function ApplyMask(string $payload, string $maskingKey) : string {
         return (string) (str_pad('', strlen($payload), $maskingKey) ^ $payload);
     }
-
 }

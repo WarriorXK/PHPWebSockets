@@ -775,5 +775,4 @@ abstract class AConnection implements IStreamContainer {
         }
 
     }
-
 }

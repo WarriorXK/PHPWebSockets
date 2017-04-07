@@ -153,7 +153,7 @@ class Client extends AConnection {
         $streamMeta = stream_get_meta_data($this->getStream());
         $this->_resourceIndex = (int) $this->getStream();
 
-        $headerParts = array(
+        $headerParts = [
             'GET ' . $this->_path . ' HTTP/1.1',
             'Host: ' . $streamMeta['uri'],
             'User-Agent: ' . $this->getUserAgent(),
@@ -161,7 +161,7 @@ class Client extends AConnection {
             'Connection: Upgrade',
             'Sec-WebSocket-Key: ' . base64_encode(\PHPWebSocket::RandomString()),
             'Sec-WebSocket-Version: 13',
-        );
+        ];
 
         $this->writeRaw(implode("\r\n", $headerParts) . "\r\n\r\n", FALSE);
 
