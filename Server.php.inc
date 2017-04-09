@@ -94,7 +94,7 @@ class Server {
     /**
      * All connections
      *
-     * @var Server\Connection[]
+     * @var \PHPWebSocket\Server\Connection[]
      */
     protected $_connections = [];
 
@@ -419,7 +419,7 @@ class Server {
     /**
      * Removes the specified connection from the connections array and closes it if open
      *
-     * @param Server\Connection $connection
+     * @param \PHPWebSocket\Server\Connection $connection
      *
      * @throws \LogicException
      */

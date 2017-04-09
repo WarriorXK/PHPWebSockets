@@ -30,9 +30,9 @@ declare(strict_types = 1);
 
 namespace PHPWebSocket\Server;
 
-use PHPWebSocket\Server;
 use PHPWebSocket\TStreamContainerDefaults;
 use PHPWebSocket\IStreamContainer;
+use PHPWebSocket\Server;
 
 class AcceptingConnection implements IStreamContainer {
 
