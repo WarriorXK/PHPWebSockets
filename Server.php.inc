@@ -434,6 +434,7 @@ class Server {
 
     /**
      * Sets the time in seconds in which the stream_socket_accept method has to accept the connection or fail
+     *
      * @param float $timeout
      */
     public function setSocketAcceptTimeout(float $timeout) {
@@ -442,6 +443,7 @@ class Server {
 
     /**
      * Returns the time in seconds in which the stream_socket_accept method has to accept the connection or fail
+     *
      * @return float
      */
     public function getSocketAcceptTimeout() : float {
