@@ -322,6 +322,7 @@ class Connection extends AConnection {
 
     /**
      * Sets the time in seconds in which the client has to send its handshake
+     *
      * @param float $timeout
      */
     public function setAcceptTimeout(float $timeout) {
@@ -330,6 +331,7 @@ class Connection extends AConnection {
 
     /**
      * Returns the time in seconds in which the client has to send its handshake
+     *
      * @return float
      */
     public function getAcceptTimeout() : float {

@@ -85,6 +85,7 @@ abstract class AConnection implements IStreamContainer {
 
     /**
      * The current state of the UTF8 validation
+     *
      * @var int
      */
     protected $_utfValidationState = \PHPWebSocket::UTF8_ACCEPT;
