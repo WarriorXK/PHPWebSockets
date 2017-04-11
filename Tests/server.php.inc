@@ -29,7 +29,8 @@
 require_once(__DIR__ . '/../PHPWebSocket.php.inc');
 
 use \PHPWebSocket\Update\Read;
-\PHPWebSocket::Log(LOG_INFO,'Starting test' . PHP_EOL);
+
+\PHPWebSocket::Log(LOG_INFO, 'Starting test' . PHP_EOL);
 
 $websocket = new \PHPWebSocket\Server('tcp://0.0.0.0:9001');
 $bufferType = $argv[2] ?? NULL;

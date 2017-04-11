@@ -69,7 +69,7 @@ try {
         foreach ($client->update() as $key => $value) {
 
             \PHPWebSocket::Log(LOG_INFO, $value . '');
-            
+
             if ($value instanceof Read && $value->getCode() === Read::C_READ) {
 
                 $msg = $value->getMessage() ?? NULL;
