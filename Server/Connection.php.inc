@@ -44,6 +44,13 @@ class Connection extends AConnection {
     protected $_resourceIndex = NULL;
 
     /**
+     * The time in seconds in which the client has to send its handshake
+     *
+     * @var float
+     */
+    protected $_acceptTimeout = 5.0;
+
+    /**
      * If we've finished the handshake
      *
      * @var bool
@@ -218,7 +225,7 @@ class Connection extends AConnection {
      */
     public function beforeStreamSelect() : \Generator {
 
-        if (!$this->isAccepted() && $this->hasHandshake() && $this->getOpenedTimestamp() + Server::ACCEPT_TIMEOUT < time()) {
+        if (!$this->isAccepted() && $this->hasHandshake() && $this->getOpenedTimestamp() + $this->getAcceptTimeout() < time()) {
 
             yield new Update\Error(Update\Error::C_ACCEPT_TIMEOUT_PASSED, $this);
             $this->deny(408); // Request Timeout
@@ -311,6 +318,22 @@ class Connection extends AConnection {
         $this->writeRaw('HTTP/1.1 ' . $errCode . ' ' . \PHPWebSocket::GetStringForStatusCode($errCode) . "\r\nServer: " . $this->_server->getServerIdentifier() . "\r\n\r\n", FALSE);
         $this->setCloseAfterWrite();
 
+    }
+
+    /**
+     * Sets the time in seconds in which the client has to send its handshake
+     * @param float $timeout
+     */
+    public function setAcceptTimeout(float $timeout) {
+        $this->_acceptTimeout = $timeout;
+    }
+
+    /**
+     * Returns the time in seconds in which the client has to send its handshake
+     * @return float
+     */
+    public function getAcceptTimeout() : float {
+        return $this->_acceptTimeout;
     }
 
     /**

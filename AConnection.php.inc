@@ -84,6 +84,12 @@ abstract class AConnection implements IStreamContainer {
     protected $_priorityFramesBuffer = [];
 
     /**
+     * The current state of the UTF8 validation
+     * @var int
+     */
+    protected $_utfValidationState = \PHPWebSocket::UTF8_ACCEPT;
+
+    /**
      * The maximum size the handshake can become
      *
      * @var int
@@ -295,6 +301,20 @@ abstract class AConnection implements IStreamContainer {
                     case \PHPWebSocket::OPCODE_FRAME_TEXT:
                     case \PHPWebSocket::OPCODE_FRAME_BINARY:
 
+                        if (($this->_partialMessageOpcode ?: $opcode) === \PHPWebSocket::OPCODE_FRAME_TEXT) {
+
+                            if (!\PHPWebSocket::ValidateUTF8($framePayload, $this->_utfValidationState)) {
+
+                                $this->sendDisconnect(\PHPWebSocket::CLOSECODE_INVALID_PAYLOAD, 'Could not decode text frame as UTF-8');
+                                $this->setCloseAfterWrite();
+
+                                yield new Update\Error(Update\Error::C_READ_INVALID_PAYLOAD, $this);
+
+                                return;
+                            }
+
+                        }
+
                         if ($opcode !== \PHPWebSocket::OPCODE_CONTINUE) {
 
                             if ($this->_partialMessage !== NULL || $this->_partialMessageStream !== NULL) {
@@ -357,52 +377,13 @@ abstract class AConnection implements IStreamContainer {
 
                         if ($headers[Framer::IND_FIN]) {
 
-                            $streamMeta = [];
-                            if ($this->_partialMessageStream) {
-                                $streamMeta = stream_get_meta_data($this->_partialMessageStream);
-                            }
-
-                            if ($this->_partialMessageOpcode === \PHPWebSocket::OPCODE_FRAME_TEXT) {
-
-                                $validUTF8 = FALSE;
-                                if ($this->_partialMessageStream) {
-
-                                    // Todo: Matching for large files may consume large amount of memory, maybe test during the read? testing during read will also implement autobahn 6.4 (Fast UTF-8 fail)
-
-                                    if (!$streamMeta['seekable']) {
-                                        \PHPWebSocket::Log(\PHPWebSocket::LOG_WARNING, 'Unable to check for UTF-8 requirement in stream: the stream is not seekable!');
-                                    } else {
-
-                                        rewind($this->_partialMessageStream);
-                                        $validUTF8 = preg_match('//u', stream_get_contents($this->_partialMessageStream));
-
-                                    }
-
-                                } else {
-                                    $validUTF8 = preg_match('//u', $this->_partialMessage);
-                                }
-
-                                if (!$validUTF8) {
-
-                                    $this->sendDisconnect(\PHPWebSocket::CLOSECODE_INVALID_PAYLOAD, 'Could not decode text frame as UTF-8');
-                                    $this->setCloseAfterWrite();
-
-                                    yield new Update\Error(Update\Error::C_READ_INVALID_PAYLOAD, $this);
-
-                                    return;
-                                }
-
-                            }
-
-                            if ($streamMeta['seekable'] ?? FALSE) {
-                                rewind($this->_partialMessageStream);
-                            }
-
                             yield new Update\Read(Update\Read::C_READ, $this, $this->_partialMessageOpcode, $this->_partialMessage, $this->_partialMessageStream);
 
                             $this->_partialMessageOpcode = NULL;
                             $this->_partialMessageStream = NULL;
                             $this->_partialMessage = NULL;
+
+                            $this->_utfValidationState = \PHPWebSocket::UTF8_ACCEPT;
 
                         }
 
@@ -574,7 +555,7 @@ abstract class AConnection implements IStreamContainer {
      *
      * @param array $headers
      *
-     * @return resource|null
+     * @return resource|null|bool
      */
     protected function _getStreamForNewMessage(array $headers) {
 

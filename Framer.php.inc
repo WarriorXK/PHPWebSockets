@@ -193,7 +193,7 @@ final class Framer {
      *
      * @return string
      */
-    public static function Frame(string $data, bool $mask, int $opcode = \PHPWebSocket::OPCODE_FRAME_TEXT, bool $isFinal = TRUE, bool $rsv1 = FALSE, bool $rsv2 = FALSE, bool $rsv3 = FALSE) {
+    public static function Frame(string $data, bool $mask, int $opcode = \PHPWebSocket::OPCODE_FRAME_TEXT, bool $isFinal = TRUE, bool $rsv1 = FALSE, bool $rsv2 = FALSE, bool $rsv3 = FALSE) : string {
 
         if ($opcode < 0 || $opcode > 15) {
             throw new \RangeException('Invalid opcode, opcode should range between 0 and 15');

@@ -49,7 +49,7 @@ try {
             break;
         case 'tmpfile':
 
-            $client->setNewMessageStreamCallback(function(array $headers) {
+            $client->setNewMessageStreamCallback(function (array $headers) {
 
                 return tmpfile();
             });
