@@ -59,7 +59,7 @@ try {
     }
 
     if (!$client->connect($address, '/getCaseCount')) {
-        echo 'Unable to connect to server: ' . $client->getLastError() . PHP_EOL;
+        \PHPWebSocket::Log(LOG_ERR, 'Unable to connect to server: ' . $client->getLastError());
         exit(1);
     }
 
@@ -67,6 +67,9 @@ try {
 
     while ($client->isOpen()) {
         foreach ($client->update() as $key => $value) {
+
+            \PHPWebSocket::Log(LOG_INFO, $value . '');
+            
             if ($value instanceof Read && $value->getCode() === Read::C_READ) {
 
                 $msg = $value->getMessage() ?? NULL;
@@ -80,7 +83,11 @@ try {
         }
     }
 
-    echo 'Will run ' . $caseCount . ' test cases' . PHP_EOL;
+    if ($caseCount === 0) {
+        throw new \Exception('Unable to get case count from autobahn server!');
+    }
+
+    \PHPWebSocket::Log(LOG_INFO, 'Will run ' . $caseCount . ' test cases');
 
     for ($i = 0; $i < $caseCount; $i++) {
 
@@ -117,7 +124,7 @@ try {
 
     }
 
-    echo 'All test cases ran, asking for report update' . PHP_EOL;
+    \PHPWebSocket::Log(LOG_INFO, 'All test cases ran, asking for report update');
 
     $client = new \PHPWebSocket\Client();
     $client->connect($address, '/updateReports?agent=' . $client->getUserAgent());
@@ -128,23 +135,23 @@ try {
         }
     }
 
-    echo 'Reports finished, getting results..' . PHP_EOL;
+    \PHPWebSocket::Log(LOG_INFO, 'Reports finished, getting results..');
 
     $outputFile = '/tmp/reports/index.json';
     if (!file_exists($outputFile)) {
-        echo 'File "' . $outputFile . '" doesn\'t exist!';
+        \PHPWebSocket::Log(LOG_ALERT, 'File "' . $outputFile . '" doesn\'t exist!');
         exit(1);
     }
 
     $hasFailures = FALSE;
     $testCases = json_decode(file_get_contents($outputFile), TRUE)[$client->getUserAgent()] ?? NULL;
     if ($testCases === NULL) {
-        echo 'Unable to get test case results!' . PHP_EOL;
+        \PHPWebSocket::Log(LOG_ERR, 'Unable to get test case results!');
     } else {
 
         foreach ($testCases as $case => $data) {
 
-            echo $case . ' => ' . $data['behavior'] . PHP_EOL;
+            \PHPWebSocket::Log(LOG_INFO, $case . ' => ' . $data['behavior']);
 
             switch ($data['behavior']) {
                 case 'OK':
@@ -167,6 +174,6 @@ try {
 
 }
 
-echo 'Exiting' . PHP_EOL;
+\PHPWebSocket::Log(LOG_INFO, 'Exiting');
 
 exit((int) $hasFailures);

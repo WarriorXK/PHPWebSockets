@@ -460,7 +460,7 @@ final class PHPWebSocket {
         }
 
         if ($logLevel < LOG_DEBUG || self::$_Debug || $forceShow) {
-            echo 'PHPWebSocket: ' . $logLevel . ') ' . ((string) $message) . PHP_EOL;
+            echo date(DATE_ATOM) . ' PHPWebSocket: ' . $logLevel . ') ' . ((string) $message) . PHP_EOL;
         }
 
     }

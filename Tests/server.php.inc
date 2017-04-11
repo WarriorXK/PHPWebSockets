@@ -29,8 +29,7 @@
 require_once(__DIR__ . '/../PHPWebSocket.php.inc');
 
 use \PHPWebSocket\Update\Read;
-
-echo 'Starting test' . PHP_EOL . PHP_EOL;
+\PHPWebSocket::Log(LOG_INFO,'Starting test' . PHP_EOL);
 
 $websocket = new \PHPWebSocket\Server('tcp://0.0.0.0:9001');
 $bufferType = $argv[2] ?? NULL;
@@ -111,27 +110,27 @@ try {
 
     }
 
-    echo 'Test ended, closing websocket' . PHP_EOL;
+    \PHPWebSocket::Log(LOG_INFO, 'Test ended, closing websocket');
 
     $websocket->close();
 
-    echo 'Getting results..' . PHP_EOL;
+    \PHPWebSocket::Log(LOG_INFO, 'Getting results..');
 
     $outputFile = '/tmp/reports/index.json';
     if (!file_exists($outputFile)) {
-        echo 'File "' . $outputFile . '" doesn\'t exist!';
+        \PHPWebSocket::Log(LOG_ERR, 'File "' . $outputFile . '" doesn\'t exist!');
         exit(1);
     }
 
     $hasFailures = FALSE;
     $testCases = json_decode(file_get_contents($outputFile), TRUE)[$websocket->getServerIdentifier()] ?? NULL;
     if ($testCases === NULL) {
-        echo 'Unable to get test case results!' . PHP_EOL;
+        \PHPWebSocket::Log(LOG_ERR, 'Unable to get test case results!');
     } else {
 
         foreach ($testCases as $case => $data) {
 
-            echo $case . ' => ' . $data['behavior'] . PHP_EOL;
+            \PHPWebSocket::Log(LOG_INFO, $case . ' => ' . $data['behavior']);
 
             switch ($data['behavior']) {
                 case 'OK':
@@ -154,6 +153,6 @@ try {
 
 }
 
-echo 'Exiting' . PHP_EOL;
+\PHPWebSocket::Log(LOG_INFO, 'Exiting');
 
 exit((int) $hasFailures);
