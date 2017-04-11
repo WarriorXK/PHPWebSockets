@@ -303,7 +303,7 @@ abstract class AConnection implements IStreamContainer {
 
                         if (($this->_partialMessageOpcode ?: $opcode) === \PHPWebSocket::OPCODE_FRAME_TEXT) {
 
-                            if (!\PHPWebSocket::ValidateUTF8($framePayload, $this->_utfValidationState)) {
+                            if (!\PHPWebSocket::ValidateUTF8($framePayload, $this->_utfValidationState) || ($headers[Framer::IND_FIN] && $this->_utfValidationState !== \PHPWebSocket::UTF8_ACCEPT)) {
 
                                 $this->sendDisconnect(\PHPWebSocket::CLOSECODE_INVALID_PAYLOAD, 'Could not decode text frame as UTF-8');
                                 $this->setCloseAfterWrite();

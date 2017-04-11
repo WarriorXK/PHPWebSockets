@@ -50,7 +50,6 @@ try {
         case 'tmpfile':
 
             $client->setNewMessageStreamCallback(function (array $headers) {
-
                 return tmpfile();
             });
 
