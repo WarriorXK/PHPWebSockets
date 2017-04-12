@@ -30,7 +30,7 @@ require_once(__DIR__ . '/../PHPWebSocket.php.inc');
 
 use \PHPWebSocket\Update\Read;
 
-echo 'Starting test' . PHP_EOL . PHP_EOL;
+\PHPWebSocket::Log(LOG_INFO, 'Starting test' . PHP_EOL);
 
 $websocket = new \PHPWebSocket\Server('tcp://0.0.0.0:9001');
 $bufferType = $argv[2] ?? NULL;
@@ -38,68 +38,109 @@ $bufferType = $argv[2] ?? NULL;
 $descriptorSpec = [['pipe', 'r'], STDOUT, STDERR];
 $wstestProc = proc_open('wstest -m fuzzingclient -s Autobahn/fuzzingclient.json', $descriptorSpec, $pipes, __DIR__);
 
-while (proc_get_status($wstestProc)['running'] ?? FALSE) {
+try {
 
-    $updates = $websocket->update(0.1);
-    foreach ($updates as $update) {
+    while (proc_get_status($wstestProc)['running'] ?? FALSE) {
 
-        if ($update instanceof Read) {
+        $updates = $websocket->update(0.1);
+        foreach ($updates as $update) {
 
-            $sourceObj = $update->getSourceObject();
-            $opcode = $update->getCode();
-            switch ($opcode) {
-                case Read::C_NEWCONNECTION:
+            if ($update instanceof Read) {
 
-                    $sourceObj->accept();
+                $sourceObj = $update->getSourceObject();
+                $opcode = $update->getCode();
+                switch ($opcode) {
+                    case Read::C_NEWCONNECTION:
 
-                    switch ($bufferType) {
-                        case 'memory':
-                            // Default, do nothing
-                            break;
-                        case 'tmpfile':
+                        $sourceObj->accept();
 
-                            $sourceObj->setNewMessageStreamCallback(function (array $headers) {
-                                return tmpfile();
-                            });
-
-                            break;
-                        default:
-                            throw new \Exception('Unknown buffer type specified: ' . ($bufferType === NULL ? 'NULL' : $bufferType));
-                    }
-
-                    break;
-                case Read::C_READ:
-
-                    $opcode = $update->getOpcode();
-                    switch ($opcode) {
-                        case \PHPWebSocket::OPCODE_CONTINUE:
-                        case \PHPWebSocket::OPCODE_FRAME_TEXT:
-                        case \PHPWebSocket::OPCODE_FRAME_BINARY:
-
-                            if ($sourceObj->isDisconnecting()) {
+                        switch ($bufferType) {
+                            case 'memory':
+                                // Default, do nothing
                                 break;
-                            }
+                            case 'tmpfile':
 
-                            $message = $update->getMessage() ?? '';
-                            if ($message === '') {
+                                $sourceObj->setNewMessageStreamCallback(function (array $headers) {
+                                    return tmpfile();
+                                });
 
-                                $stream = $update->getStream();
-                                if ($stream) {
+                                break;
+                            default:
+                                throw new \Exception('Unknown buffer type specified: ' . ($bufferType === NULL ? 'NULL' : $bufferType));
+                        }
 
-                                    rewind($stream);
-                                    $message = stream_get_contents($stream);
+                        break;
+                    case Read::C_READ:
+
+                        $opcode = $update->getOpcode();
+                        switch ($opcode) {
+                            case \PHPWebSocket::OPCODE_CONTINUE:
+                            case \PHPWebSocket::OPCODE_FRAME_TEXT:
+                            case \PHPWebSocket::OPCODE_FRAME_BINARY:
+
+                                if ($sourceObj->isDisconnecting()) {
+                                    break;
+                                }
+
+                                $message = $update->getMessage() ?? '';
+                                if ($message === '') {
+
+                                    $stream = $update->getStream();
+                                    if ($stream) {
+
+                                        rewind($stream);
+                                        $message = stream_get_contents($stream);
+
+                                    }
 
                                 }
 
-                            }
+                                if ($message !== NULL) {
+                                    $sourceObj->write($message, $opcode);
+                                }
 
-                            if ($message !== NULL) {
-                                $sourceObj->write($message, $opcode);
-                            }
+                                break;
+                        }
 
-                            break;
-                    }
+                        break;
+                }
 
+            }
+
+        }
+
+    }
+
+    \PHPWebSocket::Log(LOG_INFO, 'Test ended, closing websocket');
+
+    $websocket->close();
+
+    \PHPWebSocket::Log(LOG_INFO, 'Getting results..');
+
+    $outputFile = '/tmp/reports/index.json';
+    if (!file_exists($outputFile)) {
+        \PHPWebSocket::Log(LOG_ERR, 'File "' . $outputFile . '" doesn\'t exist!');
+        exit(1);
+    }
+
+    $hasFailures = FALSE;
+    $testCases = json_decode(file_get_contents($outputFile), TRUE)[$websocket->getServerIdentifier()] ?? NULL;
+    if ($testCases === NULL) {
+        \PHPWebSocket::Log(LOG_ERR, 'Unable to get test case results!');
+    } else {
+
+        foreach ($testCases as $case => $data) {
+
+            \PHPWebSocket::Log(LOG_INFO, $case . ' => ' . $data['behavior']);
+
+            switch ($data['behavior']) {
+                case 'OK':
+                case 'NON-STRICT':
+                case 'INFORMATIONAL':
+                case 'UNIMPLEMENTED':
+                    break;
+                default:
+                    $hasFailures = TRUE;
                     break;
             }
 
@@ -107,44 +148,12 @@ while (proc_get_status($wstestProc)['running'] ?? FALSE) {
 
     }
 
-}
+} finally {
 
-echo 'Test ended, closing websocket' . PHP_EOL;
-
-$websocket->close();
-
-echo 'Getting results..' . PHP_EOL;
-
-$outputFile = '/tmp/reports/index.json';
-if (!file_exists($outputFile)) {
-    echo 'File "' . $outputFile . '" doesn\'t exist!';
-    exit(1);
-}
-
-$hasFailures = FALSE;
-$testCases = json_decode(file_get_contents($outputFile), TRUE)[$websocket->getServerIdentifier()] ?? NULL;
-if ($testCases === NULL) {
-    echo 'Unable to get test case results!' . PHP_EOL;
-    exit(1);
-}
-
-foreach ($testCases as $case => $data) {
-
-    echo $case . ' => ' . $data['behavior'] . PHP_EOL;
-
-    switch ($data['behavior']) {
-        case 'OK':
-        case 'NON-STRICT':
-        case 'INFORMATIONAL':
-        case 'UNIMPLEMENTED':
-            break;
-        default:
-            $hasFailures = TRUE;
-            break;
-    }
+    proc_terminate($wstestProc);
 
 }
 
-echo 'Exiting' . PHP_EOL;
+\PHPWebSocket::Log(LOG_INFO, 'Exiting');
 
 exit((int) $hasFailures);

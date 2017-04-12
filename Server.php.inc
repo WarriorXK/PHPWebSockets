@@ -36,20 +36,6 @@ require_once(__DIR__ . '/Server/Connection.php.inc');
 class Server {
 
     /**
-     * The time in seconds in which the stream_socket_accept method has to accept the connection or fail
-     *
-     * @var float
-     */
-    const SOCKET_ACCEPT_TIMEOUT = 5.0;
-
-    /**
-     * The time in seconds in which the client has to send its handshake
-     *
-     * @var float
-     */
-    const ACCEPT_TIMEOUT = 5.0;
-
-    /**
      * The counter to provide all websocket servers with an unique ID
      *
      * @var int
@@ -62,6 +48,13 @@ class Server {
      * @var bool
      */
     protected $_cleanupAcceptingConnectionOnClose = TRUE;
+
+    /**
+     * The time in seconds in which the stream_socket_accept method has to accept the connection or fail
+     *
+     * @var float
+     */
+    protected $_socketAcceptTimeout = 5.0;
 
     /**
      * The accepting socket connection
@@ -258,7 +251,7 @@ class Server {
         }
 
         $peername = '';
-        $newStream = stream_socket_accept($this->_acceptingConnection->getStream(), self::SOCKET_ACCEPT_TIMEOUT, $peername);
+        $newStream = stream_socket_accept($this->_acceptingConnection->getStream(), $this->getSocketAcceptTimeout(), $peername);
         if (!$newStream) {
             throw new \RuntimeException('Unable to accept stream socket!');
         }
@@ -437,6 +430,24 @@ class Server {
 
         unset($this->_connections[$connection->getIndex()]);
 
+    }
+
+    /**
+     * Sets the time in seconds in which the stream_socket_accept method has to accept the connection or fail
+     *
+     * @param float $timeout
+     */
+    public function setSocketAcceptTimeout(float $timeout) {
+        $this->_socketAcceptTimeout = $timeout;
+    }
+
+    /**
+     * Returns the time in seconds in which the stream_socket_accept method has to accept the connection or fail
+     *
+     * @return float
+     */
+    public function getSocketAcceptTimeout() : float {
+        return $this->_socketAcceptTimeout;
     }
 
     /**
