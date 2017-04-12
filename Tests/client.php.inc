@@ -73,10 +73,12 @@ try {
             if ($value instanceof Read && $value->getCode() === Read::C_READ) {
 
                 $msg = $value->getMessage() ?? NULL;
-                var_dump($msg);
                 if ($msg === NULL) {
-                    $msg = stream_get_contents($value->getStream());
-                    var_dump($msg);
+
+                    $stream = $value->getStream();
+                    rewind($stream);
+                    $msg = stream_get_contents($stream);
+
                 }
 
                 $caseCount = (int) $msg;
