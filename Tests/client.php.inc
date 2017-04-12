@@ -38,84 +38,146 @@ $wstestProc = proc_open('wstest -m fuzzingserver -s Autobahn/fuzzingserver.json'
 
 sleep(2);
 
-$client = new \PHPWebSocket\Client();
-if (!$client->connect($address, '/getCaseCount')) {
-    echo 'Unable to connect to server: ' . $client->getLastError() . PHP_EOL;
-    exit(1);
-}
-
-$caseCount = NULL;
-
-while ($client->isOpen()) {
-    foreach ($client->update() as $key => $value) {
-        if ($value instanceof Read && $value->getCode() === Read::C_READ) {
-            $caseCount = (int) $value->getMessage();
-        }
-    }
-}
-
-echo 'Will run ' . $caseCount . ' test cases' . PHP_EOL;
-
-for ($i = 0; $i < $caseCount; $i++) {
+try {
 
     $client = new \PHPWebSocket\Client();
-    $client->connect($address, '/runCase?case=' . ($i + 1) . '&agent=' . $client->getUserAgent());
+
+    $bufferType = $argv[2] ?? NULL;
+    switch ($bufferType) {
+        case 'memory':
+            // Default, do nothing
+            break;
+        case 'tmpfile':
+
+            $client->setNewMessageStreamCallback(function (array $headers) {
+                return tmpfile();
+            });
+
+            break;
+        default:
+            throw new \Exception('Unknown buffer type specified: ' . ($bufferType === NULL ? 'NULL' : $bufferType));
+    }
+
+    if (!$client->connect($address, '/getCaseCount')) {
+        \PHPWebSocket::Log(LOG_ERR, 'Unable to connect to server: ' . $client->getLastError());
+        exit(1);
+    }
+
+    $caseCount = NULL;
 
     while ($client->isOpen()) {
+        foreach ($client->update() as $key => $value) {
 
-        $updates = $client->update();
-        foreach ($updates as $update) {
+            \PHPWebSocket::Log(LOG_INFO, $value . '');
 
-            if ($update instanceof Read && $update->getCode() === Read::C_READ) {
-                $client->write($update->getMessage() ?? '', $update->getOpcode());
+            if ($value instanceof Read && $value->getCode() === Read::C_READ) {
+
+                $msg = $value->getMessage() ?? NULL;
+                if ($msg === NULL) {
+
+                    $stream = $value->getStream();
+                    rewind($stream);
+                    $msg = stream_get_contents($stream);
+
+                }
+
+                $caseCount = (int) $msg;
+
+            }
+        }
+    }
+
+    if ($caseCount === 0) {
+        throw new \Exception('Unable to get case count from autobahn server!');
+    }
+
+    \PHPWebSocket::Log(LOG_INFO, 'Will run ' . $caseCount . ' test cases');
+
+    for ($i = 0; $i < $caseCount; $i++) {
+
+        $client = new \PHPWebSocket\Client();
+        $client->connect($address, '/runCase?case=' . ($i + 1) . '&agent=' . $client->getUserAgent());
+
+        while ($client->isOpen()) {
+
+            $updates = $client->update();
+            foreach ($updates as $update) {
+
+                if ($update instanceof Read && $update->getCode() === Read::C_READ) {
+
+                    $message = $update->getMessage() ?? '';
+                    if ($message === '') {
+
+                        $stream = $update->getStream();
+                        if ($stream) {
+
+                            rewind($stream);
+                            $message = stream_get_contents($stream);
+
+                        }
+
+                    }
+
+                    $client->write($message, $update->getOpcode());
+
+                }
+
             }
 
         }
 
     }
 
-}
+    \PHPWebSocket::Log(LOG_INFO, 'All test cases ran, asking for report update');
 
-echo 'All test cases ran, asking for report update' . PHP_EOL;
+    $client = new \PHPWebSocket\Client();
+    $client->connect($address, '/updateReports?agent=' . $client->getUserAgent());
 
-$client = new \PHPWebSocket\Client();
-$client->connect($address, '/updateReports?agent=' . $client->getUserAgent());
+    while ($client->isOpen()) {
+        foreach ($client->update() as $key => $value) {
 
-while ($client->isOpen()) {
-    foreach ($client->update() as $key => $value) {
-
-    }
-}
-
-echo 'Reports finished, getting results..' . PHP_EOL;
-
-$outputFile = '/tmp/reports/clients/index.json';
-if (!file_exists($outputFile)) {
-    echo 'File "' . $outputFile . '" doesn\'t exist!';
-    exit(1);
-}
-
-$hasFailures = FALSE;
-$testCases = json_decode(file_get_contents($outputFile), TRUE)[$client->getUserAgent()];
-foreach ($testCases as $case => $data) {
-
-    echo $case . ' => ' . $data['behavior'] . PHP_EOL;
-
-    switch ($data['behavior']) {
-        case 'OK':
-        case 'NON-STRICT':
-        case 'INFORMATIONAL':
-        case 'UNIMPLEMENTED':
-            break;
-        default:
-            $hasFailures = TRUE;
-            break;
+        }
     }
 
+    \PHPWebSocket::Log(LOG_INFO, 'Reports finished, getting results..');
+
+    $outputFile = '/tmp/reports/index.json';
+    if (!file_exists($outputFile)) {
+        \PHPWebSocket::Log(LOG_ALERT, 'File "' . $outputFile . '" doesn\'t exist!');
+        exit(1);
+    }
+
+    $hasFailures = FALSE;
+    $testCases = json_decode(file_get_contents($outputFile), TRUE)[$client->getUserAgent()] ?? NULL;
+    if ($testCases === NULL) {
+        \PHPWebSocket::Log(LOG_ERR, 'Unable to get test case results!');
+    } else {
+
+        foreach ($testCases as $case => $data) {
+
+            \PHPWebSocket::Log(LOG_INFO, $case . ' => ' . $data['behavior']);
+
+            switch ($data['behavior']) {
+                case 'OK':
+                case 'NON-STRICT':
+                case 'INFORMATIONAL':
+                case 'UNIMPLEMENTED':
+                    break;
+                default:
+                    $hasFailures = TRUE;
+                    break;
+            }
+
+        }
+
+    }
+
+} finally {
+
+    proc_terminate($wstestProc);
+
 }
 
-echo 'Exiting' . PHP_EOL;
+\PHPWebSocket::Log(LOG_INFO, 'Exiting');
 
 exit((int) $hasFailures);
-
-exit();

@@ -30,7 +30,9 @@ declare(strict_types = 1);
 
 namespace PHPWebSocket\Update;
 
-class Read extends \PHPWebSocket\AUpdate {
+use PHPWebSocket\AUpdate;
+
+class Read extends AUpdate {
 
     const   C_UNKNOWN = 0,
             C_NEWCONNECTION = 1,
@@ -71,12 +73,24 @@ class Read extends \PHPWebSocket\AUpdate {
      */
     protected $_opcode = NULL;
 
-    public function __construct(int $code, $sourceObject = NULL, int $opcode = NULL, string $message = NULL) {
+    /**
+     * The resource pointing to the downloaded message
+     *
+     * @var resource|null
+     */
+    protected $_stream = NULL;
+
+    public function __construct(int $code, $sourceObject = NULL, int $opcode = NULL, string $message = NULL, $stream = NULL) {
+
+        if ($stream !== NULL && !is_resource($stream)) {
+            throw new \InvalidArgumentException('The $stream argument has to be NULL or a resource!');
+        }
 
         parent::__construct($code, $sourceObject);
 
         $this->_message = $message;
         $this->_opcode = $opcode;
+        $this->_stream = $stream;
 
     }
 
@@ -88,7 +102,7 @@ class Read extends \PHPWebSocket\AUpdate {
      * @return string
      */
     public static function StringForCode(int $code) : string {
-        return self::ERROR_STRINGS[$code] ?? 'Unknown read code ' . $code;
+        return self::READ_STRINGS[$code] ?? 'Unknown read code ' . $code;
     }
 
     /**
@@ -109,7 +123,17 @@ class Read extends \PHPWebSocket\AUpdate {
         return $this->_opcode;
     }
 
+    /**
+     * Returns the resource pointing to the downloaded message
+     *
+     * @return resource|null
+     */
+    public function getStream() {
+        return $this->_stream;
+    }
+
     public function __toString() {
+
         $code = $this->getCode();
 
         return 'Read) ' . self::StringForCode($code) . ' (C: ' . $code . ')';

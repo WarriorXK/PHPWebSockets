@@ -20,6 +20,10 @@ engines:
         enabled: false
       CleanCode/StaticAccess:
         enabled: false
+      CyclomaticComplexity:
+        enabled: false
+      Design/NpathComplexity:
+        enabled: false
 ratings:
   paths:
   - "**.php.inc"

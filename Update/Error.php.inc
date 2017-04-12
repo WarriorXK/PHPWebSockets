@@ -30,7 +30,9 @@ declare(strict_types = 1);
 
 namespace PHPWebSocket\Update;
 
-class Error extends \PHPWebSocket\AUpdate {
+use PHPWebSocket\AUpdate;
+
+class Error extends AUpdate {
 
     const   C_UNKNOWN = 0,
             C_SELECT = 1,
@@ -45,7 +47,8 @@ class Error extends \PHPWebSocket\AUpdate {
             C_READ_PROTOCOL_ERROR = 10,
             C_READ_RSVBIT_SET = 11,
             C_WRITE = 12,
-            C_ACCEPT_TIMEOUT_PASSED = 13;
+            C_ACCEPT_TIMEOUT_PASSED = 13,
+            C_READ_INVALID_TARGET_STREAM = 14;
 
     const ERROR_STRINGS = [
         self::C_UNKNOWN                    => 'Unknown error',

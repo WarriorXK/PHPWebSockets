@@ -50,7 +50,7 @@ final class PHPWebSocket {
 
     const   CLOSECODE_NORMAL = 1000,
             CLOSECODE_ENDPOINT_CLOSING = 1001,
-            CLOSECODE_PROTOCOLERROR = 1002,
+            CLOSECODE_PROTOCOL_ERROR = 1002,
             CLOSECODE_UNSUPPORTED_PAYLOAD = 1003,
             // CLOSECODE_                           = 1004, // Reserved
             CLOSECODE_NO_STATUS = 1005,
@@ -61,6 +61,9 @@ final class PHPWebSocket {
             CLOSECODE_EXTENSION_NEGOTIATION_FAILURE = 1010,
             CLOSECODE_UNEXPECTED_CONDITION = 1011,
             CLOSECODE_TLS_HANDSHAKE_FAILURE = 1015;
+
+    const UTF8_ACCEPT = 0,
+          UTF8_REJECT = 1;
 
     const HTTP_STATUSCODES = [
         100 => 'Continue',
@@ -159,7 +162,7 @@ final class PHPWebSocket {
      *
      * @throws \InvalidArgumentException
      *
-     * @return \PHPWebSocket\AUpdate[]
+     * @return \Generator
      */
     public static function MultiUpdate(array $updateObjects, float $timeout = NULL) : \Generator {
 
@@ -269,13 +272,15 @@ final class PHPWebSocket {
      *
      * @param int  $code
      * @param bool $received If the close code is received as reason
+     *
+     * @return bool
      */
     public static function IsValidCloseCode(int $code, bool $received = TRUE) : bool {
 
         switch ($code) {
             case self::CLOSECODE_NORMAL:
             case self::CLOSECODE_ENDPOINT_CLOSING:
-            case self::CLOSECODE_PROTOCOLERROR:
+            case self::CLOSECODE_PROTOCOL_ERROR:
             case self::CLOSECODE_UNSUPPORTED_PAYLOAD:
             case self::CLOSECODE_INVALID_PAYLOAD:
             case self::CLOSECODE_POLICY_VIOLATION:
@@ -322,7 +327,7 @@ final class PHPWebSocket {
      *
      * @return string
      */
-    public static function RandomString(int $length = 16) : string {
+    public static function RandomString(int $length) : string {
 
         $key = '';
         for ($i = 0; $i < $length; $i++) {
@@ -330,6 +335,51 @@ final class PHPWebSocket {
         }
 
         return $key;
+    }
+
+    /**
+     * Validates a string for UTF8 validity, this allows for matching partial UTF8 string by passing the state each time on resume
+     *
+     * @copyright (c) 2008-2009 Bjoern Hoehrmann <bjoern@hoehrmann.de>
+     *
+     * @see http://bjoern.hoehrmann.de/utf-8/decoder/dfa/
+     *
+     * @param string $str
+     * @param int    &$state
+     *
+     * @return bool
+     */
+    public static function ValidateUTF8(string $str, int &$state = self::UTF8_ACCEPT) : bool {
+
+        $table = [
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // 00..1f
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // 20..3f
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // 40..5f
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // 60..7f
+            1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, // 80..9f
+            7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, // a0..bf
+            8, 8, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, // c0..df
+            0xa, 0x3, 0x3, 0x3, 0x3, 0x3, 0x3, 0x3, 0x3, 0x3, 0x3, 0x3, 0x3, 0x4, 0x3, 0x3, // e0..ef
+            0xb, 0x6, 0x6, 0x6, 0x5, 0x8, 0x8, 0x8, 0x8, 0x8, 0x8, 0x8, 0x8, 0x8, 0x8, 0x8, // f0..ff
+            0x0, 0x1, 0x2, 0x3, 0x5, 0x8, 0x7, 0x1, 0x1, 0x1, 0x4, 0x6, 0x1, 0x1, 0x1, 0x1, // s0..s0
+            1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 0, 1, 0, 1, 1, 1, 1, 1, 1, // s1..s2
+            1, 2, 1, 1, 1, 1, 1, 2, 1, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 1, 1, 1, 1, 1, 1, 1, 1, // s3..s4
+            1, 2, 1, 1, 1, 1, 1, 1, 1, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 3, 1, 3, 1, 1, 1, 1, 1, 1, // s5..s6
+            1, 3, 1, 1, 1, 1, 1, 3, 1, 3, 1, 1, 1, 1, 1, 1, 1, 3, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, // s7..s8
+        ];
+
+        $len = strlen($str);
+
+        for ($i = 0; $i < $len; $i++) {
+
+            $state = $table[256 + ($state << 4) + $table[ord($str[$i])]];
+            if ($state === self::UTF8_REJECT) {
+                return FALSE;
+            }
+
+        }
+
+        return TRUE;
     }
 
     /**
@@ -410,7 +460,7 @@ final class PHPWebSocket {
         }
 
         if ($logLevel < LOG_DEBUG || self::$_Debug || $forceShow) {
-            echo 'PHPWebSocket: ' . $logLevel . ') ' . ((string) $message) . PHP_EOL;
+            echo date(DATE_ATOM) . ' PHPWebSocket: ' . $logLevel . ') ' . ((string) $message) . PHP_EOL;
         }
 
     }

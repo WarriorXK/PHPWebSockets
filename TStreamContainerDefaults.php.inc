@@ -34,7 +34,7 @@ trait TStreamContainerDefaults {
     /**
      * Gets called just before stream_select gets called
      *
-     * @return \PHPWebSocket\AUpdate[]
+     * @return \Generator
      */
     public function beforeStreamSelect() : \Generator {
         if (FALSE) {
@@ -54,7 +54,7 @@ trait TStreamContainerDefaults {
     /**
      * Handles exceptional data reads
      *
-     * @return \PHPWebSocket\AUpdate[]
+     * @return \Generator
      */
     public function handleExceptional() : \Generator {
         if (FALSE) {
@@ -65,7 +65,7 @@ trait TStreamContainerDefaults {
     /**
      * Writes the current buffer to the connection
      *
-     * @return \PHPWebSocket\AUpdate[]
+     * @return \Generator
      */
     public function handleWrite() : \Generator {
         if (FALSE) {
@@ -76,7 +76,7 @@ trait TStreamContainerDefaults {
     /**
      * Attempts to read from our connection
      *
-     * @return \PHPWebSocket\AUpdate[]
+     * @return \Generator
      */
     public function handleRead() : \Generator {
         if (FALSE) {
