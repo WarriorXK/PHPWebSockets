@@ -263,7 +263,7 @@ class Server {
 
         $this->_connectionIndex++;
 
-        yield new Update\Read(Update\Read::C_NEW_TCP_CONNECTION, $this->_acceptingConnection);
+        yield new Update\Read(Update\Read::C_NEW_TCP_CONNECTION, $newConnection);
 
     }
 
