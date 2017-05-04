@@ -191,7 +191,7 @@ final class PHPWebSocket {
 
             $stream = $object->getStream();
 
-            $objectStreamMap[(int) $object->getStream()] = $object;
+            $objectStreamMap[(int) $stream] = $object;
             $exceptional[] = $stream;
             if (!$object->isWriteBufferEmpty()) {
                 $write[] = $stream;
