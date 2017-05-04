@@ -50,23 +50,6 @@ class Error extends AUpdate {
             C_ACCEPT_TIMEOUT_PASSED = 13,
             C_READ_INVALID_TARGET_STREAM = 14;
 
-    const ERROR_STRINGS = [
-        self::C_UNKNOWN                    => 'Unknown error',
-        self::C_SELECT                     => 'Select error',
-        self::C_READ                       => 'Read error',
-        self::C_READ_EMPTY                 => 'Empty read',
-        self::C_READ_UNHANDLED             => 'Unhandled read',
-        self::C_READ_HANDSHAKEFAILURE      => 'Handshake failure',
-        self::C_READ_HANDSHAKETOLARGE      => 'Handshake to large',
-        self::C_READ_INVALID_PAYLOAD       => 'Invalid payload',
-        self::C_READ_INVALID_HEADERS       => 'Invalid headers',
-        self::C_READ_UNEXPECTED_DISCONNECT => 'Unexpected disconnect',
-        self::C_READ_PROTOCOL_ERROR        => 'Protocol error',
-        self::C_READ_RSVBIT_SET            => 'RSV bit set while not being expected',
-        self::C_WRITE                      => 'Write failure',
-        self::C_ACCEPT_TIMEOUT_PASSED      => 'Accept timeout passed',
-    ];
-
     /**
      * Returns a description for the provided error code
      *
@@ -75,7 +58,25 @@ class Error extends AUpdate {
      * @return string
      */
     public static function StringForCode(int $code) : string {
-        return self::ERROR_STRINGS[$code] ?? 'Unknown error code ' . $code;
+
+        $codes = [
+            self::C_UNKNOWN                    => 'Unknown error',
+            self::C_SELECT                     => 'Select error',
+            self::C_READ                       => 'Read error',
+            self::C_READ_EMPTY                 => 'Empty read',
+            self::C_READ_UNHANDLED             => 'Unhandled read',
+            self::C_READ_HANDSHAKEFAILURE      => 'Handshake failure',
+            self::C_READ_HANDSHAKETOLARGE      => 'Handshake to large',
+            self::C_READ_INVALID_PAYLOAD       => 'Invalid payload',
+            self::C_READ_INVALID_HEADERS       => 'Invalid headers',
+            self::C_READ_UNEXPECTED_DISCONNECT => 'Unexpected disconnect',
+            self::C_READ_PROTOCOL_ERROR        => 'Protocol error',
+            self::C_READ_RSVBIT_SET            => 'RSV bit set while not being expected',
+            self::C_WRITE                      => 'Write failure',
+            self::C_ACCEPT_TIMEOUT_PASSED      => 'Accept timeout passed',
+        ];
+
+        return $codes[$code] ?? 'Unknown error code ' . $code;
     }
 
     public function __toString() {
