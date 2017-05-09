@@ -128,18 +128,19 @@ class Client extends AConnection {
      *
      * @param string $address
      * @param string $path
+     * @param array  $streamContext
      *
      * @throws \LogicException
      *
      * @return bool
      */
-    public function connect(string $address, string $path = '/') {
+    public function connect(string $address, string $path = '/', array $streamContext = []) {
 
         if ($this->isOpen()) {
             throw new \LogicException('The connection is already open!');
         }
 
-        $this->_stream = @stream_socket_client($address, $this->_streamLastErrorCode, $this->_streamLastError);
+        $this->_stream = stream_socket_client($address, $this->_streamLastErrorCode, $this->_streamLastError, $this->getConnectTimeout(), STREAM_CLIENT_CONNECT, stream_context_create($streamContext));
         if ($this->_stream === FALSE) {
             return FALSE;
         }
@@ -341,6 +342,15 @@ class Client extends AConnection {
      */
     protected function _shouldMask() : bool {
         return TRUE;
+    }
+
+    /**
+     * Returns the timeout in seconds before the connection attempt stops
+     *
+     * @return float
+     */
+    public function getConnectTimeout() : float {
+        return (float) (ini_get('default_socket_timeout') ?: 1.0);
     }
 
     /**
