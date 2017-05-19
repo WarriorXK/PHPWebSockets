@@ -29,6 +29,8 @@ declare(strict_types = 1);
  * - - - - - - - - - - - - - - END LICENSE BLOCK - - - - - - - - - - - - -
  */
 
+require_once __DIR__ . '/../vendor/autoload.php';
+
 if (php_sapi_name() !== 'cli') {
     \PHPWebSocket::Log(LOG_ERR, 'The tests can only be executed in CLI!');
     exit(1);

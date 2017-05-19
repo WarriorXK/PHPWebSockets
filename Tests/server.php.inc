@@ -26,8 +26,6 @@
  * - - - - - - - - - - - - - - END LICENSE BLOCK - - - - - - - - - - - - -
  */
 
-require_once(__DIR__ . '/../PHPWebSocket.php.inc');
-
 use \PHPWebSocket\Update\Read;
 
 \PHPWebSocket::Log(LOG_INFO, 'Starting test' . PHP_EOL);

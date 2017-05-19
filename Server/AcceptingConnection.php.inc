@@ -32,11 +32,14 @@ namespace PHPWebSocket\Server;
 
 use PHPWebSocket\TStreamContainerDefaults;
 use PHPWebSocket\IStreamContainer;
+use PHPWebSocket\TLogAware;
 use PHPWebSocket\Server;
+use Psr\Log\{LoggerAwareInterface, LogLevel};
 
-class AcceptingConnection implements IStreamContainer {
+class AcceptingConnection implements IStreamContainer, LoggerAwareInterface {
 
     use TStreamContainerDefaults;
+    use TLogAware;
 
     /**
      * The websocket server related to this connection
@@ -52,10 +55,16 @@ class AcceptingConnection implements IStreamContainer {
      */
     protected $_stream = NULL;
 
-    public function __construct(Server $websocket, $stream) {
+    public function __construct(Server $server, $stream) {
 
-        $this->_server = $websocket;
+        $this->_server = $server;
         $this->_stream = $stream;
+
+        // Inherit the logger from the server
+        $serverLogger = $server->getLogger();
+        if ($serverLogger !== \PHPWebSocket::GetLogger()) {
+            $this->setLogger($serverLogger);
+        }
 
         stream_set_timeout($this->_stream, 1);
         stream_set_blocking($this->_stream, FALSE);
@@ -140,7 +149,7 @@ class AcceptingConnection implements IStreamContainer {
                 case 'udg':
 
                     if (!$cleanup) {
-                        \PHPWebSocket::Log(LOG_DEBUG, 'Not cleaning up');
+                        $this->_log(LogLevel::DEBUG, 'Not cleaning up');
                         break;
                     }
 
@@ -148,10 +157,10 @@ class AcceptingConnection implements IStreamContainer {
                     if (file_exists($path)) {
 
                         if (!$cleanup) {
-                            \PHPWebSocket::Log(LOG_DEBUG, 'Not cleaning up ' . $path);
+                            $this->_log(LogLevel::DEBUG, 'Not cleaning up ' . $path);
                         } else {
 
-                            \PHPWebSocket::Log(LOG_DEBUG, 'Unlinking: ' . $path);
+                            $this->_log(LogLevel::DEBUG, 'Unlinking: ' . $path);
                             unlink($path);
 
                         }

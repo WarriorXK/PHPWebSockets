@@ -26,8 +26,6 @@
  * - - - - - - - - - - - - - - END LICENSE BLOCK - - - - - - - - - - - - -
  */
 
-require_once(__DIR__ . '/../PHPWebSocket.php.inc');
-
 use \PHPWebSocket\Update\Read;
 
 $address = 'tcp://127.0.0.1:9001';
