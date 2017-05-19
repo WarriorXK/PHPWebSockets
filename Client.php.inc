@@ -30,7 +30,8 @@ declare(strict_types = 1);
 
 namespace PHPWebSocket;
 
-use Psr\Log\{LoggerInterface, LogLevel};
+use Psr\Log\LoggerInterface;
+use Psr\Log\LogLevel;
 
 class Client extends AConnection {
 
@@ -91,7 +92,7 @@ class Client extends AConnection {
     /**
      * The path used in the HTTP request
      *
-     * @var string|NULL
+     * @var string|null
      */
     protected $_path = NULL;
 
@@ -384,7 +385,7 @@ class Client extends AConnection {
     /**
      * Returns the address that we connected to
      *
-     * @return string|NULL
+     * @return string|null
      */
     public function getAddress() {
         return $this->_address;
@@ -393,7 +394,7 @@ class Client extends AConnection {
     /**
      * Returns the path send in the HTTP request
      *
-     * @return string|NULL
+     * @return string|null
      */
     public function getPath() {
         return $this->_path;

@@ -28,7 +28,8 @@ declare(strict_types = 1);
  * - - - - - - - - - - - - - - END LICENSE BLOCK - - - - - - - - - - - - -
  */
 
-use \Psr\Log\{LogLevel, LoggerInterface};
+use \Psr\Log\LogLevel;
+use \Psr\Log\LoggerInterface;
 
 require_once(__DIR__ . '/IStreamContainer.php.inc');
 require_once(__DIR__ . '/TStreamContainerDefaults.php.inc');
@@ -474,5 +475,4 @@ final class PHPWebSocket {
 
         return self::$_Logger;
     }
-
 }
