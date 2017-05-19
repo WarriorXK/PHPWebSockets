@@ -30,7 +30,8 @@ declare(strict_types = 1);
 
 namespace PHPWebSocket;
 
-use Psr\Log\{LoggerAwareInterface, LogLevel};
+use Psr\Log\LoggerAwareInterface;
+use Psr\Log\LogLevel;
 
 require_once(__DIR__ . '/Server/AcceptingConnection.php.inc');
 require_once(__DIR__ . '/Server/Connection.php.inc');

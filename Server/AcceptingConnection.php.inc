@@ -34,7 +34,8 @@ use PHPWebSocket\TStreamContainerDefaults;
 use PHPWebSocket\IStreamContainer;
 use PHPWebSocket\TLogAware;
 use PHPWebSocket\Server;
-use Psr\Log\{LoggerAwareInterface, LogLevel};
+use Psr\Log\LoggerAwareInterface;
+use Psr\Log\LogLevel;
 
 class AcceptingConnection implements IStreamContainer, LoggerAwareInterface {
 
