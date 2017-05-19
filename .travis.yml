@@ -16,6 +16,7 @@ before_script:
   - sudo -H pip install -U pip wheel
   - sudo -H pip install autobahntestsuite
   - phpenv config-rm xdebug.ini
+  - composer install
 script:
   - php Tests/runner.php $TESTTYPE $BUFFERTPE
 notifications:
