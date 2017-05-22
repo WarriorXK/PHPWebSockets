@@ -27,6 +27,7 @@
  */
 
 use \PHPWebSocket\Update\Read;
+use \Psr\Log\LogLevel;
 
 $address = 'tcp://127.0.0.1:9001';
 $port = 9001;
@@ -57,7 +58,7 @@ try {
     }
 
     if (!$client->connect($address, '/getCaseCount')) {
-        \PHPWebSocket::Log(LOG_ERR, 'Unable to connect to server: ' . $client->getLastError());
+        \PHPWebSocket::Log(LogLevel::ERROR, 'Unable to connect to server: ' . $client->getLastError());
         exit(1);
     }
 
@@ -66,7 +67,7 @@ try {
     while ($client->isOpen()) {
         foreach ($client->update() as $key => $value) {
 
-            \PHPWebSocket::Log(LOG_INFO, $value . '');
+            \PHPWebSocket::Log(LogLevel::INFO, $value . '');
 
             if ($value instanceof Read && $value->getCode() === Read::C_READ) {
 
@@ -89,7 +90,7 @@ try {
         throw new \Exception('Unable to get case count from autobahn server!');
     }
 
-    \PHPWebSocket::Log(LOG_INFO, 'Will run ' . $caseCount . ' test cases');
+    \PHPWebSocket::Log(LogLevel::INFO, 'Will run ' . $caseCount . ' test cases');
 
     for ($i = 0; $i < $caseCount; $i++) {
 
@@ -126,7 +127,7 @@ try {
 
     }
 
-    \PHPWebSocket::Log(LOG_INFO, 'All test cases ran, asking for report update');
+    \PHPWebSocket::Log(LogLevel::INFO, 'All test cases ran, asking for report update');
 
     $client = new \PHPWebSocket\Client();
     $client->connect($address, '/updateReports?agent=' . $client->getUserAgent());
@@ -137,23 +138,23 @@ try {
         }
     }
 
-    \PHPWebSocket::Log(LOG_INFO, 'Reports finished, getting results..');
+    \PHPWebSocket::Log(LogLevel::INFO, 'Reports finished, getting results..');
 
     $outputFile = '/tmp/reports/index.json';
     if (!file_exists($outputFile)) {
-        \PHPWebSocket::Log(LOG_ALERT, 'File "' . $outputFile . '" doesn\'t exist!');
+        \PHPWebSocket::Log(LogLevel::ALERT, 'File "' . $outputFile . '" doesn\'t exist!');
         exit(1);
     }
 
     $hasFailures = FALSE;
     $testCases = json_decode(file_get_contents($outputFile), TRUE)[$client->getUserAgent()] ?? NULL;
     if ($testCases === NULL) {
-        \PHPWebSocket::Log(LOG_ERR, 'Unable to get test case results!');
+        \PHPWebSocket::Log(LogLevel::ERROR, 'Unable to get test case results!');
     } else {
 
         foreach ($testCases as $case => $data) {
 
-            \PHPWebSocket::Log(LOG_INFO, $case . ' => ' . $data['behavior']);
+            \PHPWebSocket::Log(LogLevel::INFO, $case . ' => ' . $data['behavior']);
 
             switch ($data['behavior']) {
                 case 'OK':
@@ -176,6 +177,6 @@ try {
 
 }
 
-\PHPWebSocket::Log(LOG_INFO, 'Exiting');
+\PHPWebSocket::Log(LogLevel::INFO, 'Exiting');
 
 exit((int) $hasFailures);

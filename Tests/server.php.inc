@@ -26,9 +26,10 @@
  * - - - - - - - - - - - - - - END LICENSE BLOCK - - - - - - - - - - - - -
  */
 
-use \PHPWebSocket\Update\Read;
+use PHPWebSocket\Update\Read;
+use Psr\Log\LogLevel;
 
-\PHPWebSocket::Log(LOG_INFO, 'Starting test' . PHP_EOL);
+\PHPWebSocket::Log(LogLevel::INFO, 'Starting test' . PHP_EOL);
 
 $websocket = new \PHPWebSocket\Server('tcp://0.0.0.0:9001');
 $bufferType = $argv[2] ?? NULL;
@@ -109,27 +110,27 @@ try {
 
     }
 
-    \PHPWebSocket::Log(LOG_INFO, 'Test ended, closing websocket');
+    \PHPWebSocket::Log(LogLevel::INFO, 'Test ended, closing websocket');
 
     $websocket->close();
 
-    \PHPWebSocket::Log(LOG_INFO, 'Getting results..');
+    \PHPWebSocket::Log(LogLevel::INFO, 'Getting results..');
 
     $outputFile = '/tmp/reports/index.json';
     if (!file_exists($outputFile)) {
-        \PHPWebSocket::Log(LOG_ERR, 'File "' . $outputFile . '" doesn\'t exist!');
+        \PHPWebSocket::Log(LogLevel::ERROR, 'File "' . $outputFile . '" doesn\'t exist!');
         exit(1);
     }
 
     $hasFailures = FALSE;
     $testCases = json_decode(file_get_contents($outputFile), TRUE)[$websocket->getServerIdentifier()] ?? NULL;
     if ($testCases === NULL) {
-        \PHPWebSocket::Log(LOG_ERR, 'Unable to get test case results!');
+        \PHPWebSocket::Log(LogLevel::ERROR, 'Unable to get test case results!');
     } else {
 
         foreach ($testCases as $case => $data) {
 
-            \PHPWebSocket::Log(LOG_INFO, $case . ' => ' . $data['behavior']);
+            \PHPWebSocket::Log(LogLevel::INFO, $case . ' => ' . $data['behavior']);
 
             switch ($data['behavior']) {
                 case 'OK':
@@ -152,6 +153,6 @@ try {
 
 }
 
-\PHPWebSocket::Log(LOG_INFO, 'Exiting');
+\PHPWebSocket::Log(LogLevel::INFO, 'Exiting');
 
 exit((int) $hasFailures);

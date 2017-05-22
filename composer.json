@@ -19,6 +19,9 @@
         "psr/log": "^1.0"
     },
     "autoload": {
+        "files": [
+            "src/PHPWebSocket.php"
+        ],
         "psr-4": {
             "PHPWebSocket\\": "src/"
         }

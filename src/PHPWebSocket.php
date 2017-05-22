@@ -428,7 +428,7 @@ final class PHPWebSocket {
             return self::$_Version;
         }
 
-        return self::$_Version = trim(file_get_contents(__DIR__ . DIRECTORY_SEPARATOR . 'VERSION'));
+        return self::$_Version = trim(file_get_contents(__DIR__ . DIRECTORY_SEPARATOR . '..' . DIRECTORY_SEPARATOR . 'VERSION'));
     }
 
     /**
