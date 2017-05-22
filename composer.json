@@ -13,6 +13,9 @@
             "role": "Developer"
         }
     ],
+    "require-dev": {
+        "phpunit/phpunit": "^6.1"
+    },
     "require": {
         "php": ">=7.0.0",
         "ext-sockets": "*",
@@ -25,5 +28,12 @@
         "psr-4": {
             "PHPWebSocket\\": "src/"
         }
-    }
+    },
+    "archive": {
+        "exclude": ["/Resources", "/Tests"]
+    },
+    "non-feature-branches": [
+        "develop",
+        "master"
+    ]
 }
