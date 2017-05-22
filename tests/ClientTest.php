@@ -38,13 +38,28 @@ class ClientTest extends TestCase {
     const ADDRESS = 'tcp://127.0.0.1:9001';
     const VALID_BUFFER_TYPES = [
         'memory',
-        'tmpfile'
+        'tmpfile',
     ];
 
+    /**
+     * The proc_open resource that represents the fuzzing server
+     *
+     * @var resource|null
+     */
     protected $_autobahnProcess = NULL;
 
+    /**
+     * The buffer type to use during this test
+     *
+     * @var string|null
+     */
     protected $_bufferType = NULL;
 
+    /**
+     * The amount of cases to run
+     *
+     * @var int|null
+     */
     protected $_caseCount = NULL;
 
     protected function setUp() {
@@ -203,5 +218,4 @@ class ClientTest extends TestCase {
 
         return $client;
     }
-
 }
