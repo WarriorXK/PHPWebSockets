@@ -1,6 +1,7 @@
 language: php
 cache:
   directories:
+    - $HOME/.composer/cache/files
     - $HOME/.cache/pip
 php:
   - '7.0'
@@ -16,7 +17,7 @@ before_script:
   - sudo -H pip install -U pip wheel
   - sudo -H pip install autobahntestsuite
   - phpenv config-rm xdebug.ini
-  - composer install
+  - composer update
 script:
   - vendor/bin/phpunit $TESTCLASS $TESTSCRIPT buffertype=$BUFFERTPE
 notifications:
