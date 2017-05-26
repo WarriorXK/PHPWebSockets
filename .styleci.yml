@@ -4,6 +4,8 @@ enabled:
   - concat_with_spaces
   - dir_constant
   - uppercase_constants
+  - declare_strict_types
+  - ternary_to_null_coalescing
 
 disabled:
   - braces
