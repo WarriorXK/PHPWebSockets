@@ -21,4 +21,3 @@ disabled:
 finder:
   name:
     - "*.php"
-    - "*.php.inc"
