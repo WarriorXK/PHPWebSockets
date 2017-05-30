@@ -145,7 +145,7 @@ final class PHPWebSockets {
      * Checks for updates for the provided IStreamContainer objects
      *
      * @param \PHPWebSockets\IStreamContainer[] $updateObjects
-     * @param float|null                       $timeout       The amount of seconds to wait for updates, setting this value to NULL causes this function to block indefinitely until there is an update
+     * @param float|null                        $timeout       The amount of seconds to wait for updates, setting this value to NULL causes this function to block indefinitely until there is an update
      *
      * @throws \InvalidArgumentException
      *
@@ -463,5 +463,21 @@ final class PHPWebSockets {
         }
 
         return self::$_Logger;
+    }
+
+    /**
+     * The autoloader for non-composer including
+     * Note: The method is not registered as autoloader, this still has to happen by calling spl_autoload_register([\PHPWebSockets::class, 'Autoload']);
+     *
+     * @param string $classname
+     */
+    public static function Autoload(string $classname) {
+
+        if (substr($classname, 0, 13) !== 'PHPWebSockets') {
+            return;
+        }
+
+        require_once(__DIR__ . str_replace('\\', DIRECTORY_SEPARATOR, substr($classname, 13)) . '.php');
+
     }
 }
