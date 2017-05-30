@@ -13,11 +13,27 @@
             "role": "Developer"
         }
     ],
+    "require-dev": {
+        "phpunit/phpunit": "^6.1"
+    },
     "require": {
         "php": ">=7.0.0",
-        "ext-sockets": "*"
+        "ext-sockets": "*",
+        "psr/log": "^1.0"
     },
     "autoload": {
-        "files": ["PHPWebSocket.php.inc"]
-    }
+        "files": [
+            "src/PHPWebSocket.php"
+        ],
+        "psr-4": {
+            "PHPWebSocket\\": "src/"
+        }
+    },
+    "archive": {
+        "exclude": ["/Resources", "/Tests"]
+    },
+    "non-feature-branches": [
+        "develop",
+        "master"
+    ]
 }

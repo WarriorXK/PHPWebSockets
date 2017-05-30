@@ -28,14 +28,8 @@ declare(strict_types = 1);
  * - - - - - - - - - - - - - - END LICENSE BLOCK - - - - - - - - - - - - -
  */
 
-require_once(__DIR__ . '/IStreamContainer.php.inc');
-require_once(__DIR__ . '/TStreamContainerDefaults.php.inc');
-require_once(__DIR__ . '/AConnection.php.inc');
-require_once(__DIR__ . '/AUpdate.php.inc');
-
-require_once(__DIR__ . '/Client.php.inc');
-require_once(__DIR__ . '/Framer.php.inc');
-require_once(__DIR__ . '/Server.php.inc');
+use \Psr\Log\LoggerInterface;
+use \Psr\Log\LogLevel;
 
 final class PHPWebSocket {
 
@@ -134,13 +128,6 @@ final class PHPWebSocket {
     ];
 
     /**
-     * The log handler function
-     *
-     * @var callable|null
-     */
-    private static $_LogHandler = NULL;
-
-    /**
      * The current version of PHPWebSocket
      *
      * @var string|null
@@ -148,11 +135,11 @@ final class PHPWebSocket {
     private static $_Version = NULL;
 
     /**
-     * If we're currently debugging
+     * The log handler function
      *
-     * @var bool
+     * @var \Psr\Log\LoggerInterface
      */
-    private static $_Debug = FALSE;
+    private static $_Logger = NULL;
 
     /**
      * Checks for updates for the provided IStreamContainer objects
@@ -210,14 +197,14 @@ final class PHPWebSocket {
             } else {
 
                 if (!empty($read) || !empty($write) || !empty($exceptional)) {
-                    \PHPWebSocket::Log(LOG_DEBUG, 'Read: ' . count($read) . ' Write: ' . count($write) . ' Except: ' . count($exceptional));
+                    \PHPWebSocket::Log(LogLevel::DEBUG, 'Read: ' . count($read) . ' Write: ' . count($write) . ' Except: ' . count($exceptional));
                 }
 
                 foreach ($read as $stream) {
 
                     $object = $objectStreamMap[(int) $stream];
                     if ($object === NULL) {
-                        \PHPWebSocket::Log(LOG_ERR, 'Unable to find stream container related to stream during read!');
+                        \PHPWebSocket::Log(LogLevel::ERROR, 'Unable to find stream container related to stream during read!');
                         continue;
                     }
 
@@ -229,12 +216,12 @@ final class PHPWebSocket {
 
                     $object = $objectStreamMap[(int) $stream];
                     if ($object === NULL) {
-                        \PHPWebSocket::Log(LOG_ERR, 'Unable to find stream container related to stream during write!');
+                        \PHPWebSocket::Log(LogLevel::ERROR, 'Unable to find stream container related to stream during write!');
                         continue;
                     }
 
                     if (!is_resource($object->getStream())) { // Check if it is still open, it could have closed
-                        \PHPWebSocket::Log(LOG_WARNING, 'Unable to complete write for stream container ' . $object . ', connection was closed');
+                        \PHPWebSocket::Log(LogLevel::WARNING, 'Unable to complete write for stream container ' . $object . ', connection was closed');
                         continue;
                     }
 
@@ -246,16 +233,16 @@ final class PHPWebSocket {
 
                     $object = $objectStreamMap[(int) $stream];
                     if ($object === NULL) {
-                        \PHPWebSocket::Log(LOG_ERR, 'Unable to find stream container related to stream during exceptional read!');
+                        \PHPWebSocket::Log(LogLevel::ERROR, 'Unable to find stream container related to stream during exceptional read!');
                         continue;
                     }
 
                     if (!is_resource($object->getStream())) { // Check if it is still open, it could have closed
-                        \PHPWebSocket::Log(LOG_WARNING, 'Unable to complete exceptional read for stream container, connection was closed');
+                        \PHPWebSocket::Log(LogLevel::WARNING, 'Unable to complete exceptional read for stream container, connection was closed');
                         continue;
                     }
 
-                    \PHPWebSocket::Log(LOG_ERR, 'Got exceptional for ' . $object);
+                    \PHPWebSocket::Log(LogLevel::ERROR, 'Got exceptional for ' . $object);
 
                     yield from $object->handleExceptional();
 
@@ -441,36 +428,40 @@ final class PHPWebSocket {
             return self::$_Version;
         }
 
-        return self::$_Version = trim(file_get_contents(__DIR__ . DIRECTORY_SEPARATOR . 'VERSION'));
+        return self::$_Version = trim(file_get_contents(__DIR__ . DIRECTORY_SEPARATOR . '..' . DIRECTORY_SEPARATOR . 'VERSION'));
     }
 
     /**
      * Logs a message
      *
-     * @param int    $logLevel  The loglevel
-     * @param string $message   The message to log
-     * @param bool   $forceShow If the message should be shown regardless of the loglevel
+     * @param string $logLevel The log level
+     * @param mixed  $message  The message to log
+     * @param array  $context
      */
-    public static function Log(int $logLevel, $message, bool $forceShow = FALSE) {
-
-        if (self::$_LogHandler !== NULL) {
-            call_user_func_array(self::$_LogHandler, func_get_args());
-
-            return;
-        }
-
-        if ($logLevel < LOG_DEBUG || self::$_Debug || $forceShow) {
-            echo date(DATE_ATOM) . ' PHPWebSocket: ' . $logLevel . ') ' . ((string) $message) . PHP_EOL;
-        }
-
+    public static function Log(string $logLevel, $message, array $context = []) {
+        self::GetLogger()->log($logLevel, $message, $context);
     }
 
     /**
-     * Installs the log handler, the callable should accept the same arguments as \PHPWebSocket::Log
+     * Sets the logger
      *
-     * @param callable $logHandler
+     * @param \Psr\Log\LoggerInterface $logger
      */
-    public static function SetLogHandler(callable $logHandler = NULL) {
-        self::$_LogHandler = $logHandler;
+    public static function SetLogger(LoggerInterface $logger) {
+        self::$_Logger = $logger;
+    }
+
+    /**
+     * Returns the logger
+     *
+     * @return \Psr\Log\LoggerInterface
+     */
+    public static function GetLogger() : LoggerInterface {
+
+        if (self::$_Logger === NULL) {
+            self::$_Logger = new \PHPWebSocket\BasicLogger();
+        }
+
+        return self::$_Logger;
     }
 }
