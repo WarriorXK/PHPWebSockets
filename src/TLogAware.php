@@ -58,7 +58,7 @@ trait TLogAware {
     public function getLogger() {
 
         if ($this->_logger === NULL) {
-            return \PHPWebSocket::GetLogger();
+            return \PHPWebSockets::GetLogger();
         }
 
         return $this->_logger;

@@ -83,7 +83,7 @@ class ServerTest extends TestCase {
         }
 
         $this->assertContains($this->_bufferType, static::VALID_BUFFER_TYPES);
-        \PHPWebSocket::Log(LogLevel::INFO, 'Using buffer type ' . $this->_bufferType);
+        \PHPWebSockets::Log(LogLevel::INFO, 'Using buffer type ' . $this->_bufferType);
 
         $this->_wsServer = new \PHPWebSocket\Server(self::ADDRESS);
 
@@ -96,14 +96,14 @@ class ServerTest extends TestCase {
 
     protected function tearDown() {
 
-        \PHPWebSocket::Log(LogLevel::INFO, 'Tearing down');
+        \PHPWebSockets::Log(LogLevel::INFO, 'Tearing down');
         proc_terminate($this->_autobahnProcess);
 
     }
 
     public function testClient() {
 
-        \PHPWebSocket::Log(LogLevel::INFO, 'Starting test..');
+        \PHPWebSockets::Log(LogLevel::INFO, 'Starting test..');
 
         while (proc_get_status($this->_autobahnProcess)['running'] ?? FALSE) {
 
@@ -132,9 +132,9 @@ class ServerTest extends TestCase {
 
                             $opcode = $update->getOpcode();
                             switch ($opcode) {
-                                case \PHPWebSocket::OPCODE_CONTINUE:
-                                case \PHPWebSocket::OPCODE_FRAME_TEXT:
-                                case \PHPWebSocket::OPCODE_FRAME_BINARY:
+                                case \PHPWebSockets::OPCODE_CONTINUE:
+                                case \PHPWebSockets::OPCODE_FRAME_TEXT:
+                                case \PHPWebSockets::OPCODE_FRAME_BINARY:
 
                                     if ($sourceObj->isDisconnecting()) {
                                         break;
@@ -169,11 +169,11 @@ class ServerTest extends TestCase {
 
         }
 
-        \PHPWebSocket::Log(LogLevel::INFO, 'Test ended, closing websocket');
+        \PHPWebSockets::Log(LogLevel::INFO, 'Test ended, closing websocket');
 
         $this->_wsServer->close();
 
-        \PHPWebSocket::Log(LogLevel::INFO, 'Getting results..');
+        \PHPWebSockets::Log(LogLevel::INFO, 'Getting results..');
 
         $outputFile = '/tmp/reports/index.json';
         $this->assertFileExists($outputFile);
@@ -184,7 +184,7 @@ class ServerTest extends TestCase {
 
         foreach ($testCases as $case => $data) {
 
-            \PHPWebSocket::Log(LogLevel::INFO, $case . ' => ' . $data['behavior']);
+            \PHPWebSockets::Log(LogLevel::INFO, $case . ' => ' . $data['behavior']);
 
             switch ($data['behavior']) {
                 case 'OK':
@@ -201,7 +201,7 @@ class ServerTest extends TestCase {
 
         $this->assertFalse($hasFailures, 'One or more test cases failed!');
 
-        \PHPWebSocket::Log(LogLevel::INFO, 'Test success');
+        \PHPWebSockets::Log(LogLevel::INFO, 'Test success');
 
     }
 }

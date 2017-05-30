@@ -179,7 +179,7 @@ class Client extends AConnection {
             'User-Agent: ' . $this->getUserAgent(),
             'Upgrade: websocket',
             'Connection: Upgrade',
-            'Sec-WebSocket-Key: ' . base64_encode(\PHPWebSocket::RandomString(16)),
+            'Sec-WebSocket-Key: ' . base64_encode(\PHPWebSockets::RandomString(16)),
             'Sec-WebSocket-Version: 13',
         ];
 
@@ -224,7 +224,7 @@ class Client extends AConnection {
      * @return \Generator
      */
     public function update(float $timeout = NULL) : \Generator {
-        yield from \PHPWebSocket::MultiUpdate([$this], $timeout);
+        yield from \PHPWebSockets::MultiUpdate([$this], $timeout);
     }
 
     /**
@@ -295,7 +295,7 @@ class Client extends AConnection {
                     $newData = substr($newData, $headersEnd + 4);
                 }
 
-                $this->_headers = \PHPWebSocket::ParseHTTPHeaders($rawHandshake);
+                $this->_headers = \PHPWebSockets::ParseHTTPHeaders($rawHandshake);
                 if (($this->_headers['status-code'] ?? NULL) === 101) {
                     $this->_handshakeAccepted = TRUE;
                     yield new Update\Read(Update\Read::C_CONNECTION_ACCEPTED, $this);
@@ -343,7 +343,7 @@ class Client extends AConnection {
      * @return string
      */
     public function getUserAgent() : string {
-        return $this->_userAgent ?? 'PHPWebSocket/' . \PHPWebSocket::Version();
+        return $this->_userAgent ?? 'PHPWebSockets/' . \PHPWebSockets::Version();
     }
 
     /**

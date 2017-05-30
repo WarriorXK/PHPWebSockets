@@ -116,7 +116,7 @@ class Connection extends AConnection {
 
         // Inherit the logger from the server
         $serverLogger = $server->getLogger();
-        if ($serverLogger !== \PHPWebSocket::GetLogger()) {
+        if ($serverLogger !== \PHPWebSockets::GetLogger()) {
             $this->setLogger($serverLogger);
         }
 
@@ -251,7 +251,7 @@ class Connection extends AConnection {
      */
     protected function _doHandshake(string $rawHandshake, int &$responseCode) : bool {
 
-        $headers = \PHPWebSocket::ParseHTTPHeaders($rawHandshake);
+        $headers = \PHPWebSockets::ParseHTTPHeaders($rawHandshake);
 
         $responseCode = 101;
         if (!isset($headers['get'])) {
@@ -276,7 +276,7 @@ class Connection extends AConnection {
 
         $this->_hasHandshake = TRUE;
 
-        $hash = sha1($headers['sec-websocket-key'] . \PHPWebSocket::WEBSOCKET_GUID);
+        $hash = sha1($headers['sec-websocket-key'] . \PHPWebSockets::WEBSOCKET_GUID);
         $this->_rawToken = '';
         for ($i = 0; $i < 20; $i++) {
             $this->_rawToken .= chr(hexdec(substr($hash, $i * 2, 2)));
@@ -303,7 +303,7 @@ class Connection extends AConnection {
             $misc .= 'Sec-WebSocket-Protocol ' . $protocol . "\r\n";
         }
 
-        $this->writeRaw('HTTP/1.1 101 ' . \PHPWebSocket::GetStringForStatusCode(101) . "\r\nServer: " . $this->_server->getServerIdentifier() . "\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Accept: " . base64_encode($this->_rawToken) . "\r\n" . $misc . "\r\n", FALSE);
+        $this->writeRaw('HTTP/1.1 101 ' . \PHPWebSockets::GetStringForStatusCode(101) . "\r\nServer: " . $this->_server->getServerIdentifier() . "\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Accept: " . base64_encode($this->_rawToken) . "\r\n" . $misc . "\r\n", FALSE);
 
         $this->_accepted = TRUE;
 
@@ -322,7 +322,7 @@ class Connection extends AConnection {
             throw new \LogicException('Connection has already been accepted!');
         }
 
-        $this->writeRaw('HTTP/1.1 ' . $errCode . ' ' . \PHPWebSocket::GetStringForStatusCode($errCode) . "\r\nServer: " . $this->_server->getServerIdentifier() . "\r\n\r\n", FALSE);
+        $this->writeRaw('HTTP/1.1 ' . $errCode . ' ' . \PHPWebSockets::GetStringForStatusCode($errCode) . "\r\nServer: " . $this->_server->getServerIdentifier() . "\r\n\r\n", FALSE);
         $this->setCloseAfterWrite();
 
     }

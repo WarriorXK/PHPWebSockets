@@ -63,7 +63,7 @@ class AcceptingConnection implements IStreamContainer, LoggerAwareInterface {
 
         // Inherit the logger from the server
         $serverLogger = $server->getLogger();
-        if ($serverLogger !== \PHPWebSocket::GetLogger()) {
+        if ($serverLogger !== \PHPWebSockets::GetLogger()) {
             $this->setLogger($serverLogger);
         }
 

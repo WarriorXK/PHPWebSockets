@@ -54,7 +54,7 @@ class BasicLogger implements LoggerInterface {
             return;
         }
 
-        echo date(DATE_ATOM) . ' PHPWebSocket: ' . strtoupper($level) . ') ' . ((string) $message) . PHP_EOL;
+        echo date(DATE_ATOM) . ' PHPWebSockets: ' . strtoupper($level) . ') ' . ((string) $message) . PHP_EOL;
 
     }
 

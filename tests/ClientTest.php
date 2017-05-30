@@ -78,7 +78,7 @@ class ClientTest extends TestCase {
 
         $this->assertContains($this->_bufferType, static::VALID_BUFFER_TYPES);
 
-        \PHPWebSocket::Log(LogLevel::INFO, 'Using buffer type ' . $this->_bufferType);
+        \PHPWebSockets::Log(LogLevel::INFO, 'Using buffer type ' . $this->_bufferType);
 
         $descriptorSpec = [['pipe', 'r'], STDOUT, STDERR];
         $this->_autobahnProcess = proc_open('wstest -m fuzzingserver -s Resources/Autobahn/fuzzingserver.json', $descriptorSpec, $pipes, realpath(__DIR__ . '/../'));
@@ -94,7 +94,7 @@ class ClientTest extends TestCase {
 
             foreach ($client->update() as $key => $value) {
 
-                \PHPWebSocket::Log(LogLevel::INFO, $value . '');
+                \PHPWebSockets::Log(LogLevel::INFO, $value . '');
 
                 if ($value instanceof Read && $value->getCode() === Read::C_READ) {
 
@@ -117,20 +117,20 @@ class ClientTest extends TestCase {
 
         $this->assertGreaterThan(0, $this->_caseCount, 'Unable to get case count from autobahn server!');
 
-        \PHPWebSocket::Log(LogLevel::INFO, 'Will run ' . $this->_caseCount . ' test cases');
+        \PHPWebSockets::Log(LogLevel::INFO, 'Will run ' . $this->_caseCount . ' test cases');
 
     }
 
     protected function tearDown() {
 
-        \PHPWebSocket::Log(LogLevel::INFO, 'Tearing down');
+        \PHPWebSockets::Log(LogLevel::INFO, 'Tearing down');
         proc_terminate($this->_autobahnProcess);
 
     }
 
     public function testClient() {
 
-        \PHPWebSocket::Log(LogLevel::INFO, 'Starting tests..');
+        \PHPWebSockets::Log(LogLevel::INFO, 'Starting tests..');
 
         for ($i = 0; $i < $this->_caseCount; $i++) {
 
@@ -164,7 +164,7 @@ class ClientTest extends TestCase {
             }
         }
 
-        \PHPWebSocket::Log(LogLevel::INFO, 'All test cases ran, asking for report update');
+        \PHPWebSockets::Log(LogLevel::INFO, 'All test cases ran, asking for report update');
         $client = $this->_createClient();
         $client->connect(static::ADDRESS, '/updateReports?agent=' . $client->getUserAgent());
 
@@ -174,7 +174,7 @@ class ClientTest extends TestCase {
             }
         }
 
-        \PHPWebSocket::Log(LogLevel::INFO, 'Reports finished, getting results..');
+        \PHPWebSockets::Log(LogLevel::INFO, 'Reports finished, getting results..');
         $outputFile = '/tmp/reports/index.json';
         $this->assertFileExists($outputFile);
 
@@ -184,7 +184,7 @@ class ClientTest extends TestCase {
         $hasFailures = FALSE;
         foreach ($testCases as $case => $data) {
 
-            \PHPWebSocket::Log(LogLevel::INFO, $case . ' => ' . $data['behavior']);
+            \PHPWebSockets::Log(LogLevel::INFO, $case . ' => ' . $data['behavior']);
             switch ($data['behavior']) {
                 case 'OK':
                 case 'NON-STRICT':
@@ -200,7 +200,7 @@ class ClientTest extends TestCase {
 
         $this->assertFalse($hasFailures, 'One or more test cases failed!');
 
-        \PHPWebSocket::Log(LogLevel::INFO, 'Test success');
+        \PHPWebSockets::Log(LogLevel::INFO, 'Test success');
 
     }
 

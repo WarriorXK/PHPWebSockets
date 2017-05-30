@@ -73,7 +73,7 @@ class Server implements LoggerAwareInterface {
     protected $_disableForkCleanup = NULL;
 
     /**
-     * The identifier shown to connecting clients, when set to NULL the string PHPWebSocket/<ModuleVersion> will be used
+     * The identifier shown to connecting clients, when set to NULL the string PHPWebSockets/<ModuleVersion> will be used
      *
      * @var string|null
      */
@@ -220,7 +220,7 @@ class Server implements LoggerAwareInterface {
      * @return \Generator
      */
     public function update(float $timeout = NULL) : \Generator {
-        yield from \PHPWebSocket::MultiUpdate($this->getConnections(TRUE), $timeout);
+        yield from \PHPWebSockets::MultiUpdate($this->getConnections(TRUE), $timeout);
     }
 
     /**
@@ -281,7 +281,7 @@ class Server implements LoggerAwareInterface {
 
         $replaceFields = [
             '%errorCode%'        => (string) $errorCode,
-            '%errorString%'      => \PHPWebSocket::GetStringForStatusCode($errorCode) ?: $fallbackErrorString,
+            '%errorString%'      => \PHPWebSockets::GetStringForStatusCode($errorCode) ?: $fallbackErrorString,
             '%serverIdentifier%' => $this->getServerIdentifier(),
         ];
 
@@ -314,7 +314,7 @@ class Server implements LoggerAwareInterface {
      * @return string
      */
     public function getServerIdentifier() : string {
-        return $this->_serverIdentifier ?? 'PHPWebSocket/' . \PHPWebSocket::Version();
+        return $this->_serverIdentifier ?? 'PHPWebSockets/' . \PHPWebSockets::Version();
     }
 
     /**
