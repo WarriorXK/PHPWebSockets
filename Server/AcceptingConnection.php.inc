@@ -32,15 +32,11 @@ namespace PHPWebSocket\Server;
 
 use PHPWebSocket\TStreamContainerDefaults;
 use PHPWebSocket\IStreamContainer;
-use PHPWebSocket\TLogAware;
 use PHPWebSocket\Server;
-use Psr\Log\LoggerAwareInterface;
-use Psr\Log\LogLevel;
 
-class AcceptingConnection implements IStreamContainer, LoggerAwareInterface {
+class AcceptingConnection implements IStreamContainer {
 
     use TStreamContainerDefaults;
-    use TLogAware;
 
     /**
      * The websocket server related to this connection
@@ -56,16 +52,10 @@ class AcceptingConnection implements IStreamContainer, LoggerAwareInterface {
      */
     protected $_stream = NULL;
 
-    public function __construct(Server $server, $stream) {
+    public function __construct(Server $websocket, $stream) {
 
-        $this->_server = $server;
+        $this->_server = $websocket;
         $this->_stream = $stream;
-
-        // Inherit the logger from the server
-        $serverLogger = $server->getLogger();
-        if ($serverLogger !== \PHPWebSocket::GetLogger()) {
-            $this->setLogger($serverLogger);
-        }
 
         stream_set_timeout($this->_stream, 1);
         stream_set_blocking($this->_stream, FALSE);
@@ -150,7 +140,7 @@ class AcceptingConnection implements IStreamContainer, LoggerAwareInterface {
                 case 'udg':
 
                     if (!$cleanup) {
-                        $this->_log(LogLevel::DEBUG, 'Not cleaning up');
+                        \PHPWebSocket::Log(LOG_DEBUG, 'Not cleaning up');
                         break;
                     }
 
@@ -158,10 +148,10 @@ class AcceptingConnection implements IStreamContainer, LoggerAwareInterface {
                     if (file_exists($path)) {
 
                         if (!$cleanup) {
-                            $this->_log(LogLevel::DEBUG, 'Not cleaning up ' . $path);
+                            \PHPWebSocket::Log(LOG_DEBUG, 'Not cleaning up ' . $path);
                         } else {
 
-                            $this->_log(LogLevel::DEBUG, 'Unlinking: ' . $path);
+                            \PHPWebSocket::Log(LOG_DEBUG, 'Unlinking: ' . $path);
                             unlink($path);
 
                         }

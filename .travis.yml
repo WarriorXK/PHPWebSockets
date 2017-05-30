@@ -1,29 +1,27 @@
 language: php
 cache:
   directories:
-    - $HOME/.composer/cache/files
     - $HOME/.cache/pip
 php:
   - '7.0'
   - '7.1'
 env:
-  - $TESTCLASS=PHPWebSocket/Client $TESTSCRIPT=tests/ClientTest.php $BUFFERTPE=memory
-  - $TESTCLASS=PHPWebSocket/Client $TESTSCRIPT=tests/ClientTest.php $BUFFERTPE=tmpfile
-  - $TESTCLASS=PHPWebSocket/Server $TESTSCRIPT=tests/ServerTest.php $BUFFERTPE=memory
-  - $TESTCLASS=PHPWebSocket/Server $TESTSCRIPT=tests/ServerTest.php $BUFFERTPE=tmpfile
+  - TESTTYPE=server BUFFERTPE=memory
+  - TESTTYPE=server BUFFERTPE=tmpfile
+  - TESTTYPE=client BUFFERTPE=memory
+  - TESTTYPE=client BUFFERTPE=tmpfile
 before_script:
   - sudo apt-get update
   - sudo apt-get install python-pip
   - sudo -H pip install -U pip wheel
   - sudo -H pip install autobahntestsuite
   - phpenv config-rm xdebug.ini
-  - composer update
 script:
-  - vendor/bin/phpunit $TESTCLASS $TESTSCRIPT buffertype=$BUFFERTPE
+  - php Tests/runner.php $TESTTYPE $BUFFERTPE
 notifications:
   email:
     recipients:
-      - admin@kevinmeijer.nl
+      - kevkevm@gmail.com
     on_success: change
     on_failure: always
 # addons:

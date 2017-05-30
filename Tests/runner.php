@@ -1,3 +1,4 @@
+#!/usr/bin/env php
 <?php
 
 declare(strict_types = 1);
@@ -28,54 +29,17 @@ declare(strict_types = 1);
  * - - - - - - - - - - - - - - END LICENSE BLOCK - - - - - - - - - - - - -
  */
 
-namespace PHPWebSocket;
+if (php_sapi_name() !== 'cli') {
+    \PHPWebSocket::Log(LOG_ERR, 'The tests can only be executed in CLI!');
+    exit(1);
+}
 
-use Psr\Log\LoggerInterface;
-
-trait TLogAware {
-
-    /**
-     * The logger
-     *
-     * @var \Psr\Log\LoggerInterface|null
-     */
-    protected $_logger = NULL;
-
-    /**
-     * Sets the logger
-     *
-     * @param \Psr\Log\LoggerInterface $logger
-     */
-    public function setLogger(LoggerInterface $logger) {
-        $this->_logger = $logger;
-    }
-
-    /**
-     * Returns the set logger
-     *
-     * @return \Psr\Log\LoggerInterface|null
-     */
-    public function getLogger() {
-
-        if ($this->_logger === NULL) {
-            return \PHPWebSocket::GetLogger();
-        }
-
-        return $this->_logger;
-    }
-
-    /**
-     * Logs a message to set logger
-     *
-     * @param string $level
-     * @param string $message
-     * @param array  $context
-     */
-    protected function _log(string $level, string $message, array $context = []) {
-
-        $this->getLogger()->log($level, $message, array_merge([
-            'subject' => $this,
-        ], $context));
-
-    }
+$testCase = $argv[1] ?? NULL;
+switch ($testCase) {
+    case 'server':
+    case 'client':
+        require_once __DIR__ . DIRECTORY_SEPARATOR . $testCase . '.php.inc';
+        break;
+    default:
+        throw new \Exception('Unknown test case: ' . $testCase);
 }

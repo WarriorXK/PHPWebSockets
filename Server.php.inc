@@ -30,12 +30,10 @@ declare(strict_types = 1);
 
 namespace PHPWebSocket;
 
-use Psr\Log\LoggerAwareInterface;
-use Psr\Log\LogLevel;
+require_once(__DIR__ . '/Server/AcceptingConnection.php.inc');
+require_once(__DIR__ . '/Server/Connection.php.inc');
 
-class Server implements LoggerAwareInterface {
-
-    use TLogAware;
+class Server {
 
     /**
      * The counter to provide all websocket servers with an unique ID
@@ -151,7 +149,7 @@ class Server implements LoggerAwareInterface {
                         $path = substr($this->_address, $pos + 3);
                         if (file_exists($path)) {
 
-                            $this->_log(LogLevel::WARNING, 'Unix socket "' . $path . '" still exists, unlinking!');
+                            \PHPWebSocket::Log(LOG_WARNING, 'Unix socket "' . $path . '" still exists, unlinking!');
                             if (!unlink($path)) {
                                 throw new \RuntimeException('Unable to unlink file "' . $path . '"');
                             }
@@ -161,7 +159,7 @@ class Server implements LoggerAwareInterface {
                             $dir = pathinfo($path, PATHINFO_DIRNAME);
                             if (!is_dir($dir)) {
 
-                                $this->_log(LogLevel::DEBUG, 'Directory "' . $dir . '" does not exist, creating..');
+                                \PHPWebSocket::Log(LOG_DEBUG, 'Directory "' . $dir . '" does not exist, creating..');
                                 mkdir($dir, 0770, TRUE);
 
                             }
@@ -182,7 +180,7 @@ class Server implements LoggerAwareInterface {
 
             $this->_acceptingConnection = new Server\AcceptingConnection($this, $acceptingSocket);
 
-            $this->_log(LogLevel::INFO, 'Opened websocket on ' . $this->_address);
+            \PHPWebSocket::Log(LOG_INFO, 'Opened websocket on ' . $this->_address, TRUE);
 
         }
 
@@ -200,7 +198,7 @@ class Server implements LoggerAwareInterface {
         $serverConnection = new Server\Connection($this, $server, '', $this->_connectionIndex);
         $this->_connections[$this->_connectionIndex] = $serverConnection;
 
-        $this->_log(LogLevel::DEBUG, 'Created new connection: ' . $serverConnection);
+        \PHPWebSocket::Log(LOG_DEBUG, 'Created new connection: ' . $serverConnection);
 
         $this->_connectionIndex++;
 
@@ -261,7 +259,7 @@ class Server implements LoggerAwareInterface {
         $newConnection = new Server\Connection($this, $newStream, $peername, $this->_connectionIndex);
         $this->_connections[$this->_connectionIndex] = $newConnection;
 
-        $this->_log(LogLevel::DEBUG, 'Got new connection: ' . $newConnection);
+        \PHPWebSocket::Log(LOG_DEBUG, 'Got new connection: ' . $newConnection);
 
         $this->_connectionIndex++;
 
@@ -424,7 +422,7 @@ class Server implements LoggerAwareInterface {
             throw new \LogicException('Unable to remove connection ' . $connection . ', this is not our connection!');
         }
 
-        $this->_log(LogLevel::DEBUG, 'Removing ' . $connection);
+        \PHPWebSocket::Log(LOG_DEBUG, 'Removing ' . $connection);
 
         if ($connection->isOpen()) {
             $connection->close();

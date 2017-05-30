@@ -30,9 +30,6 @@ declare(strict_types = 1);
 
 namespace PHPWebSocket;
 
-use Psr\Log\LoggerInterface;
-use Psr\Log\LogLevel;
-
 class Client extends AConnection {
 
     /**
@@ -83,26 +80,18 @@ class Client extends AConnection {
     protected $_stream = NULL;
 
     /**
-     * The remote address we are connecting to
+     * The remote host we are connecting to
      *
      * @var string|null
      */
-    protected $_address = NULL;
+    protected $_host = NULL;
 
     /**
      * The path used in the HTTP request
      *
-     * @var string|null
+     * @var string
      */
-    protected $_path = NULL;
-
-    public function __construct(LoggerInterface $logger = NULL) {
-
-        if ($logger) {
-            $this->setLogger($logger);
-        }
-
-    }
+    protected $_path = '/';
 
     /**
      * Connects to the provided resource
@@ -125,8 +114,8 @@ class Client extends AConnection {
             throw new \LogicException('The connection is already open!');
         }
 
-        $this->_address = @stream_get_meta_data($resource)['uri'] ?? NULL;
         $this->_stream = $resource;
+        $this->_host = (string) $resource;
         $this->_path = $path;
 
         $this->_afterOpen();
@@ -139,24 +128,23 @@ class Client extends AConnection {
      *
      * @param string $address
      * @param string $path
-     * @param array  $streamContext
      *
      * @throws \LogicException
      *
      * @return bool
      */
-    public function connect(string $address, string $path = '/', array $streamContext = []) {
+    public function connect(string $address, string $path = '/') {
 
         if ($this->isOpen()) {
             throw new \LogicException('The connection is already open!');
         }
 
-        $this->_stream = stream_socket_client($address, $this->_streamLastErrorCode, $this->_streamLastError, $this->getConnectTimeout(), STREAM_CLIENT_CONNECT, stream_context_create($streamContext));
+        $this->_stream = @stream_socket_client($address, $this->_streamLastErrorCode, $this->_streamLastError);
         if ($this->_stream === FALSE) {
             return FALSE;
         }
 
-        $this->_address = $address;
+        $this->_host = $address;
         $this->_path = $path;
 
         $this->_afterOpen();
@@ -174,8 +162,8 @@ class Client extends AConnection {
         $this->_resourceIndex = (int) $this->getStream();
 
         $headerParts = [
-            'GET ' . $this->getPath() . ' HTTP/1.1',
-            'Host: ' . $this->getAddress(),
+            'GET ' . $this->_path . ' HTTP/1.1',
+            'Host: ' . $this->_host,
             'User-Agent: ' . $this->getUserAgent(),
             'Upgrade: websocket',
             'Connection: Upgrade',
@@ -234,7 +222,7 @@ class Client extends AConnection {
      */
     public function handleRead() : \Generator {
 
-        $this->_log(LogLevel::DEBUG, __METHOD__);
+        \PHPWebSocket::Log(LOG_DEBUG, __METHOD__);
 
         $readRate = $this->getReadRate();
         $newData = fread($this->getStream(), min($this->_currentFrameRemainingBytes ?? $readRate, $readRate));
@@ -264,7 +252,7 @@ class Client extends AConnection {
                 $headersEnd = strpos($newData, "\r\n\r\n");
                 if ($headersEnd === FALSE) {
 
-                    $this->_log(LogLevel::DEBUG, 'Handshake data didn\'t finished yet, waiting..');
+                    \PHPWebSocket::Log(LOG_DEBUG, 'Handshake data didn\'t finished yet, waiting..');
 
                     if ($this->_readBuffer === NULL) {
                         $this->_readBuffer = '';
@@ -331,19 +319,19 @@ class Client extends AConnection {
     /**
      * Returns the user agent string that is reported to the server that we are connecting to
      *
-     * @param string|null $userAgent
+     * @return string
      */
-    public function setUserAgent(string $userAgent = NULL) {
-        $this->_userAgent = $userAgent;
+    public function getUserAgent() : string {
+        return $this->_userAgent ?? 'PHPWebSocket/' . \PHPWebSocket::Version();
     }
 
     /**
      * Returns the user agent string that is reported to the server that we are connecting to
      *
-     * @return string
+     * @param string|null $userAgent
      */
-    public function getUserAgent() : string {
-        return $this->_userAgent ?? 'PHPWebSocket/' . \PHPWebSocket::Version();
+    public function setUserAgent(string $userAgent = NULL) {
+        $this->_userAgent = $userAgent;
     }
 
     /**
@@ -353,15 +341,6 @@ class Client extends AConnection {
      */
     protected function _shouldMask() : bool {
         return TRUE;
-    }
-
-    /**
-     * Returns the timeout in seconds before the connection attempt stops
-     *
-     * @return float
-     */
-    public function getConnectTimeout() : float {
-        return (float) (ini_get('default_socket_timeout') ?: 1.0);
     }
 
     /**
@@ -383,20 +362,11 @@ class Client extends AConnection {
     }
 
     /**
-     * Returns the address that we connected to
-     *
-     * @return string|null
-     */
-    public function getAddress() {
-        return $this->_address;
-    }
-
-    /**
      * Returns the path send in the HTTP request
      *
-     * @return string|null
+     * @return string
      */
-    public function getPath() {
+    public function getPath() : string {
         return $this->_path;
     }
 
