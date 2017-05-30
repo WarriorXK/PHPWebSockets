@@ -23,7 +23,7 @@
     },
     "autoload": {
         "files": [
-            "src/PHPWebSocket.php"
+            "src/PHPWebSockets.php"
         ],
         "psr-4": {
             "PHPWebSocket\\": "src/"
