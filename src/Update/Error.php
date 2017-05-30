@@ -28,9 +28,9 @@ declare(strict_types = 1);
  * - - - - - - - - - - - - - - END LICENSE BLOCK - - - - - - - - - - - - -
  */
 
-namespace PHPWebSocket\Update;
+namespace PHPWebSockets\Update;
 
-use PHPWebSocket\AUpdate;
+use PHPWebSockets\AUpdate;
 
 class Error extends AUpdate {
 

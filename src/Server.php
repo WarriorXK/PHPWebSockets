@@ -28,7 +28,7 @@ declare(strict_types = 1);
  * - - - - - - - - - - - - - - END LICENSE BLOCK - - - - - - - - - - - - -
  */
 
-namespace PHPWebSocket;
+namespace PHPWebSockets;
 
 use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LogLevel;
@@ -61,7 +61,7 @@ class Server implements LoggerAwareInterface {
     /**
      * The accepting socket connection
      *
-     * @var \PHPWebSocket\Server\AcceptingConnection
+     * @var \PHPWebSockets\Server\AcceptingConnection
      */
     protected $_acceptingConnection = NULL;
 
@@ -89,7 +89,7 @@ class Server implements LoggerAwareInterface {
     /**
      * All connections
      *
-     * @var \PHPWebSocket\Server\Connection[]
+     * @var \PHPWebSockets\Server\Connection[]
      */
     protected $_connections = [];
 
@@ -329,7 +329,7 @@ class Server implements LoggerAwareInterface {
     /**
      * Returns if the provided connection in owned by this server
      *
-     * @param \PHPWebSocket\Server\Connection $connection
+     * @param \PHPWebSockets\Server\Connection $connection
      *
      * @return bool
      */
@@ -340,7 +340,7 @@ class Server implements LoggerAwareInterface {
     /**
      * Returns the accepting connection
      *
-     * @return \PHPWebSocket\Server\AcceptingConnection|null
+     * @return \PHPWebSockets\Server\AcceptingConnection|null
      */
     public function getAcceptingConnection() {
         return $this->_acceptingConnection;
@@ -351,7 +351,7 @@ class Server implements LoggerAwareInterface {
      *
      * @param bool $includeAccepting
      *
-     * @return array|\PHPWebSocket\Server\Connection[]
+     * @return array|\PHPWebSockets\Server\Connection[]
      */
     public function getConnections(bool $includeAccepting = FALSE) : array {
 
@@ -414,7 +414,7 @@ class Server implements LoggerAwareInterface {
     /**
      * Removes the specified connection from the connections array and closes it if open
      *
-     * @param \PHPWebSocket\Server\Connection $connection
+     * @param \PHPWebSockets\Server\Connection $connection
      *
      * @throws \LogicException
      */

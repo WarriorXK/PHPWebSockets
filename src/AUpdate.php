@@ -28,7 +28,7 @@ declare(strict_types = 1);
  * - - - - - - - - - - - - - - END LICENSE BLOCK - - - - - - - - - - - - -
  */
 
-namespace PHPWebSocket;
+namespace PHPWebSockets;
 
 abstract class AUpdate {
 

@@ -144,7 +144,7 @@ final class PHPWebSockets {
     /**
      * Checks for updates for the provided IStreamContainer objects
      *
-     * @param \PHPWebSocket\IStreamContainer[] $updateObjects
+     * @param \PHPWebSockets\IStreamContainer[] $updateObjects
      * @param float|null                       $timeout       The amount of seconds to wait for updates, setting this value to NULL causes this function to block indefinitely until there is an update
      *
      * @throws \InvalidArgumentException
@@ -170,8 +170,8 @@ final class PHPWebSockets {
 
         foreach ($updateObjects as $object) {
 
-            if (!$object instanceof \PHPWebSocket\IStreamContainer) {
-                throw new \InvalidArgumentException('Got invalid object, all provided objects should implement of \PHPWebSocket\IStreamContainer');
+            if (!$object instanceof \PHPWebSockets\IStreamContainer) {
+                throw new \InvalidArgumentException('Got invalid object, all provided objects should implement of \PHPWebSockets\IStreamContainer');
             }
 
             yield from $object->beforeStreamSelect();
@@ -191,7 +191,7 @@ final class PHPWebSockets {
 
             $streams = @stream_select($read, $write, $exceptional, $timeInt, $timePart); // Stream select filters everything out of the arrays
             if ($streams === FALSE) {
-                yield new \PHPWebSocket\Update\Error(\PHPWebSocket\Update\Error::C_SELECT);
+                yield new \PHPWebSockets\Update\Error(\PHPWebSockets\Update\Error::C_SELECT);
 
                 return;
             } else {
@@ -459,7 +459,7 @@ final class PHPWebSockets {
     public static function GetLogger() : LoggerInterface {
 
         if (self::$_Logger === NULL) {
-            self::$_Logger = new \PHPWebSocket\BasicLogger();
+            self::$_Logger = new \PHPWebSockets\BasicLogger();
         }
 
         return self::$_Logger;

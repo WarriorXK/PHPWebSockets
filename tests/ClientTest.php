@@ -28,8 +28,8 @@ declare(strict_types = 1);
  * - - - - - - - - - - - - - - END LICENSE BLOCK - - - - - - - - - - - - -
  */
 
-use PHPWebSocket\Update\Read;
-use PHPWebSocket\Client;
+use PHPWebSockets\Update\Read;
+use PHPWebSockets\Client;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LogLevel;
 

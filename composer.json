@@ -26,7 +26,7 @@
             "src/PHPWebSockets.php"
         ],
         "psr-4": {
-            "PHPWebSocket\\": "src/"
+            "PHPWebSockets\\": "src/"
         }
     },
     "archive": {

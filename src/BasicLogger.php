@@ -28,7 +28,7 @@ declare(strict_types = 1);
  * - - - - - - - - - - - - - - END LICENSE BLOCK - - - - - - - - - - - - -
  */
 
-namespace PHPWebSocket;
+namespace PHPWebSockets;
 
 use Psr\Log\LoggerInterface;
 use Psr\Log\LoggerTrait;

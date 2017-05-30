@@ -28,12 +28,12 @@ declare(strict_types = 1);
  * - - - - - - - - - - - - - - END LICENSE BLOCK - - - - - - - - - - - - -
  */
 
-namespace PHPWebSocket\Server;
+namespace PHPWebSockets\Server;
 
-use PHPWebSocket\TStreamContainerDefaults;
-use PHPWebSocket\IStreamContainer;
-use PHPWebSocket\TLogAware;
-use PHPWebSocket\Server;
+use PHPWebSockets\TStreamContainerDefaults;
+use PHPWebSockets\IStreamContainer;
+use PHPWebSockets\TLogAware;
+use PHPWebSockets\Server;
 use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LogLevel;
 
@@ -45,7 +45,7 @@ class AcceptingConnection implements IStreamContainer, LoggerAwareInterface {
     /**
      * The websocket server related to this connection
      *
-     * @var \PHPWebSocket\Server
+     * @var \PHPWebSockets\Server
      */
     protected $_server = NULL;
 
@@ -104,7 +104,7 @@ class AcceptingConnection implements IStreamContainer, LoggerAwareInterface {
     /**
      * Returns the related websocket server
      *
-     * @return \PHPWebSocket\Server
+     * @return \PHPWebSockets\Server
      */
     public function getServer() : Server {
         return $this->_server;

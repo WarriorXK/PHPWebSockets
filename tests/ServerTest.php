@@ -28,7 +28,7 @@ declare(strict_types = 1);
  * - - - - - - - - - - - - - - END LICENSE BLOCK - - - - - - - - - - - - -
  */
 
-use PHPWebSocket\Update\Read;
+use PHPWebSockets\Update\Read;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LogLevel;
 
@@ -57,7 +57,7 @@ class ServerTest extends TestCase {
     /**
      * The websocket server
      *
-     * @var \PHPWebSocket\Server|null
+     * @var \PHPWebSockets\Server|null
      */
     protected $_wsServer = NULL;
 
@@ -85,7 +85,7 @@ class ServerTest extends TestCase {
         $this->assertContains($this->_bufferType, static::VALID_BUFFER_TYPES);
         \PHPWebSockets::Log(LogLevel::INFO, 'Using buffer type ' . $this->_bufferType);
 
-        $this->_wsServer = new \PHPWebSocket\Server(self::ADDRESS);
+        $this->_wsServer = new \PHPWebSockets\Server(self::ADDRESS);
 
         $descriptorSpec = [['pipe', 'r'], STDOUT, STDERR];
         $this->_autobahnProcess = proc_open('wstest -m fuzzingclient -s Resources/Autobahn/fuzzingclient.json', $descriptorSpec, $pipes, realpath(__DIR__ . '/../'));

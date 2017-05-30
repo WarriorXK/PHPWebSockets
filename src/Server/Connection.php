@@ -28,11 +28,11 @@ declare(strict_types = 1);
  * - - - - - - - - - - - - - - END LICENSE BLOCK - - - - - - - - - - - - -
  */
 
-namespace PHPWebSocket\Server;
+namespace PHPWebSockets\Server;
 
-use PHPWebSocket\AConnection;
-use PHPWebSocket\Server;
-use PHPWebSocket\Update;
+use PHPWebSockets\AConnection;
+use PHPWebSockets\Server;
+use PHPWebSockets\Update;
 use Psr\Log\LogLevel;
 
 class Connection extends AConnection {
@@ -89,7 +89,7 @@ class Connection extends AConnection {
     /**
      * The websocket server related to this connection
      *
-     * @var \PHPWebSocket\Server
+     * @var \PHPWebSockets\Server
      */
     protected $_server = NULL;
 
@@ -357,7 +357,7 @@ class Connection extends AConnection {
     /**
      * Returns the related websocket server
      *
-     * @return \PHPWebSocket\Server
+     * @return \PHPWebSockets\Server
      */
     public function getServer() : Server {
         return $this->_server;
