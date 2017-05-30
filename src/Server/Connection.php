@@ -33,6 +33,7 @@ namespace PHPWebSocket\Server;
 use PHPWebSocket\AConnection;
 use PHPWebSocket\Server;
 use PHPWebSocket\Update;
+use Psr\Log\LogLevel;
 
 class Connection extends AConnection {
 
@@ -108,10 +109,16 @@ class Connection extends AConnection {
 
     public function __construct(Server $server, $stream, string $streamName, int $index) {
 
-        $this->_server = $server;
         $this->_remoteIP = parse_url($streamName, PHP_URL_HOST);
+        $this->_server = $server;
         $this->_stream = $stream;
         $this->_index = $index;
+
+        // Inherit the logger from the server
+        $serverLogger = $server->getLogger();
+        if ($serverLogger !== \PHPWebSocket::GetLogger()) {
+            $this->setLogger($serverLogger);
+        }
 
         $this->_resourceIndex = (int) $this->_stream;
 
@@ -131,7 +138,7 @@ class Connection extends AConnection {
      */
     public function handleRead() : \Generator {
 
-        \PHPWebSocket::Log(LOG_DEBUG, __METHOD__);
+        $this->_log(LogLevel::DEBUG, __METHOD__);
 
         $readRate = $this->getReadRate();
         $newData = fread($this->getStream(), min($this->_currentFrameRemainingBytes ?? $readRate, $readRate));
@@ -161,7 +168,7 @@ class Connection extends AConnection {
                 $headersEnd = strpos($newData, "\r\n\r\n");
                 if ($headersEnd === FALSE) {
 
-                    \PHPWebSocket::Log(LOG_DEBUG, 'Handshake data hasn\'t finished yet, waiting..');
+                    $this->_log(LogLevel::DEBUG, 'Handshake data hasn\'t finished yet, waiting..');
 
                     if ($this->_readBuffer === NULL) {
                         $this->_readBuffer = '';

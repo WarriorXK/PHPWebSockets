@@ -30,6 +30,8 @@ declare(strict_types = 1);
 
 namespace PHPWebSocket;
 
+use Psr\Log\LogLevel;
+
 final class Framer {
 
     const   BYTE1_FIN = 0b10000000,
@@ -170,7 +172,7 @@ final class Framer {
 
                 return $payload;
             default:
-                \PHPWebSocket::Log(LOG_WARNING, 'Encountered unknown opcode: ' . $opcode);
+                \PHPWebSocket::Log(LogLevel::WARNING, 'Encountered unknown opcode: ' . $opcode);
 
                 return FALSE; // Failure, unknown action
         }

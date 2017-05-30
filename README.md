@@ -55,7 +55,7 @@ if (!$client->connect('tcp://localhost:9001/webSocket')) {
 
 while ($client->isOpen()) {
 
-    foreach ($client->update() as $key => $value) {
+    foreach ($client->update() as $update) {
 
         if ($update instanceof \PHPWebSocket\Update\Read && $update->getCode() === \PHPWebSocket\Update\Read::C_READ) {
             $client->write($update->getMessage() ?? '', $update->getOpcode());
