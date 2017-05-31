@@ -80,6 +80,13 @@ class Server implements LoggerAwareInterface {
     protected $_serverIdentifier = NULL;
 
     /**
+     * The FQCN of the class to use for new connections
+     *
+     * @var string
+     */
+    protected $_connectionClass = Server\Connection::class;
+
+    /**
      * The index for the next connection to be inserted at
      *
      * @var int
@@ -126,7 +133,7 @@ class Server implements LoggerAwareInterface {
      *
      * @param string $address       This should be a protocol://address:port scheme url, if left NULL no accepting socket will be created
      * @param array  $streamContext The streamcontext @see https://secure.php.net/manual/en/function.stream-context-create.php
-     * @param bool   $useCrypto     If we should enable crypro on newly accepted connections
+     * @param bool   $useCrypto     If we should enable crypto on newly accepted connections
      *
      * @throws \RuntimeException
      */
@@ -195,9 +202,11 @@ class Server implements LoggerAwareInterface {
      */
     public function createServerClientPair() : array {
 
+        /** @var \PHPWebSockets\Server\Connection $serverConnection */
+
         list($server, $client) = stream_socket_pair(STREAM_PF_UNIX, STREAM_SOCK_STREAM, STREAM_IPPROTO_IP);
 
-        $serverConnection = new Server\Connection($this, $server, '', $this->_connectionIndex);
+        $serverConnection = new $this->_connectionClass($this, $server, '', $this->_connectionIndex);
         $this->_connections[$this->_connectionIndex] = $serverConnection;
 
         $this->_log(LogLevel::DEBUG, 'Created new connection: ' . $serverConnection);
@@ -258,7 +267,7 @@ class Server implements LoggerAwareInterface {
             throw new \RuntimeException('Unable to accept stream socket!');
         }
 
-        $newConnection = new Server\Connection($this, $newStream, $peername, $this->_connectionIndex);
+        $newConnection = new $this->_connectionClass($this, $newStream, $peername, $this->_connectionIndex);
         $this->_connections[$this->_connectionIndex] = $newConnection;
 
         $this->_log(LogLevel::DEBUG, 'Got new connection: ' . $newConnection);
@@ -477,6 +486,20 @@ class Server implements LoggerAwareInterface {
      */
     public function setAutoAccept(bool $autoAccept) {
         $this->_autoAccept = $autoAccept;
+    }
+
+    /**
+     * Sets the class that will be our connection, this has to be an extension of \PHPWebSockets\Server\Connection
+     * @param string $class
+     */
+    public function setConnectionClass(string $class) {
+
+        if (!is_subclass_of($class, Server\Connection::class)) {
+            throw new \InvalidArgumentException('The provided class has to extend ' . Connection::class);
+        }
+
+        $this->_connectionClass = $class;
+
     }
 
     /**
