@@ -490,12 +490,13 @@ class Server implements LoggerAwareInterface {
 
     /**
      * Sets the class that will be our connection, this has to be an extension of \PHPWebSockets\Server\Connection
+     *
      * @param string $class
      */
     public function setConnectionClass(string $class) {
 
         if (!is_subclass_of($class, Server\Connection::class)) {
-            throw new \InvalidArgumentException('The provided class has to extend ' . Connection::class);
+            throw new \InvalidArgumentException('The provided class has to extend ' . Server\Connection::class);
         }
 
         $this->_connectionClass = $class;
