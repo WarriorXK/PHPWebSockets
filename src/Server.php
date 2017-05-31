@@ -202,10 +202,9 @@ class Server implements LoggerAwareInterface {
      */
     public function createServerClientPair() : array {
 
-        /** @var \PHPWebSockets\Server\Connection $serverConnection */
-
         list($server, $client) = stream_socket_pair(STREAM_PF_UNIX, STREAM_SOCK_STREAM, STREAM_IPPROTO_IP);
 
+        /** @var \PHPWebSockets\Server\Connection $serverConnection */
         $serverConnection = new $this->_connectionClass($this, $server, '', $this->_connectionIndex);
         $this->_connections[$this->_connectionIndex] = $serverConnection;
 
