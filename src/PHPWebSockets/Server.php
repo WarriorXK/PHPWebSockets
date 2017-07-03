@@ -28,12 +28,14 @@ declare(strict_types = 1);
  * - - - - - - - - - - - - - - END LICENSE BLOCK - - - - - - - - - - - - -
  */
 
-namespace PHPWebSocket;
+namespace PHPWebSockets;
 
-require_once(__DIR__ . '/Server/AcceptingConnection.php.inc');
-require_once(__DIR__ . '/Server/Connection.php.inc');
+use Psr\Log\LoggerAwareInterface;
+use Psr\Log\LogLevel;
 
-class Server {
+class Server implements LoggerAwareInterface {
+
+    use TLogAware;
 
     /**
      * The counter to provide all websocket servers with an unique ID
@@ -59,7 +61,7 @@ class Server {
     /**
      * The accepting socket connection
      *
-     * @var \PHPWebSocket\Server\AcceptingConnection
+     * @var \PHPWebSockets\Server\AcceptingConnection
      */
     protected $_acceptingConnection = NULL;
 
@@ -71,11 +73,18 @@ class Server {
     protected $_disableForkCleanup = NULL;
 
     /**
-     * The identifier shown to connecting clients, when set to NULL the string PHPWebSocket/<ModuleVersion> will be used
+     * The identifier shown to connecting clients, when set to NULL the string PHPWebSockets/<ModuleVersion> will be used
      *
      * @var string|null
      */
     protected $_serverIdentifier = NULL;
+
+    /**
+     * The FQCN of the class to use for new connections
+     *
+     * @var string
+     */
+    protected $_connectionClass = Server\Connection::class;
 
     /**
      * The index for the next connection to be inserted at
@@ -87,7 +96,7 @@ class Server {
     /**
      * All connections
      *
-     * @var \PHPWebSocket\Server\Connection[]
+     * @var \PHPWebSockets\Server\Connection[]
      */
     protected $_connections = [];
 
@@ -124,7 +133,7 @@ class Server {
      *
      * @param string $address       This should be a protocol://address:port scheme url, if left NULL no accepting socket will be created
      * @param array  $streamContext The streamcontext @see https://secure.php.net/manual/en/function.stream-context-create.php
-     * @param bool   $useCrypto     If we should enable crypro on newly accepted connections
+     * @param bool   $useCrypto     If we should enable crypto on newly accepted connections
      *
      * @throws \RuntimeException
      */
@@ -149,7 +158,7 @@ class Server {
                         $path = substr($this->_address, $pos + 3);
                         if (file_exists($path)) {
 
-                            \PHPWebSocket::Log(LOG_WARNING, 'Unix socket "' . $path . '" still exists, unlinking!');
+                            $this->_log(LogLevel::WARNING, 'Unix socket "' . $path . '" still exists, unlinking!');
                             if (!unlink($path)) {
                                 throw new \RuntimeException('Unable to unlink file "' . $path . '"');
                             }
@@ -159,7 +168,7 @@ class Server {
                             $dir = pathinfo($path, PATHINFO_DIRNAME);
                             if (!is_dir($dir)) {
 
-                                \PHPWebSocket::Log(LOG_DEBUG, 'Directory "' . $dir . '" does not exist, creating..');
+                                $this->_log(LogLevel::DEBUG, 'Directory "' . $dir . '" does not exist, creating..');
                                 mkdir($dir, 0770, TRUE);
 
                             }
@@ -180,7 +189,7 @@ class Server {
 
             $this->_acceptingConnection = new Server\AcceptingConnection($this, $acceptingSocket);
 
-            \PHPWebSocket::Log(LOG_INFO, 'Opened websocket on ' . $this->_address, TRUE);
+            $this->_log(LogLevel::INFO, 'Opened websocket on ' . $this->_address);
 
         }
 
@@ -195,10 +204,11 @@ class Server {
 
         list($server, $client) = stream_socket_pair(STREAM_PF_UNIX, STREAM_SOCK_STREAM, STREAM_IPPROTO_IP);
 
-        $serverConnection = new Server\Connection($this, $server, '', $this->_connectionIndex);
+        /** @var \PHPWebSockets\Server\Connection $serverConnection */
+        $serverConnection = new $this->_connectionClass($this, $server, '', $this->_connectionIndex);
         $this->_connections[$this->_connectionIndex] = $serverConnection;
 
-        \PHPWebSocket::Log(LOG_DEBUG, 'Created new connection: ' . $serverConnection);
+        $this->_log(LogLevel::DEBUG, 'Created new connection: ' . $serverConnection);
 
         $this->_connectionIndex++;
 
@@ -218,7 +228,7 @@ class Server {
      * @return \Generator
      */
     public function update(float $timeout = NULL) : \Generator {
-        yield from \PHPWebSocket::MultiUpdate($this->getConnections(TRUE), $timeout);
+        yield from \PHPWebSockets::MultiUpdate($this->getConnections(TRUE), $timeout);
     }
 
     /**
@@ -256,10 +266,10 @@ class Server {
             throw new \RuntimeException('Unable to accept stream socket!');
         }
 
-        $newConnection = new Server\Connection($this, $newStream, $peername, $this->_connectionIndex);
+        $newConnection = new $this->_connectionClass($this, $newStream, $peername, $this->_connectionIndex);
         $this->_connections[$this->_connectionIndex] = $newConnection;
 
-        \PHPWebSocket::Log(LOG_DEBUG, 'Got new connection: ' . $newConnection);
+        $this->_log(LogLevel::DEBUG, 'Got new connection: ' . $newConnection);
 
         $this->_connectionIndex++;
 
@@ -279,7 +289,7 @@ class Server {
 
         $replaceFields = [
             '%errorCode%'        => (string) $errorCode,
-            '%errorString%'      => \PHPWebSocket::GetStringForStatusCode($errorCode) ?: $fallbackErrorString,
+            '%errorString%'      => \PHPWebSockets::GetStringForStatusCode($errorCode) ?: $fallbackErrorString,
             '%serverIdentifier%' => $this->getServerIdentifier(),
         ];
 
@@ -312,7 +322,7 @@ class Server {
      * @return string
      */
     public function getServerIdentifier() : string {
-        return $this->_serverIdentifier ?? 'PHPWebSocket/' . \PHPWebSocket::Version();
+        return $this->_serverIdentifier ?? 'PHPWebSockets/' . \PHPWebSockets::Version();
     }
 
     /**
@@ -327,7 +337,7 @@ class Server {
     /**
      * Returns if the provided connection in owned by this server
      *
-     * @param \PHPWebSocket\Server\Connection $connection
+     * @param \PHPWebSockets\Server\Connection $connection
      *
      * @return bool
      */
@@ -338,7 +348,7 @@ class Server {
     /**
      * Returns the accepting connection
      *
-     * @return \PHPWebSocket\Server\AcceptingConnection|null
+     * @return \PHPWebSockets\Server\AcceptingConnection|null
      */
     public function getAcceptingConnection() {
         return $this->_acceptingConnection;
@@ -349,7 +359,7 @@ class Server {
      *
      * @param bool $includeAccepting
      *
-     * @return array|\PHPWebSocket\Server\Connection[]
+     * @return array|\PHPWebSockets\Server\Connection[]
      */
     public function getConnections(bool $includeAccepting = FALSE) : array {
 
@@ -412,7 +422,7 @@ class Server {
     /**
      * Removes the specified connection from the connections array and closes it if open
      *
-     * @param \PHPWebSocket\Server\Connection $connection
+     * @param \PHPWebSockets\Server\Connection $connection
      *
      * @throws \LogicException
      */
@@ -422,7 +432,7 @@ class Server {
             throw new \LogicException('Unable to remove connection ' . $connection . ', this is not our connection!');
         }
 
-        \PHPWebSocket::Log(LOG_DEBUG, 'Removing ' . $connection);
+        $this->_log(LogLevel::DEBUG, 'Removing ' . $connection);
 
         if ($connection->isOpen()) {
             $connection->close();
@@ -475,6 +485,21 @@ class Server {
      */
     public function setAutoAccept(bool $autoAccept) {
         $this->_autoAccept = $autoAccept;
+    }
+
+    /**
+     * Sets the class that will be our connection, this has to be an extension of \PHPWebSockets\Server\Connection
+     *
+     * @param string $class
+     */
+    public function setConnectionClass(string $class) {
+
+        if (!is_subclass_of($class, Server\Connection::class)) {
+            throw new \InvalidArgumentException('The provided class has to extend ' . Server\Connection::class);
+        }
+
+        $this->_connectionClass = $class;
+
     }
 
     /**

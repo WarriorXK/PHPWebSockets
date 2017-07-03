@@ -26,7 +26,8 @@ engines:
         enabled: false
 ratings:
   paths:
-  - "**.php.inc"
+  - "**.php"
 exclude_paths:
-  - "Tests/**"
+  - "Resources/**"
+  - "tests/**"
   - "vendor/**"

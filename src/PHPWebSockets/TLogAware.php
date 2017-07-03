@@ -28,50 +28,54 @@ declare(strict_types = 1);
  * - - - - - - - - - - - - - - END LICENSE BLOCK - - - - - - - - - - - - -
  */
 
-namespace PHPWebSocket;
+namespace PHPWebSockets;
 
-interface IStreamContainer {
-    /**
-     * Gets called just before stream_select gets called
-     *
-     * @return \Generator
-     */
-    public function beforeStreamSelect() : \Generator;
+use Psr\Log\LoggerInterface;
+
+trait TLogAware {
 
     /**
-     * Returns if we have (partial)frames ready to be send
+     * The logger
      *
-     * @return bool
+     * @var \Psr\Log\LoggerInterface|null
      */
-    public function isWriteBufferEmpty() : bool;
+    protected $_logger = NULL;
 
     /**
-     * Handles exceptional data reads
+     * Sets the logger
      *
-     * @return \Generator
+     * @param \Psr\Log\LoggerInterface $logger
      */
-    public function handleExceptional() : \Generator;
+    public function setLogger(LoggerInterface $logger) {
+        $this->_logger = $logger;
+    }
 
     /**
-     * Writes the current buffer to the connection
+     * Returns the set logger
      *
-     * @return \Generator
+     * @return \Psr\Log\LoggerInterface|null
      */
-    public function handleWrite() : \Generator;
+    public function getLogger() {
+
+        if ($this->_logger === NULL) {
+            return \PHPWebSockets::GetLogger();
+        }
+
+        return $this->_logger;
+    }
 
     /**
-     * Attempts to read from our connection
+     * Logs a message to set logger
      *
-     * @return \Generator
+     * @param string $level
+     * @param string $message
+     * @param array  $context
      */
-    public function handleRead() : \Generator;
+    protected function _log(string $level, string $message, array $context = []) {
 
-    /**
-     * Returns the stream object for this connection
-     *
-     * @return resource
-     */
-    public function getStream();
+        $this->getLogger()->log($level, $message, array_merge([
+            'subject' => $this,
+        ], $context));
 
-    public function __toString();
+    }
 }

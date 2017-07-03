@@ -28,11 +28,12 @@ declare(strict_types = 1);
  * - - - - - - - - - - - - - - END LICENSE BLOCK - - - - - - - - - - - - -
  */
 
-namespace PHPWebSocket\Server;
+namespace PHPWebSockets\Server;
 
-use PHPWebSocket\AConnection;
-use PHPWebSocket\Server;
-use PHPWebSocket\Update;
+use PHPWebSockets\AConnection;
+use PHPWebSockets\Server;
+use PHPWebSockets\Update;
+use Psr\Log\LogLevel;
 
 class Connection extends AConnection {
 
@@ -88,7 +89,7 @@ class Connection extends AConnection {
     /**
      * The websocket server related to this connection
      *
-     * @var \PHPWebSocket\Server
+     * @var \PHPWebSockets\Server
      */
     protected $_server = NULL;
 
@@ -108,10 +109,16 @@ class Connection extends AConnection {
 
     public function __construct(Server $server, $stream, string $streamName, int $index) {
 
-        $this->_server = $server;
         $this->_remoteIP = parse_url($streamName, PHP_URL_HOST);
+        $this->_server = $server;
         $this->_stream = $stream;
         $this->_index = $index;
+
+        // Inherit the logger from the server
+        $serverLogger = $server->getLogger();
+        if ($serverLogger !== \PHPWebSockets::GetLogger()) {
+            $this->setLogger($serverLogger);
+        }
 
         $this->_resourceIndex = (int) $this->_stream;
 
@@ -131,7 +138,7 @@ class Connection extends AConnection {
      */
     public function handleRead() : \Generator {
 
-        \PHPWebSocket::Log(LOG_DEBUG, __METHOD__);
+        $this->_log(LogLevel::DEBUG, __METHOD__);
 
         $readRate = $this->getReadRate();
         $newData = fread($this->getStream(), min($this->_currentFrameRemainingBytes ?? $readRate, $readRate));
@@ -161,7 +168,7 @@ class Connection extends AConnection {
                 $headersEnd = strpos($newData, "\r\n\r\n");
                 if ($headersEnd === FALSE) {
 
-                    \PHPWebSocket::Log(LOG_DEBUG, 'Handshake data hasn\'t finished yet, waiting..');
+                    $this->_log(LogLevel::DEBUG, 'Handshake data hasn\'t finished yet, waiting..');
 
                     if ($this->_readBuffer === NULL) {
                         $this->_readBuffer = '';
@@ -244,7 +251,7 @@ class Connection extends AConnection {
      */
     protected function _doHandshake(string $rawHandshake, int &$responseCode) : bool {
 
-        $headers = \PHPWebSocket::ParseHTTPHeaders($rawHandshake);
+        $headers = \PHPWebSockets::ParseHTTPHeaders($rawHandshake);
 
         $responseCode = 101;
         if (!isset($headers['get'])) {
@@ -269,7 +276,7 @@ class Connection extends AConnection {
 
         $this->_hasHandshake = TRUE;
 
-        $hash = sha1($headers['sec-websocket-key'] . \PHPWebSocket::WEBSOCKET_GUID);
+        $hash = sha1($headers['sec-websocket-key'] . \PHPWebSockets::WEBSOCKET_GUID);
         $this->_rawToken = '';
         for ($i = 0; $i < 20; $i++) {
             $this->_rawToken .= chr(hexdec(substr($hash, $i * 2, 2)));
@@ -296,7 +303,7 @@ class Connection extends AConnection {
             $misc .= 'Sec-WebSocket-Protocol ' . $protocol . "\r\n";
         }
 
-        $this->writeRaw('HTTP/1.1 101 ' . \PHPWebSocket::GetStringForStatusCode(101) . "\r\nServer: " . $this->_server->getServerIdentifier() . "\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Accept: " . base64_encode($this->_rawToken) . "\r\n" . $misc . "\r\n", FALSE);
+        $this->writeRaw('HTTP/1.1 101 ' . \PHPWebSockets::GetStringForStatusCode(101) . "\r\nServer: " . $this->_server->getServerIdentifier() . "\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Accept: " . base64_encode($this->_rawToken) . "\r\n" . $misc . "\r\n", FALSE);
 
         $this->_accepted = TRUE;
 
@@ -315,7 +322,7 @@ class Connection extends AConnection {
             throw new \LogicException('Connection has already been accepted!');
         }
 
-        $this->writeRaw('HTTP/1.1 ' . $errCode . ' ' . \PHPWebSocket::GetStringForStatusCode($errCode) . "\r\nServer: " . $this->_server->getServerIdentifier() . "\r\n\r\n", FALSE);
+        $this->writeRaw('HTTP/1.1 ' . $errCode . ' ' . \PHPWebSockets::GetStringForStatusCode($errCode) . "\r\nServer: " . $this->_server->getServerIdentifier() . "\r\n\r\n", FALSE);
         $this->setCloseAfterWrite();
 
     }
@@ -350,7 +357,7 @@ class Connection extends AConnection {
     /**
      * Returns the related websocket server
      *
-     * @return \PHPWebSocket\Server
+     * @return \PHPWebSockets\Server
      */
     public function getServer() : Server {
         return $this->_server;

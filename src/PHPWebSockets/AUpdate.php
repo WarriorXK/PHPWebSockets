@@ -1,4 +1,3 @@
-#!/usr/bin/env php
 <?php
 
 declare(strict_types = 1);
@@ -29,17 +28,50 @@ declare(strict_types = 1);
  * - - - - - - - - - - - - - - END LICENSE BLOCK - - - - - - - - - - - - -
  */
 
-if (php_sapi_name() !== 'cli') {
-    \PHPWebSocket::Log(LOG_ERR, 'The tests can only be executed in CLI!');
-    exit(1);
-}
+namespace PHPWebSockets;
 
-$testCase = $argv[1] ?? NULL;
-switch ($testCase) {
-    case 'server':
-    case 'client':
-        require_once __DIR__ . DIRECTORY_SEPARATOR . $testCase . '.php.inc';
-        break;
-    default:
-        throw new \Exception('Unknown test case: ' . $testCase);
+abstract class AUpdate {
+
+    /**
+     * The source object related to this update
+     *
+     * @var object|null
+     */
+    protected $_sourceObject = NULL;
+
+    /**
+     * The code for this update
+     *
+     * @var int
+     */
+    protected $_code = 0;
+
+    public function __construct(int $code, $sourceObject = NULL) {
+
+        $this->_sourceObject = $sourceObject;
+        $this->_code = $code;
+
+    }
+
+    /**
+     * Returns the source object related to this update
+     *
+     * @return object|null
+     */
+    public function getSourceObject() {
+        return $this->_sourceObject;
+    }
+
+    /**
+     * Returns the code for this update
+     *
+     * @return int
+     */
+    public function getCode() : int {
+        return $this->_code;
+    }
+
+    public function __toString() {
+        return 'AUpdate) (C: ' . $this->getCode() . ')';
+    }
 }

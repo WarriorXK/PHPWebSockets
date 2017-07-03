@@ -28,7 +28,9 @@ declare(strict_types = 1);
  * - - - - - - - - - - - - - - END LICENSE BLOCK - - - - - - - - - - - - -
  */
 
-namespace PHPWebSocket;
+namespace PHPWebSockets;
+
+use Psr\Log\LogLevel;
 
 final class Framer {
 
@@ -146,18 +148,18 @@ final class Framer {
 
         $opcode = $headers[self::IND_OPCODE];
         switch ($opcode) {
-            case \PHPWebSocket::OPCODE_CLOSE_CONNECTION:
-            case \PHPWebSocket::OPCODE_PING:
-            case \PHPWebSocket::OPCODE_PONG:
+            case \PHPWebSockets::OPCODE_CLOSE_CONNECTION:
+            case \PHPWebSockets::OPCODE_PING:
+            case \PHPWebSockets::OPCODE_PONG:
 
                 if ($headers[self::IND_LENGTH] === 1 || $headers[self::IND_LENGTH] > 125 || !$headers[self::IND_FIN]) {
                     return FALSE;
                 }
 
             // Fallthrough intended
-            case \PHPWebSocket::OPCODE_CONTINUE:
-            case \PHPWebSocket::OPCODE_FRAME_TEXT:
-            case \PHPWebSocket::OPCODE_FRAME_BINARY:
+            case \PHPWebSockets::OPCODE_CONTINUE:
+            case \PHPWebSockets::OPCODE_FRAME_TEXT:
+            case \PHPWebSockets::OPCODE_FRAME_BINARY:
 
                 if ($frameLength < $headers[self::IND_PAYLOAD_OFFSET] + $headers[self::IND_LENGTH]) {
                     return NULL;
@@ -170,7 +172,7 @@ final class Framer {
 
                 return $payload;
             default:
-                \PHPWebSocket::Log(LOG_WARNING, 'Encountered unknown opcode: ' . $opcode);
+                \PHPWebSockets::Log(LogLevel::WARNING, 'Encountered unknown opcode: ' . $opcode);
 
                 return FALSE; // Failure, unknown action
         }
@@ -193,12 +195,12 @@ final class Framer {
      *
      * @return string
      */
-    public static function Frame(string $data, bool $mask, int $opcode = \PHPWebSocket::OPCODE_FRAME_TEXT, bool $isFinal = TRUE, bool $rsv1 = FALSE, bool $rsv2 = FALSE, bool $rsv3 = FALSE) : string {
+    public static function Frame(string $data, bool $mask, int $opcode = \PHPWebSockets::OPCODE_FRAME_TEXT, bool $isFinal = TRUE, bool $rsv1 = FALSE, bool $rsv2 = FALSE, bool $rsv3 = FALSE) : string {
 
         if ($opcode < 0 || $opcode > 15) {
             throw new \RangeException('Invalid opcode, opcode should range between 0 and 15');
         }
-        if (!$isFinal && \PHPWebSocket::IsControlOpcode($opcode)) {
+        if (!$isFinal && \PHPWebSockets::IsControlOpcode($opcode)) {
             throw new \LogicException('Control frames must be final!');
         }
 

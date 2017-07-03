@@ -28,11 +28,15 @@ declare(strict_types = 1);
  * - - - - - - - - - - - - - - END LICENSE BLOCK - - - - - - - - - - - - -
  */
 
-namespace PHPWebSocket;
+namespace PHPWebSockets;
 
-abstract class AConnection implements IStreamContainer {
+use Psr\Log\LoggerAwareInterface;
+use Psr\Log\LogLevel;
+
+abstract class AConnection implements IStreamContainer, LoggerAwareInterface {
 
     use TStreamContainerDefaults;
+    use TLogAware;
 
     /**
      * The amount of bytes to read to complete our current frame
@@ -88,7 +92,7 @@ abstract class AConnection implements IStreamContainer {
      *
      * @var int
      */
-    protected $_utfValidationState = \PHPWebSocket::UTF8_ACCEPT;
+    protected $_utfValidationState = \PHPWebSockets::UTF8_ACCEPT;
 
     /**
      * The maximum size the handshake can become
@@ -227,7 +231,7 @@ abstract class AConnection implements IStreamContainer {
      */
     protected function _handlePacket(string $newData) : \Generator {
 
-        \PHPWebSocket::Log(LOG_DEBUG, __METHOD__);
+        $this->_log(LogLevel::DEBUG, __METHOD__);
 
         if ($this->_readBuffer === NULL) {
             $this->_readBuffer = $newData;
@@ -240,7 +244,7 @@ abstract class AConnection implements IStreamContainer {
         $framePos = 0;
         $pongs = [];
 
-        \PHPWebSocket::Log(LOG_DEBUG, 'Handling packet, current buffer size: ' . strlen($this->_readBuffer));
+        $this->_log(LogLevel::DEBUG, 'Handling packet, current buffer size: ' . strlen($this->_readBuffer));
 
         while ($framePos < $numBytes) {
 
@@ -251,7 +255,7 @@ abstract class AConnection implements IStreamContainer {
 
             if (!$this->_checkRSVBits($headers)) {
 
-                $this->sendDisconnect(\PHPWebSocket::CLOSECODE_PROTOCOL_ERROR, 'Unexpected RSV bit set');
+                $this->sendDisconnect(\PHPWebSockets::CLOSECODE_PROTOCOL_ERROR, 'Unexpected RSV bit set');
                 $this->setCloseAfterWrite();
 
                 yield new Update\Error(Update\Error::C_READ_RSVBIT_SET, $this);
@@ -262,13 +266,13 @@ abstract class AConnection implements IStreamContainer {
             $frameSize = $headers[Framer::IND_LENGTH] + $headers[Framer::IND_PAYLOAD_OFFSET];
             if ($numBytes < $frameSize) {
                 $this->_currentFrameRemainingBytes = $frameSize - $numBytes;
-                \PHPWebSocket::Log(LOG_DEBUG, 'Setting next read size to ' . $this->_currentFrameRemainingBytes);
+                $this->_log(LogLevel::DEBUG, 'Setting next read size to ' . $this->_currentFrameRemainingBytes);
                 break;
             }
 
             $this->_currentFrameRemainingBytes = NULL;
 
-            \PHPWebSocket::Log(LOG_DEBUG, 'Expecting frame of length ' . $frameSize);
+            $this->_log(LogLevel::DEBUG, 'Expecting frame of length ' . $frameSize);
 
             $frame = substr($orgBuffer, $framePos, $frameSize);
             $framePayload = Framer::GetFramePayload($frame, $headers);
@@ -276,7 +280,7 @@ abstract class AConnection implements IStreamContainer {
                 break; // Frame isn't ready yet
             } elseif ($framePayload === FALSE) {
 
-                $this->sendDisconnect(\PHPWebSocket::CLOSECODE_PROTOCOL_ERROR);
+                $this->sendDisconnect(\PHPWebSockets::CLOSECODE_PROTOCOL_ERROR);
                 $this->setCloseAfterWrite();
 
                 yield new Update\Error(Update\Error::C_READ_PROTOCOL_ERROR, $this);
@@ -286,11 +290,11 @@ abstract class AConnection implements IStreamContainer {
 
                 $opcode = $headers[Framer::IND_OPCODE];
                 switch ($opcode) {
-                    case \PHPWebSocket::OPCODE_CONTINUE:
+                    case \PHPWebSockets::OPCODE_CONTINUE:
 
                         if ($this->_partialMessage === NULL && $this->_partialMessageStream === NULL) {
 
-                            $this->sendDisconnect(\PHPWebSocket::CLOSECODE_PROTOCOL_ERROR, 'Got OPCODE_CONTINUE but no frame that could be continued');
+                            $this->sendDisconnect(\PHPWebSockets::CLOSECODE_PROTOCOL_ERROR, 'Got OPCODE_CONTINUE but no frame that could be continued');
                             $this->setCloseAfterWrite();
 
                             yield new Update\Error(Update\Error::C_READ_PROTOCOL_ERROR, $this);
@@ -299,14 +303,14 @@ abstract class AConnection implements IStreamContainer {
                         }
 
                     // Fall through intended
-                    case \PHPWebSocket::OPCODE_FRAME_TEXT:
-                    case \PHPWebSocket::OPCODE_FRAME_BINARY:
+                    case \PHPWebSockets::OPCODE_FRAME_TEXT:
+                    case \PHPWebSockets::OPCODE_FRAME_BINARY:
 
-                        if (($this->_partialMessageOpcode ?: $opcode) === \PHPWebSocket::OPCODE_FRAME_TEXT) {
+                        if (($this->_partialMessageOpcode ?: $opcode) === \PHPWebSockets::OPCODE_FRAME_TEXT) {
 
-                            if (!\PHPWebSocket::ValidateUTF8($framePayload, $this->_utfValidationState) || ($headers[Framer::IND_FIN] && $this->_utfValidationState !== \PHPWebSocket::UTF8_ACCEPT)) {
+                            if (!\PHPWebSockets::ValidateUTF8($framePayload, $this->_utfValidationState) || ($headers[Framer::IND_FIN] && $this->_utfValidationState !== \PHPWebSockets::UTF8_ACCEPT)) {
 
-                                $this->sendDisconnect(\PHPWebSocket::CLOSECODE_INVALID_PAYLOAD, 'Could not decode text frame as UTF-8');
+                                $this->sendDisconnect(\PHPWebSockets::CLOSECODE_INVALID_PAYLOAD, 'Could not decode text frame as UTF-8');
                                 $this->setCloseAfterWrite();
 
                                 yield new Update\Error(Update\Error::C_READ_INVALID_PAYLOAD, $this);
@@ -316,11 +320,11 @@ abstract class AConnection implements IStreamContainer {
 
                         }
 
-                        if ($opcode !== \PHPWebSocket::OPCODE_CONTINUE) {
+                        if ($opcode !== \PHPWebSockets::OPCODE_CONTINUE) {
 
                             if ($this->_partialMessage !== NULL || $this->_partialMessageStream !== NULL) {
 
-                                $this->sendDisconnect(\PHPWebSocket::CLOSECODE_PROTOCOL_ERROR, 'Got new frame without completing the previous');
+                                $this->sendDisconnect(\PHPWebSockets::CLOSECODE_PROTOCOL_ERROR, 'Got new frame without completing the previous');
                                 $this->setCloseAfterWrite();
 
                                 yield new Update\Error(Update\Error::C_READ_INVALID_PAYLOAD, $this);
@@ -331,7 +335,7 @@ abstract class AConnection implements IStreamContainer {
                             $newMessageStream = $this->_getStreamForNewMessage($headers);
                             if ($newMessageStream === FALSE) {
 
-                                $this->sendDisconnect(\PHPWebSocket::CLOSECODE_UNSUPPORTED_PAYLOAD);
+                                $this->sendDisconnect(\PHPWebSockets::CLOSECODE_UNSUPPORTED_PAYLOAD);
                                 $this->setCloseAfterWrite();
 
                                 return;
@@ -384,30 +388,30 @@ abstract class AConnection implements IStreamContainer {
                             $this->_partialMessageStream = NULL;
                             $this->_partialMessage = NULL;
 
-                            $this->_utfValidationState = \PHPWebSocket::UTF8_ACCEPT;
+                            $this->_utfValidationState = \PHPWebSockets::UTF8_ACCEPT;
 
                         }
 
                         break;
-                    case \PHPWebSocket::OPCODE_CLOSE_CONNECTION:
+                    case \PHPWebSockets::OPCODE_CLOSE_CONNECTION:
 
-                        \PHPWebSocket::Log(LOG_DEBUG, 'Got disconnect');
+                        $this->_log(LogLevel::DEBUG, 'Got disconnect');
 
                         $disconnectMessage = '';
-                        $code = \PHPWebSocket::CLOSECODE_NORMAL;
+                        $code = \PHPWebSockets::CLOSECODE_NORMAL;
 
                         if (strlen($framePayload) > 1) {
 
                             $code = unpack('n', substr($framePayload, 0, 2))[1]; // Send back the same disconnect code if provided
-                            if (!\PHPWebSocket::IsValidCloseCode($code)) {
+                            if (!\PHPWebSockets::IsValidCloseCode($code)) {
 
                                 $disconnectMessage = 'Invalid close code provided: ' . $code;
-                                $code = \PHPWebSocket::CLOSECODE_PROTOCOL_ERROR;
+                                $code = \PHPWebSockets::CLOSECODE_PROTOCOL_ERROR;
 
                             } elseif (!preg_match('//u', substr($framePayload, 2))) {
 
                                 $disconnectMessage = 'Received Non-UTF8 close frame payload';
-                                $code = \PHPWebSocket::CLOSECODE_PROTOCOL_ERROR;
+                                $code = \PHPWebSockets::CLOSECODE_PROTOCOL_ERROR;
 
                             } else {
                                 $disconnectMessage = substr($framePayload, 2);
@@ -421,14 +425,14 @@ abstract class AConnection implements IStreamContainer {
 
                         if ($this->_weInitiateDisconnect) {
 
-                            \PHPWebSocket::Log(LOG_DEBUG, '  We initiated the disconnect, close the connection');
+                            $this->_log(LogLevel::DEBUG, '  We initiated the disconnect, close the connection');
 
                             $this->close();
                             yield new Update\Read(Update\Read::C_SOCK_DISCONNECT, $this);
 
                         } elseif (!$this->_weSentDisconnect) {
 
-                            \PHPWebSocket::Log(LOG_DEBUG, '  Remote initiated the disconnect, echo disconnect');
+                            $this->_log(LogLevel::DEBUG, '  Remote initiated the disconnect, echo disconnect');
 
                             $this->sendDisconnect($code, $disconnectMessage); // Echo the disconnect
                             $this->setCloseAfterWrite();
@@ -436,7 +440,7 @@ abstract class AConnection implements IStreamContainer {
                         }
 
                         break;
-                    case \PHPWebSocket::OPCODE_PING:
+                    case \PHPWebSockets::OPCODE_PING:
 
                         $pingPayload = (is_string($framePayload) ? $framePayload : '');
 
@@ -444,7 +448,7 @@ abstract class AConnection implements IStreamContainer {
                         $pongs[] = $pingPayload;
 
                         break;
-                    case \PHPWebSocket::OPCODE_PONG:
+                    case \PHPWebSockets::OPCODE_PONG:
 
                         $pongPayload = (is_string($framePayload) ? $framePayload : '');
                         yield new Update\Read(Update\Read::C_PONG, $this, $opcode, $pongPayload);
@@ -465,7 +469,7 @@ abstract class AConnection implements IStreamContainer {
         if (!empty($pongs) && !$this->isDisconnecting()) {
 
             foreach ($pongs as $pongPayload) {
-                $this->write($pongPayload, \PHPWebSocket::OPCODE_PONG);
+                $this->write($pongPayload, \PHPWebSockets::OPCODE_PONG);
             }
 
         }
@@ -479,18 +483,18 @@ abstract class AConnection implements IStreamContainer {
      */
     public function handleWrite() : \Generator {
 
-        \PHPWebSocket::Log(LOG_DEBUG, __METHOD__);
+        $this->_log(LogLevel::DEBUG, __METHOD__);
 
         if ($this->_writeBuffer !== NULL) { // If our current frame hasn't finished yet
-            \PHPWebSocket::Log(LOG_DEBUG, 'Resuming write');
+            $this->_log(LogLevel::DEBUG, 'Resuming write');
         } elseif (!empty($this->_priorityFramesBuffer)) { // Certain frames take priority over normal frames
 
-            \PHPWebSocket::Log(LOG_DEBUG, 'Starting new write (Priority)');
+            $this->_log(LogLevel::DEBUG, 'Starting new write (Priority)');
             $this->_writeBuffer = array_shift($this->_priorityFramesBuffer);
 
         } elseif (!empty($this->_framesBuffer)) {
 
-            \PHPWebSocket::Log(LOG_DEBUG, 'Starting new write');
+            $this->_log(LogLevel::DEBUG, 'Starting new write');
             $this->_writeBuffer = array_shift($this->_framesBuffer);
 
         }
@@ -499,24 +503,24 @@ abstract class AConnection implements IStreamContainer {
 
             $bytesToWrite = strlen($this->_writeBuffer);
 
-            \PHPWebSocket::Log(LOG_DEBUG, '  Attempting to write ' . $bytesToWrite . ' bytes');
+            $this->_log(LogLevel::DEBUG, '  Attempting to write ' . $bytesToWrite . ' bytes');
 
             $bytesWritten = @fwrite($this->getStream(), $this->_writeBuffer, min($this->getWriteRate(), $bytesToWrite));
             if ($bytesWritten === FALSE) {
-                \PHPWebSocket::Log(LOG_DEBUG, '    fwrite failed');
+                $this->_log(LogLevel::DEBUG, '    fwrite failed');
                 yield new Update\Error(Update\Error::C_WRITE, $this);
             } elseif ($bytesWritten === $bytesToWrite) {
-                \PHPWebSocket::Log(LOG_DEBUG, '    All bytes written');
+                $this->_log(LogLevel::DEBUG, '    All bytes written');
                 $this->_writeBuffer = NULL;
             } else {
-                \PHPWebSocket::Log(LOG_DEBUG, '    Written ' . $bytesWritten . ' bytes');
+                $this->_log(LogLevel::DEBUG, '    Written ' . $bytesWritten . ' bytes');
                 $this->_writeBuffer = substr($this->_writeBuffer, $bytesWritten);
             }
 
         }
 
         if ($this->_closeAfterWrite && $this->isWriteBufferEmpty()) {
-            \PHPWebSocket::Log(LOG_DEBUG, '      Close after write');
+            $this->_log(LogLevel::DEBUG, '      Close after write');
             $this->close();
         }
 
@@ -532,9 +536,9 @@ abstract class AConnection implements IStreamContainer {
      * @throws \InvalidArgumentException
      * @throws \LogicException
      */
-    public function writeMultiFramed(string $data, int $opcode = \PHPWebSocket::OPCODE_FRAME_TEXT, int $frameSize = 65535) {
+    public function writeMultiFramed(string $data, int $opcode = \PHPWebSockets::OPCODE_FRAME_TEXT, int $frameSize = 65535) {
 
-        if ($opcode !== \PHPWebSocket::OPCODE_FRAME_TEXT && $opcode !== \PHPWebSocket::OPCODE_FRAME_BINARY) {
+        if ($opcode !== \PHPWebSockets::OPCODE_FRAME_TEXT && $opcode !== \PHPWebSockets::OPCODE_FRAME_BINARY) {
             throw new \InvalidArgumentException('Only OPCODE_FRAME_TEXT and OPCODE_FRAME_BINARY are supported in ' . __METHOD__);
         }
         if ($frameSize < 1) {
@@ -596,8 +600,8 @@ abstract class AConnection implements IStreamContainer {
      * @param int    $opcode
      * @param bool   $isFinal
      */
-    public function write(string $data, int $opcode = \PHPWebSocket::OPCODE_FRAME_TEXT, bool $isFinal = TRUE) {
-        $this->writeRaw(Framer::Frame($data, $this->_shouldMask(), $opcode, $isFinal), \PHPWebSocket::IsPriorityOpcode($opcode));
+    public function write(string $data, int $opcode = \PHPWebSockets::OPCODE_FRAME_TEXT, bool $isFinal = TRUE) {
+        $this->writeRaw(Framer::Frame($data, $this->_shouldMask(), $opcode, $isFinal), \PHPWebSockets::IsPriorityOpcode($opcode));
     }
 
     /**
@@ -614,7 +618,7 @@ abstract class AConnection implements IStreamContainer {
 
         $this->_weSentDisconnect = TRUE;
 
-        $this->write(pack('n', $code) . $reason, \PHPWebSocket::OPCODE_CLOSE_CONNECTION);
+        $this->write(pack('n', $code) . $reason, \PHPWebSockets::OPCODE_CLOSE_CONNECTION);
 
     }
 

@@ -28,53 +28,50 @@ declare(strict_types = 1);
  * - - - - - - - - - - - - - - END LICENSE BLOCK - - - - - - - - - - - - -
  */
 
-namespace PHPWebSocket;
+namespace PHPWebSockets;
 
-require_once(__DIR__ . '/Update/Error.php.inc');
-require_once(__DIR__ . '/Update/Read.php.inc');
-
-abstract class AUpdate {
+interface IStreamContainer {
+    /**
+     * Gets called just before stream_select gets called
+     *
+     * @return \Generator
+     */
+    public function beforeStreamSelect() : \Generator;
 
     /**
-     * The source object related to this update
+     * Returns if we have (partial)frames ready to be send
      *
-     * @var object|null
+     * @return bool
      */
-    protected $_sourceObject = NULL;
+    public function isWriteBufferEmpty() : bool;
 
     /**
-     * The code for this update
+     * Handles exceptional data reads
      *
-     * @var int
+     * @return \Generator
      */
-    protected $_code = 0;
-
-    public function __construct(int $code, $sourceObject = NULL) {
-
-        $this->_sourceObject = $sourceObject;
-        $this->_code = $code;
-
-    }
+    public function handleExceptional() : \Generator;
 
     /**
-     * Returns the source object related to this update
+     * Writes the current buffer to the connection
      *
-     * @return object|null
+     * @return \Generator
      */
-    public function getSourceObject() {
-        return $this->_sourceObject;
-    }
+    public function handleWrite() : \Generator;
 
     /**
-     * Returns the code for this update
+     * Attempts to read from our connection
      *
-     * @return int
+     * @return \Generator
      */
-    public function getCode() : int {
-        return $this->_code;
-    }
+    public function handleRead() : \Generator;
 
-    public function __toString() {
-        return 'AUpdate) (C: ' . $this->getCode() . ')';
-    }
+    /**
+     * Returns the stream object for this connection
+     *
+     * @return resource
+     */
+    public function getStream();
+
+    public function __toString();
 }

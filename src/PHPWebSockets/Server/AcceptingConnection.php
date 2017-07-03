@@ -28,20 +28,24 @@ declare(strict_types = 1);
  * - - - - - - - - - - - - - - END LICENSE BLOCK - - - - - - - - - - - - -
  */
 
-namespace PHPWebSocket\Server;
+namespace PHPWebSockets\Server;
 
-use PHPWebSocket\TStreamContainerDefaults;
-use PHPWebSocket\IStreamContainer;
-use PHPWebSocket\Server;
+use PHPWebSockets\TStreamContainerDefaults;
+use PHPWebSockets\IStreamContainer;
+use PHPWebSockets\TLogAware;
+use PHPWebSockets\Server;
+use Psr\Log\LoggerAwareInterface;
+use Psr\Log\LogLevel;
 
-class AcceptingConnection implements IStreamContainer {
+class AcceptingConnection implements IStreamContainer, LoggerAwareInterface {
 
     use TStreamContainerDefaults;
+    use TLogAware;
 
     /**
      * The websocket server related to this connection
      *
-     * @var \PHPWebSocket\Server
+     * @var \PHPWebSockets\Server
      */
     protected $_server = NULL;
 
@@ -52,10 +56,16 @@ class AcceptingConnection implements IStreamContainer {
      */
     protected $_stream = NULL;
 
-    public function __construct(Server $websocket, $stream) {
+    public function __construct(Server $server, $stream) {
 
-        $this->_server = $websocket;
+        $this->_server = $server;
         $this->_stream = $stream;
+
+        // Inherit the logger from the server
+        $serverLogger = $server->getLogger();
+        if ($serverLogger !== \PHPWebSockets::GetLogger()) {
+            $this->setLogger($serverLogger);
+        }
 
         stream_set_timeout($this->_stream, 1);
         stream_set_blocking($this->_stream, FALSE);
@@ -94,7 +104,7 @@ class AcceptingConnection implements IStreamContainer {
     /**
      * Returns the related websocket server
      *
-     * @return \PHPWebSocket\Server
+     * @return \PHPWebSockets\Server
      */
     public function getServer() : Server {
         return $this->_server;
@@ -140,7 +150,7 @@ class AcceptingConnection implements IStreamContainer {
                 case 'udg':
 
                     if (!$cleanup) {
-                        \PHPWebSocket::Log(LOG_DEBUG, 'Not cleaning up');
+                        $this->_log(LogLevel::DEBUG, 'Not cleaning up');
                         break;
                     }
 
@@ -148,10 +158,10 @@ class AcceptingConnection implements IStreamContainer {
                     if (file_exists($path)) {
 
                         if (!$cleanup) {
-                            \PHPWebSocket::Log(LOG_DEBUG, 'Not cleaning up ' . $path);
+                            $this->_log(LogLevel::DEBUG, 'Not cleaning up ' . $path);
                         } else {
 
-                            \PHPWebSocket::Log(LOG_DEBUG, 'Unlinking: ' . $path);
+                            $this->_log(LogLevel::DEBUG, 'Unlinking: ' . $path);
                             unlink($path);
 
                         }
