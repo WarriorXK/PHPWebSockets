@@ -27,7 +27,13 @@
         }
     },
     "archive": {
-        "exclude": ["/Resources", "/Tests"]
+        "exclude": [
+            "/*",
+            "/.*",
+            "!/src",
+            "!/VERSION",
+            "!/.editorconfig"
+        ]
     },
     "non-feature-branches": [
         "develop",
