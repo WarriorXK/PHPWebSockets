@@ -34,14 +34,13 @@ use Psr\Log\LogLevel;
 
 final class Framer {
 
-    const   BYTE1_FIN = 0b10000000,
-            BYTE1_RSV1 = 0b01000000,
-            BYTE1_RSV2 = 0b00100000,
-            BYTE1_RSV3 = 0b00010000,
-            BYTE1_OPCODE = 0b00001111;
-
-    const   BYTE2_MASKED = 0b10000000,
-            BYTE2_LENGTH = 0b01111111;
+    const   BYTE_FIN    = 0b1000000000000000,
+            BYTE_RSV1   = 0b0100000000000000,
+            BYTE_RSV2   = 0b0010000000000000,
+            BYTE_RSV3   = 0b0001000000000000,
+            BYTE_OPCODE = 0b0000111100000000,
+            BYTE_MASKED = 0b0000000010000000,
+            BYTE_LENGTH = 0b0000000001111111;
 
     const   IND_FIN = 'fin',
             IND_RSV1 = 'rsv1',
@@ -67,17 +66,16 @@ final class Framer {
             return NULL;
         }
 
-        $byte1 = ord($frame[0]);
-        $byte2 = ord($frame[1]);
+        $part1 = unpack('n1', $frame)[1];
 
         $headers = [
-            self::IND_FIN            => (bool) ($byte1 & self::BYTE1_FIN),
-            self::IND_RSV1           => (bool) ($byte1 & self::BYTE1_RSV1),
-            self::IND_RSV2           => (bool) ($byte1 & self::BYTE1_RSV2),
-            self::IND_RSV3           => (bool) ($byte1 & self::BYTE1_RSV3),
-            self::IND_OPCODE         => ($byte1 & self::BYTE1_OPCODE),
-            self::IND_MASK           => (bool) ($byte2 & self::BYTE2_MASKED),
-            self::IND_LENGTH         => ($byte2 & self::BYTE2_LENGTH),
+            self::IND_FIN            => (bool) ($part1 & self::BYTE_FIN),
+            self::IND_RSV1           => (bool) ($part1 & self::BYTE_RSV1),
+            self::IND_RSV2           => (bool) ($part1 & self::BYTE_RSV2),
+            self::IND_RSV3           => (bool) ($part1 & self::BYTE_RSV3),
+            self::IND_OPCODE         =>        ($part1 & self::BYTE_OPCODE) >> 8,
+            self::IND_MASK           => (bool) ($part1 & self::BYTE_MASKED),
+            self::IND_LENGTH         =>        ($part1 & self::BYTE_LENGTH),
             self::IND_MASKING_KEY    => NULL,
             self::IND_PAYLOAD_OFFSET => 2,
         ];
@@ -204,52 +202,41 @@ final class Framer {
             throw new \LogicException('Control frames must be final!');
         }
 
-        $byte1 = $opcode;
-        $byte2 = 0;
+        $byte = $opcode << 8;
 
         if ($isFinal) {
-            $byte1 |= self::BYTE1_FIN;
+            $byte |= self::BYTE_FIN;
         }
         if ($rsv1) {
-            $byte1 |= self::BYTE1_RSV1;
+            $byte |= self::BYTE_RSV1;
         }
         if ($rsv2) {
-            $byte1 |= self::BYTE1_RSV2;
+            $byte |= self::BYTE_RSV2;
         }
         if ($rsv3) {
-            $byte1 |= self::BYTE1_RSV3;
+            $byte |= self::BYTE_RSV3;
         }
 
         $dataLength = strlen($data);
-        $sizeBytes = '';
-
-        if ($dataLength < 126) { // 7 bits
-
-            $byte2 = $dataLength;
-
-        } elseif ($dataLength < 65536) {  // 16 bits
-
-            $sizeBytes = pack('n', $dataLength);
-            $byte2 = 126;
-
-        } else {  // 64 bit
-
-            $sizeBytes = pack('J', $dataLength);
-            $byte2 = 127;
-
-        }
 
         $maskingKey = '';
         if ($mask) {
 
-            $byte2 |= self::BYTE2_MASKED;
-
             $maskingKey = random_bytes(4);
             $data = self::ApplyMask($data, $maskingKey);
 
+            $byte |= self::BYTE_MASKED;
+
         }
 
-        return chr($byte1) . chr($byte2) . $sizeBytes . $maskingKey . $data;
+        if ($dataLength < 126) { // 7 bits
+            return pack('n', $byte | $dataLength) . $maskingKey . $data;
+        } elseif ($dataLength < 65536) {  // 16 bits
+            return pack('nn', $byte | 126, $dataLength) . $maskingKey . $data;
+        } else {  // 64 bit
+            return pack('nJ', $byte | 127, $dataLength) . $maskingKey . $data;
+        }
+
     }
 
     /**
