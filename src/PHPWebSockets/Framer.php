@@ -6,7 +6,7 @@ declare(strict_types = 1);
  * - - - - - - - - - - - - - BEGIN LICENSE BLOCK - - - - - - - - - - - - -
  * The MIT License (MIT)
  *
- * Copyright (c) 2016 Kevin Meijer
+ * Copyright (c) 2017 Kevin Meijer
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -34,10 +34,10 @@ use Psr\Log\LogLevel;
 
 final class Framer {
 
-    const   BYTE_FIN    = 0b1000000000000000,
-            BYTE_RSV1   = 0b0100000000000000,
-            BYTE_RSV2   = 0b0010000000000000,
-            BYTE_RSV3   = 0b0001000000000000,
+    const   BYTE_FIN = 0b1000000000000000,
+            BYTE_RSV1 = 0b0100000000000000,
+            BYTE_RSV2 = 0b0010000000000000,
+            BYTE_RSV3 = 0b0001000000000000,
             BYTE_OPCODE = 0b0000111100000000,
             BYTE_MASKED = 0b0000000010000000,
             BYTE_LENGTH = 0b0000000001111111;
@@ -73,9 +73,9 @@ final class Framer {
             self::IND_RSV1           => (bool) ($part1 & self::BYTE_RSV1),
             self::IND_RSV2           => (bool) ($part1 & self::BYTE_RSV2),
             self::IND_RSV3           => (bool) ($part1 & self::BYTE_RSV3),
-            self::IND_OPCODE         =>        ($part1 & self::BYTE_OPCODE) >> 8,
+            self::IND_OPCODE         => ($part1 & self::BYTE_OPCODE) >> 8,
             self::IND_MASK           => (bool) ($part1 & self::BYTE_MASKED),
-            self::IND_LENGTH         =>        ($part1 & self::BYTE_LENGTH),
+            self::IND_LENGTH         => ($part1 & self::BYTE_LENGTH),
             self::IND_MASKING_KEY    => NULL,
             self::IND_PAYLOAD_OFFSET => 2,
         ];
