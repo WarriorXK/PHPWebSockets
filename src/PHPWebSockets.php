@@ -471,11 +471,11 @@ final class PHPWebSockets {
      */
     public static function Autoload(string $className) {
 
-        if (substr($className, 0, 13) !== 'PHPWebSockets') {
+        if (substr($className, 0, 12) !== 'PHPWebSocket') {
             return;
         }
 
-        $file = __DIR__ . str_replace('\\', DIRECTORY_SEPARATOR, substr($className, 13)) . '.php';
+        $file = __DIR__ . DIRECTORY_SEPARATOR . str_replace('\\', DIRECTORY_SEPARATOR, $className) . '.php';
         if (file_exists($file)) {
             require_once($file);
         }
