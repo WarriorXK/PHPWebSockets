@@ -6,7 +6,7 @@ declare(strict_types = 1);
  * - - - - - - - - - - - - - BEGIN LICENSE BLOCK - - - - - - - - - - - - -
  * The MIT License (MIT)
  *
- * Copyright (c) 2016 Kevin Meijer
+ * Copyright (c) 2017 Kevin Meijer
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -28,8 +28,8 @@ declare(strict_types = 1);
  * - - - - - - - - - - - - - - END LICENSE BLOCK - - - - - - - - - - - - -
  */
 
-use \Psr\Log\LoggerInterface;
-use \Psr\Log\LogLevel;
+use Psr\Log\LoggerInterface;
+use Psr\Log\LogLevel;
 
 final class PHPWebSockets {
 
@@ -192,8 +192,6 @@ final class PHPWebSockets {
             $streams = @stream_select($read, $write, $exceptional, $timeInt, $timePart); // Stream select filters everything out of the arrays
             if ($streams === FALSE) {
                 yield new \PHPWebSockets\Update\Error(\PHPWebSockets\Update\Error::C_SELECT);
-
-                return;
             } else {
 
                 if (!empty($read) || !empty($write) || !empty($exceptional)) {
@@ -469,15 +467,15 @@ final class PHPWebSockets {
      * The autoloader for non-composer including
      * Note: The method is not registered as autoloader, this still has to happen by calling spl_autoload_register([\PHPWebSockets::class, 'Autoload']);
      *
-     * @param string $classname
+     * @param string $className
      */
-    public static function Autoload(string $classname) {
+    public static function Autoload(string $className) {
 
-        if (substr($classname, 0, 13) !== 'PHPWebSockets') {
+        if (substr($className, 0, 12) !== 'PHPWebSocket') {
             return;
         }
 
-        $file = __DIR__ . str_replace('\\', DIRECTORY_SEPARATOR, substr($classname, 13)) . '.php';
+        $file = __DIR__ . DIRECTORY_SEPARATOR . str_replace('\\', DIRECTORY_SEPARATOR, $className) . '.php';
         if (file_exists($file)) {
             require_once($file);
         }
