@@ -6,6 +6,7 @@ cache:
 php:
   - '7.0'
   - '7.1'
+  - '7.2'
 env:
   - $TESTCLASS=PHPWebSocket/Client $TESTSCRIPT=tests/ClientTest.php $BUFFERTPE=memory
   - $TESTCLASS=PHPWebSocket/Client $TESTSCRIPT=tests/ClientTest.php $BUFFERTPE=tmpfile
