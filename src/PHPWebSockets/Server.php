@@ -225,7 +225,7 @@ class Server implements LoggerAwareInterface {
      *
      * @throws \Exception
      *
-     * @return \Generator
+     * @return \Generator|\PHPWebSockets\AUpdate[]
      */
     public function update(float $timeout = NULL) : \Generator {
         yield from \PHPWebSockets::MultiUpdate($this->getConnections(TRUE), $timeout);
@@ -234,7 +234,7 @@ class Server implements LoggerAwareInterface {
     /**
      * Gets called by the accepting web socket to notify the server that a new connection attempt has occured
      *
-     * @return \Generator
+     * @return \Generator|\PHPWebSockets\AUpdate[]
      */
     public function gotNewConnection() : \Generator {
 
@@ -252,7 +252,7 @@ class Server implements LoggerAwareInterface {
      * @throws \LogicException
      * @throws \RuntimeException
      *
-     * @return \Generator
+     * @return \Generator|\PHPWebSockets\AUpdate[]
      */
     public function acceptNewConnection() : \Generator {
 

@@ -227,7 +227,7 @@ abstract class AConnection implements IStreamContainer, LoggerAwareInterface {
      *
      * @throws \UnexpectedValueException
      *
-     * @return \Generator
+     * @return \Generator|\PHPWebSockets\AUpdate[]
      */
     protected function _handlePacket(string $newData) : \Generator {
 
@@ -479,7 +479,7 @@ abstract class AConnection implements IStreamContainer, LoggerAwareInterface {
     /**
      * Writes the current buffer to the connection
      *
-     * @return \Generator
+     * @return \Generator|\PHPWebSockets\AUpdate[]
      */
     public function handleWrite() : \Generator {
 

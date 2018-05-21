@@ -221,7 +221,7 @@ class Client extends AConnection {
      *
      * @throws \Exception
      *
-     * @return \Generator
+     * @return \Generator|\PHPWebSockets\AUpdate[]
      */
     public function update(float $timeout = NULL) : \Generator {
         yield from \PHPWebSockets::MultiUpdate([$this], $timeout);
@@ -230,7 +230,7 @@ class Client extends AConnection {
     /**
      * Attempts to read from our connection
      *
-     * @return \Generator
+     * @return \Generator|\PHPWebSockets\AUpdate[]
      */
     public function handleRead() : \Generator {
 

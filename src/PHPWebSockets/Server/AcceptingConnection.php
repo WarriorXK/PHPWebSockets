@@ -77,7 +77,7 @@ class AcceptingConnection implements IStreamContainer, LoggerAwareInterface {
     /**
      * Handles exceptional data reads
      *
-     * @return \Generator
+     * @return \Generator|\PHPWebSockets\AUpdate[]
      */
     public function handleExceptional() : \Generator {
         throw new \LogicException('OOB data is not handled for an accepting stream!');
@@ -86,7 +86,7 @@ class AcceptingConnection implements IStreamContainer, LoggerAwareInterface {
     /**
      * Writes the current buffer to the connection
      *
-     * @return \Generator
+     * @return \Generator|\PHPWebSockets\AUpdate[]
      */
     public function handleWrite() : \Generator {
         throw new \LogicException('An accepting socket should never write!');
@@ -95,7 +95,7 @@ class AcceptingConnection implements IStreamContainer, LoggerAwareInterface {
     /**
      * Attempts to read from our connection
      *
-     * @return \Generator
+     * @return \Generator|\PHPWebSockets\AUpdate[]
      */
     public function handleRead() : \Generator {
         yield from $this->_server->gotNewConnection();

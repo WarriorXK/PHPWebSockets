@@ -18,8 +18,6 @@ before_script:
   - virtualenv ~/wstest
   - source ~/wstest/bin/activate
   - pip install autobahntestsuite
-#  - sudo -H pip install -U pip wheel
-#  - sudo -H pip install autobahntestsuite
   - phpenv config-rm xdebug.ini
   - composer update
 script:
@@ -30,6 +28,3 @@ notifications:
       - admin@kevinmeijer.nl
     on_success: change
     on_failure: always
-# addons:
-#   artifacts:
-#     paths: /tmp/reports/

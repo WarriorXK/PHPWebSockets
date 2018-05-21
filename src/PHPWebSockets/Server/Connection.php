@@ -134,7 +134,7 @@ class Connection extends AConnection {
     /**
      * Attempts to read from our connection
      *
-     * @return \Generator
+     * @return \Generator|\PHPWebSockets\AUpdate[]
      */
     public function handleRead() : \Generator {
 
@@ -228,7 +228,7 @@ class Connection extends AConnection {
     /**
      * Gets called just before stream_select gets called
      *
-     * @return \Generator
+     * @return \Generator|\PHPWebSockets\AUpdate[]
      */
     public function beforeStreamSelect() : \Generator {
 
