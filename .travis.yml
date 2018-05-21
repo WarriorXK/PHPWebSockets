@@ -14,9 +14,12 @@ env:
   - $TESTCLASS=PHPWebSocket/Server $TESTSCRIPT=tests/ServerTest.php $BUFFERTPE=tmpfile
 before_script:
   - sudo apt-get update
-  - sudo apt-get install python-pip
-  - sudo -H pip install -U pip wheel
-  - sudo -H pip install autobahntestsuite
+  - sudo apt-get install python-pip python-virtualenv
+  - virtualenv ~/wstest
+  - source ~/wstest/bin/activate
+  - pip install autobahntestsuite
+#  - sudo -H pip install -U pip wheel
+#  - sudo -H pip install autobahntestsuite
   - phpenv config-rm xdebug.ini
   - composer update
 script:
