@@ -66,6 +66,7 @@ abstract class AUpdate {
      * Returns the source object related to this update
      *
      * @deprecated Use getSourceConnection instead
+     *
      * @return object|null
      */
     public function getSourceObject() {
