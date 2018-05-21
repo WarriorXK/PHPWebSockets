@@ -30,6 +30,7 @@ declare(strict_types = 1);
 
 namespace PHPWebSockets\Update;
 
+use PHPWebSockets\AConnection;
 use PHPWebSockets\AUpdate;
 
 class Read extends AUpdate {
@@ -67,13 +68,13 @@ class Read extends AUpdate {
      */
     protected $_stream = NULL;
 
-    public function __construct(int $code, $sourceObject = NULL, int $opcode = NULL, string $message = NULL, $stream = NULL) {
+    public function __construct(int $code, AConnection $sourceConnection = NULL, int $opcode = NULL, string $message = NULL, $stream = NULL) {
 
         if ($stream !== NULL && !is_resource($stream)) {
             throw new \InvalidArgumentException('The $stream argument has to be NULL or a resource!');
         }
 
-        parent::__construct($code, $sourceObject);
+        parent::__construct($code, $sourceConnection);
 
         $this->_message = $message;
         $this->_opcode = $opcode;

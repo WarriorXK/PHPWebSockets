@@ -149,7 +149,7 @@ final class PHPWebSockets {
      *
      * @throws \InvalidArgumentException
      *
-     * @return \Generator
+     * @return \Generator|\PHPWebSockets\AUpdate[]
      */
     public static function MultiUpdate(array $updateObjects, float $timeout = NULL) : \Generator {
 

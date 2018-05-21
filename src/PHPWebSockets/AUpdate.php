@@ -37,7 +37,7 @@ abstract class AUpdate {
      *
      * @var object|null
      */
-    protected $_sourceObject = NULL;
+    protected $_sourceConnection = NULL;
 
     /**
      * The code for this update
@@ -46,20 +46,30 @@ abstract class AUpdate {
      */
     protected $_code = 0;
 
-    public function __construct(int $code, $sourceObject = NULL) {
+    public function __construct(int $code, AConnection $sourceObject = NULL) {
 
-        $this->_sourceObject = $sourceObject;
+        $this->_sourceConnection = $sourceObject;
         $this->_code = $code;
 
     }
 
     /**
+     * Returns the connection that triggered this update
+     *
+     * @return \PHPWebSockets\AConnection|null
+     */
+    public function getSourceConnection() {
+        return $this->_sourceConnection;
+    }
+
+    /**
      * Returns the source object related to this update
      *
+     * @deprecated Use getSourceConnection instead
      * @return object|null
      */
     public function getSourceObject() {
-        return $this->_sourceObject;
+        return $this->_sourceConnection;
     }
 
     /**
