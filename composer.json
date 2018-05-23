@@ -23,8 +23,13 @@
     },
     "autoload": {
         "psr-4": {
-            "": "src/"
-        }
+            "PHPWebSockets\\": [
+                "src/PHPWebSockets/"
+            ]
+        },
+        "files": [
+            "src/PHPWebSockets.php"
+        ]
     },
     "archive": {
         "exclude": [
