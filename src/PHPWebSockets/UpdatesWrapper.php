@@ -68,6 +68,11 @@ class UpdatesWrapper {
      */
     private $_errorHandler = NULL;
 
+    /**
+     * @var bool
+     */
+    private $_shouldRun = FALSE;
+
     public function __construct(array $streamContainers, callable $newConnectionHandler = NULL, callable $messageHandler = NULL, callable $disconnectHandler = NULL) {
 
         foreach ($streamContainers as $key => $container) {
@@ -127,6 +132,36 @@ class UpdatesWrapper {
      */
     public function setDisconnectHandler(callable $callable = NULL) {
         $this->_messageHandler = $callable;
+    }
+
+    /**
+     * Creates a runloop
+     *
+     * @param float|null    $timeout
+     * @param callable|null $runloop
+     */
+    public function run(float $timeout = NULL, callable $runloop = NULL) {
+
+        $this->_shouldRun = TRUE;
+        while ($this->_shouldRun) {
+
+            $this->update($timeout);
+
+            if ($runloop) {
+
+                $ret = $runloop($this);
+                if ($ret === FALSE) {
+                    $this->_shouldRun = FALSE;
+                }
+
+            }
+
+        }
+
+    }
+
+    public function stop() {
+        $this->_shouldRun = FALSE;
     }
 
     /**
@@ -432,5 +467,4 @@ class UpdatesWrapper {
         $this->_triggerDisconnectHandler($source, FALSE, $update->getCode());
 
     }
-
 }
