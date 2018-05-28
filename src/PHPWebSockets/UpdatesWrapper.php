@@ -28,7 +28,7 @@ declare(strict_types = 1);
  * - - - - - - - - - - - - - - END LICENSE BLOCK - - - - - - - - - - - - -
  */
 
-namespace Brightfish\PHPWebSockets;
+namespace PHPWebSockets;
 
 use Brightfish\Error;
 use PHPWebSockets\AConnection;
