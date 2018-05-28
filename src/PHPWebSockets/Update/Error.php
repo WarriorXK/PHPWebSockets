@@ -48,7 +48,12 @@ class Error extends AUpdate {
             C_READ_RSVBIT_SET = 11,
             C_WRITE = 12,
             C_ACCEPT_TIMEOUT_PASSED = 13,
-            C_READ_INVALID_TARGET_STREAM = 14;
+            C_WRITE_INVALID_TARGET_STREAM = 14;
+
+    /**
+     * @deprecated Constant has the wrong name, use C_WRITE_INVALID_TARGET_STREAM instead
+     */
+    const C_READ_INVALID_TARGET_STREAM = self::C_WRITE_INVALID_TARGET_STREAM;
 
     /**
      * Returns a description for the provided error code

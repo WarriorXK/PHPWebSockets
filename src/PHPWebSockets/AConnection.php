@@ -373,7 +373,10 @@ abstract class AConnection implements IStreamContainer, LoggerAwareInterface {
                             } while ($res !== FALSE && $writtenBytes < $payloadLength);
 
                             if ($res === FALSE) {
-                                yield new Update\Error(Update\Error::C_READ_INVALID_TARGET_STREAM, $this);
+
+                                $this->close();
+                                yield new Update\Error(Update\Error::C_WRITE_INVALID_TARGET_STREAM, $this);
+
                             }
 
                         } else {
