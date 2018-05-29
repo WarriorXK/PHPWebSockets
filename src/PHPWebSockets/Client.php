@@ -151,7 +151,7 @@ class Client extends AConnection {
             throw new \LogicException('The connection is already open!');
         }
 
-        $this->_stream = stream_socket_client($address, $this->_streamLastErrorCode, $this->_streamLastError, $this->getConnectTimeout(), STREAM_CLIENT_CONNECT, stream_context_create($streamContext));
+        $this->_stream = @stream_socket_client($address, $this->_streamLastErrorCode, $this->_streamLastError, $this->getConnectTimeout(), STREAM_CLIENT_CONNECT, stream_context_create($streamContext));
         if ($this->_stream === FALSE) {
             return FALSE;
         }
