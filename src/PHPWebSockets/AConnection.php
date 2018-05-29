@@ -158,6 +158,13 @@ abstract class AConnection implements IStreamContainer, LoggerAwareInterface {
     protected $_readBuffer = NULL;
 
     /**
+     * An overwrite to indicate if this connection is closed
+     *
+     * @var bool
+     */
+    protected $_isClosed = FALSE;
+
+    /**
      * The amount of bytes we write per cycle
      *
      * @var int

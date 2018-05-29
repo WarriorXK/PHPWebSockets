@@ -246,6 +246,8 @@ class Client extends AConnection {
 
         if (strlen($newData) === 0) {
 
+            $this->_isClosed = TRUE;
+
             if ($this->_remoteSentDisconnect && $this->_weSentDisconnect) {
                 yield new Update\Read(Update\Read::C_SOCK_DISCONNECT, $this);
             } else {
@@ -379,7 +381,7 @@ class Client extends AConnection {
      * @return bool
      */
     public function isOpen() : bool {
-        return is_resource($this->_stream);
+        return $this->_isClosed === FALSE && is_resource($this->_stream);
     }
 
     /**
@@ -404,6 +406,8 @@ class Client extends AConnection {
      * Simply closes the connection
      */
     public function close() {
+
+        $this->_isClosed = TRUE;
 
         if (is_resource($this->_stream)) {
             fclose($this->_stream);

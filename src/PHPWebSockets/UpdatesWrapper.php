@@ -30,13 +30,15 @@ declare(strict_types = 1);
 
 namespace PHPWebSockets;
 
-use Brightfish\Error;
-use PHPWebSockets\AConnection;
-use PHPWebSockets\IStreamContainer;
 use PHPWebSockets\Server\Connection;
 use PHPWebSockets\Update;
 
 class UpdatesWrapper {
+
+    /**
+     * @var callable|null
+     */
+    private $_clientConnectedHandler = NULL;
 
     /**
      * @var callable|null
@@ -51,17 +53,17 @@ class UpdatesWrapper {
     /**
      * @var callable|null
      */
+    private $_newMessageHandler = NULL;
+
+    /**
+     * @var callable|null
+     */
     private $_disconnectHandler = NULL;
 
     /**
      * @var \PHPWebSockets\IStreamContainer[]
      */
     private $_streamContainers = [];
-
-    /**
-     * @var callable|null
-     */
-    private $_messageHandler = NULL;
 
     /**
      * @var callable|null
@@ -73,7 +75,7 @@ class UpdatesWrapper {
      */
     private $_shouldRun = FALSE;
 
-    public function __construct(array $streamContainers, callable $newConnectionHandler = NULL, callable $messageHandler = NULL, callable $disconnectHandler = NULL) {
+    public function __construct(array $streamContainers = []) {
 
         foreach ($streamContainers as $key => $container) {
 
@@ -81,13 +83,9 @@ class UpdatesWrapper {
                 throw new \InvalidArgumentException('Entry at key ' . $key . ' is not an instance of ' . IStreamContainer::class);
             }
 
+            $this->addStreamContainer($container);
+
         }
-
-        $this->_streamContainers = $streamContainers;
-
-        $this->_newConnectionHandler = $newConnectionHandler;
-        $this->_disconnectHandler = $disconnectHandler;
-        $this->_messageHandler = $messageHandler;
 
     }
 
@@ -114,27 +112,6 @@ class UpdatesWrapper {
     }
 
     /**
-     * @param callable|null $callable
-     */
-    public function setNewConnectionHandler(callable $callable = NULL) {
-        $this->_newConnectionHandler = $callable;
-    }
-
-    /**
-     * @param callable|null $callable
-     */
-    public function setMessageHandler(callable $callable = NULL) {
-        $this->_messageHandler = $callable;
-    }
-
-    /**
-     * @param callable|null $callable
-     */
-    public function setDisconnectHandler(callable $callable = NULL) {
-        $this->_messageHandler = $callable;
-    }
-
-    /**
      * Creates a runloop
      *
      * @param float|null    $timeout
@@ -148,12 +125,7 @@ class UpdatesWrapper {
             $this->update($timeout);
 
             if ($runloop) {
-
-                $ret = $runloop($this);
-                if ($ret === FALSE) {
-                    $this->_shouldRun = FALSE;
-                }
-
+                $runloop($this);
             }
 
         }
@@ -165,13 +137,14 @@ class UpdatesWrapper {
     }
 
     /**
-     * @param float|null $timeout The amount of seconds to wait for updates, setting this value to NULL causes this function to block indefinitely until there is an update
+     * @param float|null                        $timeout     The amount of seconds to wait for updates, setting this value to NULL causes this function to block indefinitely until there is an update
+     * @param \PHPWebSockets\IStreamContainer[] $tempStreams Streams that will be handled this iteration only
      *
      * @return void
      */
-    public function update(float $timeout = NULL) {
+    public function update(float $timeout = NULL, array $tempStreams = []) {
 
-        $updates = \PHPWebSockets::MultiUpdate($this->_streamContainers, $timeout);
+        $updates = \PHPWebSockets::MultiUpdate(array_merge($this->_streamContainers, $tempStreams), $timeout);
         foreach ($updates as $update) {
 
             if ($update instanceof Update\Read) {
@@ -212,7 +185,7 @@ class UpdatesWrapper {
                         throw new \UnexpectedValueException('Unknown or unsupported update code for read: ' . $code);
                 }
 
-            } elseif ($update instanceof Error) {
+            } elseif ($update instanceof Update\Error) {
 
                 $code = $update->getCode();
                 switch ($code) {
@@ -271,31 +244,77 @@ class UpdatesWrapper {
     }
 
     /*
+     * Handler setters
+     */
+
+    /**
+     * @param callable|null $callable
+     */
+    public function setClientConnectedHandler(callable $callable = NULL) {
+        $this->_clientConnectedHandler = $callable;
+    }
+
+    /**
+     * @param callable|null $callable
+     */
+    public function setNewConnectionHandler(callable $callable = NULL) {
+        $this->_newConnectionHandler = $callable;
+    }
+
+    /**
+     * @param callable|null $callable
+     */
+    public function setLastContactHandler(callable $callable = NULL) {
+        $this->_lastContactHandler = $callable;
+    }
+
+    /**
+     * @param callable|null $callable
+     */
+    public function setMessageHandler(callable $callable = NULL) {
+        $this->_newMessageHandler = $callable;
+    }
+
+    /**
+     * @param callable|null $callable
+     */
+    public function setDisconnectHandler(callable $callable = NULL) {
+        $this->_disconnectHandler = $callable;
+    }
+
+    /**
+     * @param callable|null $callable
+     */
+    public function setErrorHandler(callable $callable = NULL) {
+        $this->_errorHandler = $callable;
+    }
+
+    /*
      * Triggers
      */
 
     private function _triggerNewConnectionHandler(Connection $connection, int $code) {
 
-        $accept = FALSE;
+        $accept = NULL;
         if ($this->_newConnectionHandler) {
-            $accept = call_user_func($this->_newConnectionHandler, $connection);
+            $accept = call_user_func($this->_newConnectionHandler, $connection, $code);
         }
 
-        if ($accept) {
+        if ($accept === TRUE) {
             $connection->accept();
-        } else {
+        } elseif ($accept === FALSE) {
             $connection->deny(400);
         }
 
     }
 
     private function _triggerNewMessageHandler(AConnection $connection, string $message, int $opcode) {
-        if ($this->_messageHandler) {
-            call_user_func($this->_messageHandler, $connection, $message, $opcode);
+        if ($this->_newMessageHandler) {
+            call_user_func($this->_newMessageHandler, $connection, $message, $opcode);
         }
     }
 
-    private function _triggerLastContact(AConnection $connection) {
+    private function _triggerLastContactHandler(AConnection $connection) {
         if ($this->_lastContactHandler) {
             call_user_func($this->_lastContactHandler, $connection);
         }
@@ -313,6 +332,12 @@ class UpdatesWrapper {
         }
     }
 
+    private function _triggerConnected(Client $client) {
+        if ($this->_clientConnectedHandler) {
+            call_user_func($this->_clientConnectedHandler, $client);
+        }
+    }
+
     /*
      * Read events
      */
@@ -322,7 +347,7 @@ class UpdatesWrapper {
         /** @var \PHPWebSockets\Server\Connection $source */
         $source = $update->getSourceConnection();
 
-        $this->_triggerLastContact($source);
+        $this->_triggerLastContactHandler($source);
         $this->_triggerNewConnectionHandler($source, $update->getCode());
 
     }
@@ -331,17 +356,17 @@ class UpdatesWrapper {
 
         $source = $update->getSourceConnection();
 
-        $this->_triggerLastContact($source);
+        $this->_triggerLastContactHandler($source);
         $this->_triggerNewMessageHandler($source, $update->getMessage(), $update->getOpcode());
 
     }
 
     private function _onPing(Update\Read $update) {
-        $this->_triggerLastContact($update->getSourceConnection());
+        $this->_triggerLastContactHandler($update->getSourceConnection());
     }
 
     private function _onPong(Update\Read $update) {
-        $this->_triggerLastContact($update->getSourceConnection());
+        $this->_triggerLastContactHandler($update->getSourceConnection());
     }
 
     private function _onSocketDisconnect(Update\Read $update) {
@@ -353,7 +378,13 @@ class UpdatesWrapper {
     }
 
     private function _onConnect(Update\Read $update) {
-        $this->_triggerLastContact($update->getSourceConnection());
+
+        /** @var \PHPWebSockets\Client $source */
+        $source = $update->getSourceConnection();
+
+        $this->_triggerLastContactHandler($source);
+        $this->_triggerConnected($source);
+
     }
 
     private function _onDisconnect(Update\Read $update) {

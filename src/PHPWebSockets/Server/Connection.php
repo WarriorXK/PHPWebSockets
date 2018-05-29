@@ -423,13 +423,15 @@ class Connection extends AConnection {
      * @return bool
      */
     public function isOpen() : bool {
-        return is_resource($this->_stream);
+        return $this->_isClosed === FALSE && is_resource($this->_stream);
     }
 
     /**
      * Simply closes the connection
      */
     public function close() {
+
+        $this->_isClosed = TRUE;
 
         if (is_resource($this->_stream)) {
             fclose($this->_stream);
