@@ -31,7 +31,6 @@ declare(strict_types = 1);
 namespace PHPWebSockets;
 
 use PHPWebSockets\Server\Connection;
-use PHPWebSockets\Update;
 
 class UpdatesWrapper {
 
