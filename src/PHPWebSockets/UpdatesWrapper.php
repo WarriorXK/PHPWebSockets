@@ -426,7 +426,6 @@ class UpdatesWrapper {
         $source = $update->getSourceConnection();
 
         $this->_triggerErrorHandler($source, $update->getCode());
-        $this->_triggerDisconnectHandler($source, FALSE, $update->getCode());
 
     }
 
@@ -435,7 +434,6 @@ class UpdatesWrapper {
         $source = $update->getSourceConnection();
 
         $this->_triggerErrorHandler($source, $update->getCode());
-        $this->_triggerDisconnectHandler($source, FALSE, $update->getCode());
 
     }
 
