@@ -230,6 +230,9 @@ class UpdatesWrapper {
                     case Update\Error::C_WRITE_INVALID_TARGET_STREAM:
                         $this->_writeStreamInvalid($update);
                         break;
+                    case Update\Error::C_READ_DISCONNECT_DURING_HANDSHAKE:
+//                        $this->_onDisconnectDuringHandshake($update);
+                        break;
                     default:
                         throw new \UnexpectedValueException('Unknown or unsupported update code for error: ' . $code);
                 }
@@ -497,4 +500,9 @@ class UpdatesWrapper {
         $this->_triggerDisconnectHandler($source, FALSE, $update->getCode());
 
     }
+
+    private function _onDisconnectDuringHandshake(Update\Error $update) {
+        $this->_triggerErrorHandler($update->getSourceConnection(), $update->getCode());
+    }
+
 }
