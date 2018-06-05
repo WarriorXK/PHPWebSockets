@@ -322,9 +322,24 @@ class UpdatesWrapper {
         }
     }
 
-    private function _triggerDisconnectHandler(AConnection $connection, bool $wasClean, int $reason) {
+    private function _triggerDisconnectHandler(AConnection $connection, bool $wasClean, string $data) {
+
+        $reason = '';
+        $code = 0;
+
+        $dataLen = strlen($data);
+        if ($dataLen >= 2) {
+
+            $code = unpack('n', substr($data, 0, 2))[1];
+
+            if ($dataLen > 2) {
+                $reason = substr($data, 2);
+            }
+
+        }
+
         if ($this->_disconnectHandler) {
-            call_user_func($this->_disconnectHandler, $connection, $wasClean, $reason);
+            call_user_func($this->_disconnectHandler, $connection, $wasClean, $code, $reason);
         }
     }
 
@@ -376,7 +391,7 @@ class UpdatesWrapper {
     }
 
     private function _onConnectionRefused(Update\Read $update) {
-        $this->_triggerDisconnectHandler($update->getSourceConnection(), TRUE, $update->getCode());
+        $this->_triggerDisconnectHandler($update->getSourceConnection(), TRUE, $update->getMessage());
     }
 
     private function _onConnect(Update\Read $update) {
@@ -390,7 +405,7 @@ class UpdatesWrapper {
     }
 
     private function _onDisconnect(Update\Read $update) {
-        $this->_triggerDisconnectHandler($update->getSourceConnection(), TRUE, $update->getCode());
+        $this->_triggerDisconnectHandler($update->getSourceConnection(), TRUE, $update->getMessage());
     }
 
     private function _onTCPConnect(Update\Read $update) {
@@ -442,7 +457,7 @@ class UpdatesWrapper {
         $source = $update->getSourceConnection();
 
         $this->_triggerErrorHandler($source, $update->getCode());
-        $this->_triggerDisconnectHandler($source, FALSE, $update->getCode());
+        $this->_triggerDisconnectHandler($source, FALSE, '');
 
     }
 
@@ -455,7 +470,7 @@ class UpdatesWrapper {
         $source = $update->getSourceConnection();
 
         $this->_triggerErrorHandler($source, $update->getCode());
-        $this->_triggerDisconnectHandler($source, FALSE, $update->getCode());
+        $this->_triggerDisconnectHandler($source, FALSE, '');
 
     }
 
@@ -464,7 +479,7 @@ class UpdatesWrapper {
         $source = $update->getSourceConnection();
 
         $this->_triggerErrorHandler($source, $update->getCode());
-        $this->_triggerDisconnectHandler($source, FALSE, $update->getCode());
+        $this->_triggerDisconnectHandler($source, FALSE, '');
 
     }
 
@@ -473,7 +488,7 @@ class UpdatesWrapper {
         $source = $update->getSourceConnection();
 
         $this->_triggerErrorHandler($source, $update->getCode());
-        $this->_triggerDisconnectHandler($source, FALSE, $update->getCode());
+        $this->_triggerDisconnectHandler($source, FALSE, '');
 
     }
 
@@ -486,7 +501,7 @@ class UpdatesWrapper {
         $source = $update->getSourceConnection();
 
         $this->_triggerErrorHandler($source, $update->getCode());
-        $this->_triggerDisconnectHandler($source, FALSE, $update->getCode());
+        $this->_triggerDisconnectHandler($source, FALSE, '');
 
     }
 
@@ -495,7 +510,7 @@ class UpdatesWrapper {
         $source = $update->getSourceConnection();
 
         $this->_triggerErrorHandler($source, $update->getCode());
-        $this->_triggerDisconnectHandler($source, FALSE, $update->getCode());
+        $this->_triggerDisconnectHandler($source, FALSE, '');
 
     }
 
