@@ -295,11 +295,11 @@ class UpdatesWrapper {
      * Triggers
      */
 
-    private function _triggerNewConnectionHandler(Connection $connection, int $code) {
+    private function _triggerNewConnectionHandler(Connection $connection) {
 
         $accept = NULL;
         if ($this->_newConnectionHandler) {
-            $accept = call_user_func($this->_newConnectionHandler, $connection, $code);
+            $accept = call_user_func($this->_newConnectionHandler, $connection);
         }
 
         if ($accept === TRUE) {
@@ -365,7 +365,7 @@ class UpdatesWrapper {
         $source = $update->getSourceConnection();
 
         $this->_triggerLastContactHandler($source);
-        $this->_triggerNewConnectionHandler($source, $update->getCode());
+        $this->_triggerNewConnectionHandler($source);
 
     }
 

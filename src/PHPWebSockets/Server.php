@@ -423,10 +423,11 @@ class Server implements LoggerAwareInterface {
      * Removes the specified connection from the connections array and closes it if open
      *
      * @param \PHPWebSockets\Server\Connection $connection
+     * @param bool                             $closeConnection
      *
      * @throws \LogicException
      */
-    public function removeConnection(Server\Connection $connection) {
+    public function removeConnection(Server\Connection $connection, bool $closeConnection = TRUE) {
 
         if ($connection->getServer() !== $this) {
             throw new \LogicException('Unable to remove connection ' . $connection . ', this is not our connection!');
@@ -434,7 +435,7 @@ class Server implements LoggerAwareInterface {
 
         $this->_log(LogLevel::DEBUG, 'Removing ' . $connection);
 
-        if ($connection->isOpen()) {
+        if ($closeConnection && $connection->isOpen()) {
             $connection->close();
         }
 

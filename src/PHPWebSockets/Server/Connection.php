@@ -89,7 +89,7 @@ class Connection extends AConnection {
     /**
      * The websocket server related to this connection
      *
-     * @var \PHPWebSockets\Server
+     * @var \PHPWebSockets\Server|null
      */
     protected $_server = NULL;
 
@@ -330,6 +330,20 @@ class Connection extends AConnection {
     }
 
     /**
+     * Detaches this connection from its server
+     */
+    public function detach() {
+
+        if (!$this->isAccepted()) {
+            throw new \LogicException('Connections can only be detached after it has been accepted');
+        }
+
+        $this->_server->removeConnection($this, FALSE);
+        $this->_server = NULL;
+
+    }
+
+    /**
      * Sets the time in seconds in which the client has to send its handshake
      *
      * @param float $timeout
@@ -359,9 +373,9 @@ class Connection extends AConnection {
     /**
      * Returns the related websocket server
      *
-     * @return \PHPWebSockets\Server
+     * @return \PHPWebSockets\Server|null
      */
-    public function getServer() : Server {
+    public function getServer() {
         return $this->_server;
     }
 
@@ -440,7 +454,9 @@ class Connection extends AConnection {
             $this->_stream = NULL;
         }
 
-        $this->_server->removeConnection($this);
+        if ($this->_server !== NULL) {
+            $this->_server->removeConnection($this);
+        }
 
     }
 
@@ -448,6 +464,6 @@ class Connection extends AConnection {
 
         $remoteIP = $this->getRemoteIP();
 
-        return 'WSConnection #' . $this->_resourceIndex . ($remoteIP ? ' => ' . $remoteIP : '') . ' @ ' . $this->_server;
+        return 'WSConnection #' . $this->_resourceIndex . ($remoteIP ? ' => ' . $remoteIP : '') . ($this->_server !== NULL ? ' @ ' . $this->_server : '');
     }
 }
