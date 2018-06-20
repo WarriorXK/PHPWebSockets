@@ -239,8 +239,9 @@ class Client extends AConnection {
     }
 
     /**
-     * @return \Generator|\PHPWebSockets\AUpdate[]
      * @throws \Exception
+     *
+     * @return \Generator|\PHPWebSockets\AUpdate[]
      */
     public function handleRead() : \Generator {
 
@@ -362,6 +363,7 @@ class Client extends AConnection {
      * If we should send our frames masked
      *
      * Note: Setting this to FALSE is officially not supported by the websocket RFC, but can improve performance when communicating with servers that support this
+     *
      * @see https://tools.ietf.org/html/rfc6455#section-5.3
      *
      * @param bool $mask

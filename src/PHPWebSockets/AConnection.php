@@ -249,8 +249,9 @@ abstract class AConnection implements IStreamContainer, LoggerAwareInterface {
      *
      * @param string $newData
      *
-     * @return \Generator|\PHPWebSockets\AUpdate[]
      * @throws \Exception
+     *
+     * @return \Generator|\PHPWebSockets\AUpdate[]
      */
     protected function _handlePacket(string $newData) : \Generator {
 
