@@ -184,8 +184,9 @@ final class Framer {
      *
      * @throws \RangeException
      * @throws \LogicException
-     * @return string
      * @throws \Exception
+     *
+     * @return string
      */
     public static function Frame(string $data, bool $mask, int $opcode = \PHPWebSockets::OPCODE_FRAME_TEXT, bool $isFinal = TRUE, int $rsv = 0) : string {
 
