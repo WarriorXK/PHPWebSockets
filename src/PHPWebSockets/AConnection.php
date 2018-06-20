@@ -123,13 +123,6 @@ abstract class AConnection implements IStreamContainer, LoggerAwareInterface {
     protected $_openedTimestamp = NULL;
 
     /**
-     * This array contains as key the index of the RSV bit and as value if it is allowed
-     *
-     * @var array
-     */
-    protected $_allowedRSVBits = [1 => FALSE, 2 => FALSE, 3 => FALSE];
-
-    /**
      * The partial message if the current message hasn't finished yet
      *
      * @var string|null
@@ -286,7 +279,7 @@ abstract class AConnection implements IStreamContainer, LoggerAwareInterface {
 
             if (!$this->_checkRSVBits($headers)) {
 
-                $this->sendDisconnect(\PHPWebSockets::CLOSECODE_PROTOCOL_ERROR, 'Unexpected RSV bit set');
+                $this->sendDisconnect(\PHPWebSockets::CLOSECODE_PROTOCOL_ERROR, 'Invalid RSV value');
                 $this->setCloseAfterWrite();
 
                 yield new Update\Error(Update\Error::C_READ_RSVBIT_SET, $this);
@@ -673,12 +666,7 @@ abstract class AConnection implements IStreamContainer, LoggerAwareInterface {
      * @return bool
      */
     protected function _checkRSVBits(array $headers) : bool {
-
-        if (($headers[Framer::IND_RSV1] && !$this->isRSVBitAllowed(1)) || ($headers[Framer::IND_RSV2] && !$this->isRSVBitAllowed(2)) || ($headers[Framer::IND_RSV3] && !$this->isRSVBitAllowed(3))) {
-            return FALSE;
-        }
-
-        return TRUE;
+        return $headers[Framer::IND_RSV] === 0;
     }
 
     /**
@@ -690,38 +678,6 @@ abstract class AConnection implements IStreamContainer, LoggerAwareInterface {
      */
     public function setNewMessageStreamCallback(callable $callable = NULL) {
         $this->_newMessageStreamCallback = $callable;
-    }
-
-    /**
-     * Sets if the provided reserved bit is allowed to be set
-     *
-     * @param int  $bit
-     * @param bool $allowed
-     */
-    public function setRSVBitAllowed(int $bit, bool $allowed) {
-
-        if (!isset($this->_allowedRSVBits[$bit])) {
-            throw new \LogicException('Bit ' . $bit . ' is not a valid RSV bit!');
-        }
-
-        $this->_allowedRSVBits[$bit] = $allowed;
-
-    }
-
-    /**
-     * Returns if the provided reserved bit is allowed to be set
-     *
-     * @param int $bit
-     *
-     * @return bool
-     */
-    public function isRSVBitAllowed(int $bit) : bool {
-
-        if (!isset($this->_allowedRSVBits[$bit])) {
-            throw new \LogicException('Bit ' . $bit . ' is not a valid RSV bit!');
-        }
-
-        return $this->_allowedRSVBits[$bit];
     }
 
     /**

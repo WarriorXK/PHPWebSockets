@@ -35,18 +35,14 @@ use Psr\Log\LogLevel;
 final class Framer {
 
     const   BYTE1_FIN = 0b10000000,
-            BYTE1_RSV1 = 0b01000000,
-            BYTE1_RSV2 = 0b00100000,
-            BYTE1_RSV3 = 0b00010000,
+            BYTE1_RSV = 0b01110000,
             BYTE1_OPCODE = 0b00001111;
 
     const   BYTE2_MASKED = 0b10000000,
             BYTE2_LENGTH = 0b01111111;
 
     const   IND_FIN = 'fin',
-            IND_RSV1 = 'rsv1',
-            IND_RSV2 = 'rsv2',
-            IND_RSV3 = 'rsv3',
+            IND_RSV = 'rsv',
             IND_OPCODE = 'opcode',
             IND_MASK = 'mask',
             IND_LENGTH = 'length',
@@ -72,9 +68,7 @@ final class Framer {
 
         $headers = [
             self::IND_FIN            => (bool) ($byte1 & self::BYTE1_FIN),
-            self::IND_RSV1           => (bool) ($byte1 & self::BYTE1_RSV1),
-            self::IND_RSV2           => (bool) ($byte1 & self::BYTE1_RSV2),
-            self::IND_RSV3           => (bool) ($byte1 & self::BYTE1_RSV3),
+            self::IND_RSV            => ($byte1 & self::BYTE1_RSV) >> 4,
             self::IND_OPCODE         => ($byte1 & self::BYTE1_OPCODE),
             self::IND_MASK           => (bool) ($byte2 & self::BYTE2_MASKED),
             self::IND_LENGTH         => ($byte2 & self::BYTE2_LENGTH),
@@ -186,22 +180,23 @@ final class Framer {
      * @param bool   $mask
      * @param int    $opcode
      * @param bool   $isFinal
-     * @param bool   $rsv1
-     * @param bool   $rsv2
-     * @param bool   $rsv3
+     * @param int    $rsv
      *
      * @throws \RangeException
      * @throws \LogicException
-     *
      * @return string
+     * @throws \Exception
      */
-    public static function Frame(string $data, bool $mask, int $opcode = \PHPWebSockets::OPCODE_FRAME_TEXT, bool $isFinal = TRUE, bool $rsv1 = FALSE, bool $rsv2 = FALSE, bool $rsv3 = FALSE) : string {
+    public static function Frame(string $data, bool $mask, int $opcode = \PHPWebSockets::OPCODE_FRAME_TEXT, bool $isFinal = TRUE, int $rsv = 0) : string {
 
         if ($opcode < 0 || $opcode > 15) {
             throw new \RangeException('Invalid opcode, opcode should range between 0 and 15');
         }
         if (!$isFinal && \PHPWebSockets::IsControlOpcode($opcode)) {
             throw new \LogicException('Control frames must be final!');
+        }
+        if ($rsv < 0 || $rsv > 7) {
+            throw new \RangeException('RSV value has to be 0-7');
         }
 
         $byte1 = $opcode;
@@ -210,14 +205,8 @@ final class Framer {
         if ($isFinal) {
             $byte1 |= self::BYTE1_FIN;
         }
-        if ($rsv1) {
-            $byte1 |= self::BYTE1_RSV1;
-        }
-        if ($rsv2) {
-            $byte1 |= self::BYTE1_RSV2;
-        }
-        if ($rsv3) {
-            $byte1 |= self::BYTE1_RSV3;
+        if ($rsv) {
+            $byte1 |= ($rsv << 4);
         }
 
         $dataLength = strlen($data);

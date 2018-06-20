@@ -495,7 +495,7 @@ class Server implements LoggerAwareInterface {
      */
     public function setConnectionClass(string $class) {
 
-        if (!is_subclass_of($class, Server\Connection::class)) {
+        if (!is_subclass_of($class, Server\Connection::class, TRUE)) {
             throw new \InvalidArgumentException('The provided class has to extend ' . Server\Connection::class);
         }
 
