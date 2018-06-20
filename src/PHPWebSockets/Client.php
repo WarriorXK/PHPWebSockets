@@ -64,6 +64,17 @@ class Client extends AConnection {
     protected $_resourceIndex = NULL;
 
     /**
+     * If we should send our frames masked
+     *
+     * Note: Setting this to FALSE is officially not supported by the websocket RFC, but can improve performance
+     *
+     * @see https://tools.ietf.org/html/rfc6455#section-5.3
+     *
+     * @var bool
+     */
+    protected $_shouldMask = TRUE;
+
+    /**
      * @var string|null
      */
     protected $_userAgent = NULL;
@@ -228,9 +239,8 @@ class Client extends AConnection {
     }
 
     /**
-     * Attempts to read from our connection
-     *
      * @return \Generator|\PHPWebSockets\AUpdate[]
+     * @throws \Exception
      */
     public function handleRead() : \Generator {
 
@@ -349,12 +359,24 @@ class Client extends AConnection {
     }
 
     /**
+     * If we should send our frames masked
+     *
+     * Note: Setting this to FALSE is officially not supported by the websocket RFC, but can improve performance when communicating with servers that support this
+     * @see https://tools.ietf.org/html/rfc6455#section-5.3
+     *
+     * @param bool $mask
+     */
+    public function setMasksPayload(bool $mask) {
+        $this->_shouldMask = $mask;
+    }
+
+    /**
      * Returns if the frame we are writing should be masked
      *
      * @return bool
      */
     protected function _shouldMask() : bool {
-        return TRUE;
+        return $this->_shouldMask;
     }
 
     /**

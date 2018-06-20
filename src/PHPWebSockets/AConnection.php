@@ -249,9 +249,8 @@ abstract class AConnection implements IStreamContainer, LoggerAwareInterface {
      *
      * @param string $newData
      *
-     * @throws \UnexpectedValueException
-     *
      * @return \Generator|\PHPWebSockets\AUpdate[]
+     * @throws \Exception
      */
     protected function _handlePacket(string $newData) : \Generator {
 
@@ -560,8 +559,7 @@ abstract class AConnection implements IStreamContainer, LoggerAwareInterface {
      * @param int    $opcode
      * @param int    $frameSize
      *
-     * @throws \InvalidArgumentException
-     * @throws \LogicException
+     * @throws \Exception
      */
     public function writeMultiFramed(string $data, int $opcode = \PHPWebSockets::OPCODE_FRAME_TEXT, int $frameSize = 65535) {
 
@@ -626,6 +624,8 @@ abstract class AConnection implements IStreamContainer, LoggerAwareInterface {
      * @param string $data
      * @param int    $opcode
      * @param bool   $isFinal
+     *
+     * @throws \Exception
      */
     public function write(string $data, int $opcode = \PHPWebSockets::OPCODE_FRAME_TEXT, bool $isFinal = TRUE) {
         $this->writeRaw(Framer::Frame($data, $this->_shouldMask(), $opcode, $isFinal), \PHPWebSockets::IsPriorityOpcode($opcode));
@@ -636,6 +636,8 @@ abstract class AConnection implements IStreamContainer, LoggerAwareInterface {
      *
      * @param int    $code
      * @param string $reason
+     *
+     * @throws \Exception
      */
     public function sendDisconnect(int $code, string $reason = '') {
 

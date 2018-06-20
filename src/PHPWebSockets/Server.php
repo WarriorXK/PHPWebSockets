@@ -381,6 +381,8 @@ class Server implements LoggerAwareInterface {
      *
      * @param int    $closeCode
      * @param string $reason
+     *
+     * @throws \Exception
      */
     public function disconnectAll(int $closeCode, string $reason = '') {
 
