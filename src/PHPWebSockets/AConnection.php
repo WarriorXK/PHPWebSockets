@@ -213,6 +213,10 @@ abstract class AConnection implements IStreamContainer, LoggerAwareInterface {
 
             iterator_to_array(\PHPWebSockets::MultiUpdate([$this], 1.0));
 
+            if (!$this->isOpen()) {
+                throw new \RuntimeException('Connection closed during write empty');
+            }
+
             if ($timeout !== NULL && microtime(TRUE) - $start > $timeout) {
                 return FALSE;
             }
