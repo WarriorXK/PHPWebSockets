@@ -184,7 +184,7 @@ class Server implements LoggerAwareInterface {
             $errString = NULL;
             $acceptingSocket = @stream_socket_server($this->_address, $errCode, $errString, STREAM_SERVER_BIND | STREAM_SERVER_LISTEN, stream_context_create($streamContext));
             if (!$acceptingSocket) {
-                throw new \RuntimeException('Unable to create webserver: ' . $errString, $errCode);
+                throw new \RuntimeException('Unable to create webserver on address ' . $this->_address . ' : ' . $errString, $errCode);
             }
 
             $this->_acceptingConnection = new Server\AcceptingConnection($this, $acceptingSocket);
