@@ -6,7 +6,7 @@ declare(strict_types = 1);
  * - - - - - - - - - - - - - BEGIN LICENSE BLOCK - - - - - - - - - - - - -
  * The MIT License (MIT)
  *
- * Copyright (c) 2017 Kevin Meijer
+ * Copyright (c) 2018 Kevin Meijer
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -34,7 +34,7 @@ interface IStreamContainer {
     /**
      * Gets called just before stream_select gets called
      *
-     * @return \Generator
+     * @return \Generator|\PHPWebSockets\AUpdate[]
      */
     public function beforeStreamSelect() : \Generator;
 
@@ -48,21 +48,21 @@ interface IStreamContainer {
     /**
      * Handles exceptional data reads
      *
-     * @return \Generator
+     * @return \Generator|\PHPWebSockets\AUpdate[]
      */
     public function handleExceptional() : \Generator;
 
     /**
      * Writes the current buffer to the connection
      *
-     * @return \Generator
+     * @return \Generator|\PHPWebSockets\AUpdate[]
      */
     public function handleWrite() : \Generator;
 
     /**
      * Attempts to read from our connection
      *
-     * @return \Generator
+     * @return \Generator|\PHPWebSockets\AUpdate[]
      */
     public function handleRead() : \Generator;
 

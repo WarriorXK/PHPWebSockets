@@ -6,7 +6,7 @@ declare(strict_types = 1);
  * - - - - - - - - - - - - - BEGIN LICENSE BLOCK - - - - - - - - - - - - -
  * The MIT License (MIT)
  *
- * Copyright (c) 2017 Kevin Meijer
+ * Copyright (c) 2018 Kevin Meijer
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -184,7 +184,7 @@ class Server implements LoggerAwareInterface {
             $errString = NULL;
             $acceptingSocket = @stream_socket_server($this->_address, $errCode, $errString, STREAM_SERVER_BIND | STREAM_SERVER_LISTEN, stream_context_create($streamContext));
             if (!$acceptingSocket) {
-                throw new \RuntimeException('Unable to create webserver: ' . $errString, $errCode);
+                throw new \RuntimeException('Unable to create webserver on address ' . $this->_address . ' : ' . $errString, $errCode);
             }
 
             $this->_acceptingConnection = new Server\AcceptingConnection($this, $acceptingSocket);
@@ -225,7 +225,7 @@ class Server implements LoggerAwareInterface {
      *
      * @throws \Exception
      *
-     * @return \Generator
+     * @return \Generator|\PHPWebSockets\AUpdate[]
      */
     public function update(float $timeout = NULL) : \Generator {
         yield from \PHPWebSockets::MultiUpdate($this->getConnections(TRUE), $timeout);
@@ -234,7 +234,7 @@ class Server implements LoggerAwareInterface {
     /**
      * Gets called by the accepting web socket to notify the server that a new connection attempt has occured
      *
-     * @return \Generator
+     * @return \Generator|\PHPWebSockets\AUpdate[]
      */
     public function gotNewConnection() : \Generator {
 
@@ -252,7 +252,7 @@ class Server implements LoggerAwareInterface {
      * @throws \LogicException
      * @throws \RuntimeException
      *
-     * @return \Generator
+     * @return \Generator|\PHPWebSockets\AUpdate[]
      */
     public function acceptNewConnection() : \Generator {
 
@@ -381,6 +381,8 @@ class Server implements LoggerAwareInterface {
      *
      * @param int    $closeCode
      * @param string $reason
+     *
+     * @throws \Exception
      */
     public function disconnectAll(int $closeCode, string $reason = '') {
 
@@ -423,10 +425,11 @@ class Server implements LoggerAwareInterface {
      * Removes the specified connection from the connections array and closes it if open
      *
      * @param \PHPWebSockets\Server\Connection $connection
+     * @param bool                             $closeConnection
      *
      * @throws \LogicException
      */
-    public function removeConnection(Server\Connection $connection) {
+    public function removeConnection(Server\Connection $connection, bool $closeConnection = TRUE) {
 
         if ($connection->getServer() !== $this) {
             throw new \LogicException('Unable to remove connection ' . $connection . ', this is not our connection!');
@@ -434,7 +437,7 @@ class Server implements LoggerAwareInterface {
 
         $this->_log(LogLevel::DEBUG, 'Removing ' . $connection);
 
-        if ($connection->isOpen()) {
+        if ($closeConnection && $connection->isOpen()) {
             $connection->close();
         }
 
@@ -494,7 +497,7 @@ class Server implements LoggerAwareInterface {
      */
     public function setConnectionClass(string $class) {
 
-        if (!is_subclass_of($class, Server\Connection::class)) {
+        if (!is_subclass_of($class, Server\Connection::class, TRUE)) {
             throw new \InvalidArgumentException('The provided class has to extend ' . Server\Connection::class);
         }
 

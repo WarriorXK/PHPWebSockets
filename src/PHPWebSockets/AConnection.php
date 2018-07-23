@@ -6,7 +6,7 @@ declare(strict_types = 1);
  * - - - - - - - - - - - - - BEGIN LICENSE BLOCK - - - - - - - - - - - - -
  * The MIT License (MIT)
  *
- * Copyright (c) 2017 Kevin Meijer
+ * Copyright (c) 2018 Kevin Meijer
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -123,13 +123,6 @@ abstract class AConnection implements IStreamContainer, LoggerAwareInterface {
     protected $_openedTimestamp = NULL;
 
     /**
-     * This array contains as key the index of the RSV bit and as value if it is allowed
-     *
-     * @var array
-     */
-    protected $_allowedRSVBits = [1 => FALSE, 2 => FALSE, 3 => FALSE];
-
-    /**
      * The partial message if the current message hasn't finished yet
      *
      * @var string|null
@@ -156,6 +149,13 @@ abstract class AConnection implements IStreamContainer, LoggerAwareInterface {
      * @var string|null
      */
     protected $_readBuffer = NULL;
+
+    /**
+     * An overwrite to indicate if this connection is closed
+     *
+     * @var bool
+     */
+    protected $_isClosed = FALSE;
 
     /**
      * The amount of bytes we write per cycle
@@ -199,6 +199,34 @@ abstract class AConnection implements IStreamContainer, LoggerAwareInterface {
     }
 
     /**
+     * Attempts to write until the write buffer is empty
+     * Note: This will discard any reads that happen during this period
+     *
+     * @param float $timeout
+     *
+     * @return bool
+     */
+    public function writeUntilEmpty(float $timeout = NULL) : bool {
+
+        $start = microtime(TRUE);
+        do {
+
+            iterator_to_array(\PHPWebSockets::MultiUpdate([$this], 1.0));
+
+            if (!$this->isOpen()) {
+                throw new \RuntimeException('Connection closed during write empty');
+            }
+
+            if ($timeout !== NULL && microtime(TRUE) - $start > $timeout) {
+                return FALSE;
+            }
+
+        } while (!$this->isWriteBufferEmpty());
+
+        return $this->isWriteBufferEmpty();
+    }
+
+    /**
      * Sets that we should close the connection after all our writes have finished
      */
     public function setCloseAfterWrite() {
@@ -225,9 +253,9 @@ abstract class AConnection implements IStreamContainer, LoggerAwareInterface {
      *
      * @param string $newData
      *
-     * @throws \UnexpectedValueException
+     * @throws \Exception
      *
-     * @return \Generator
+     * @return \Generator|\PHPWebSockets\AUpdate[]
      */
     protected function _handlePacket(string $newData) : \Generator {
 
@@ -255,7 +283,7 @@ abstract class AConnection implements IStreamContainer, LoggerAwareInterface {
 
             if (!$this->_checkRSVBits($headers)) {
 
-                $this->sendDisconnect(\PHPWebSockets::CLOSECODE_PROTOCOL_ERROR, 'Unexpected RSV bit set');
+                $this->sendDisconnect(\PHPWebSockets::CLOSECODE_PROTOCOL_ERROR, 'Invalid RSV value');
                 $this->setCloseAfterWrite();
 
                 yield new Update\Error(Update\Error::C_READ_RSVBIT_SET, $this);
@@ -373,7 +401,10 @@ abstract class AConnection implements IStreamContainer, LoggerAwareInterface {
                             } while ($res !== FALSE && $writtenBytes < $payloadLength);
 
                             if ($res === FALSE) {
-                                yield new Update\Error(Update\Error::C_READ_INVALID_TARGET_STREAM, $this);
+
+                                $this->close();
+                                yield new Update\Error(Update\Error::C_WRITE_INVALID_TARGET_STREAM, $this);
+
                             }
 
                         } else {
@@ -479,7 +510,7 @@ abstract class AConnection implements IStreamContainer, LoggerAwareInterface {
     /**
      * Writes the current buffer to the connection
      *
-     * @return \Generator
+     * @return \Generator|\PHPWebSockets\AUpdate[]
      */
     public function handleWrite() : \Generator {
 
@@ -533,8 +564,7 @@ abstract class AConnection implements IStreamContainer, LoggerAwareInterface {
      * @param int    $opcode
      * @param int    $frameSize
      *
-     * @throws \InvalidArgumentException
-     * @throws \LogicException
+     * @throws \Exception
      */
     public function writeMultiFramed(string $data, int $opcode = \PHPWebSockets::OPCODE_FRAME_TEXT, int $frameSize = 65535) {
 
@@ -599,6 +629,8 @@ abstract class AConnection implements IStreamContainer, LoggerAwareInterface {
      * @param string $data
      * @param int    $opcode
      * @param bool   $isFinal
+     *
+     * @throws \Exception
      */
     public function write(string $data, int $opcode = \PHPWebSockets::OPCODE_FRAME_TEXT, bool $isFinal = TRUE) {
         $this->writeRaw(Framer::Frame($data, $this->_shouldMask(), $opcode, $isFinal), \PHPWebSockets::IsPriorityOpcode($opcode));
@@ -609,6 +641,8 @@ abstract class AConnection implements IStreamContainer, LoggerAwareInterface {
      *
      * @param int    $code
      * @param string $reason
+     *
+     * @throws \Exception
      */
     public function sendDisconnect(int $code, string $reason = '') {
 
@@ -639,12 +673,7 @@ abstract class AConnection implements IStreamContainer, LoggerAwareInterface {
      * @return bool
      */
     protected function _checkRSVBits(array $headers) : bool {
-
-        if (($headers[Framer::IND_RSV1] && !$this->isRSVBitAllowed(1)) || ($headers[Framer::IND_RSV2] && !$this->isRSVBitAllowed(2)) || ($headers[Framer::IND_RSV3] && !$this->isRSVBitAllowed(3))) {
-            return FALSE;
-        }
-
-        return TRUE;
+        return $headers[Framer::IND_RSV] === 0;
     }
 
     /**
@@ -656,38 +685,6 @@ abstract class AConnection implements IStreamContainer, LoggerAwareInterface {
      */
     public function setNewMessageStreamCallback(callable $callable = NULL) {
         $this->_newMessageStreamCallback = $callable;
-    }
-
-    /**
-     * Sets if the provided reserved bit is allowed to be set
-     *
-     * @param int  $bit
-     * @param bool $allowed
-     */
-    public function setRSVBitAllowed(int $bit, bool $allowed) {
-
-        if (!isset($this->_allowedRSVBits[$bit])) {
-            throw new \LogicException('Bit ' . $bit . ' is not a valid RSV bit!');
-        }
-
-        $this->_allowedRSVBits[$bit] = $allowed;
-
-    }
-
-    /**
-     * Returns if the provided reserved bit is allowed to be set
-     *
-     * @param int $bit
-     *
-     * @return bool
-     */
-    public function isRSVBitAllowed(int $bit) : bool {
-
-        if (!isset($this->_allowedRSVBits[$bit])) {
-            throw new \LogicException('Bit ' . $bit . ' is not a valid RSV bit!');
-        }
-
-        return $this->_allowedRSVBits[$bit];
     }
 
     /**

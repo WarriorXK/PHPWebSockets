@@ -6,7 +6,7 @@ declare(strict_types = 1);
  * - - - - - - - - - - - - - BEGIN LICENSE BLOCK - - - - - - - - - - - - -
  * The MIT License (MIT)
  *
- * Copyright (c) 2017 Kevin Meijer
+ * Copyright (c) 2018 Kevin Meijer
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -62,6 +62,17 @@ class Client extends AConnection {
      * @var int|null
      */
     protected $_resourceIndex = NULL;
+
+    /**
+     * If we should send our frames masked
+     *
+     * Note: Setting this to FALSE is officially not supported by the websocket RFC, but can improve performance
+     *
+     * @see https://tools.ietf.org/html/rfc6455#section-5.3
+     *
+     * @var bool
+     */
+    protected $_shouldMask = TRUE;
 
     /**
      * @var string|null
@@ -151,7 +162,7 @@ class Client extends AConnection {
             throw new \LogicException('The connection is already open!');
         }
 
-        $this->_stream = stream_socket_client($address, $this->_streamLastErrorCode, $this->_streamLastError, $this->getConnectTimeout(), STREAM_CLIENT_CONNECT, stream_context_create($streamContext));
+        $this->_stream = @stream_socket_client($address, $this->_streamLastErrorCode, $this->_streamLastError, $this->getConnectTimeout(), STREAM_CLIENT_CONNECT, stream_context_create($streamContext));
         if ($this->_stream === FALSE) {
             return FALSE;
         }
@@ -221,16 +232,16 @@ class Client extends AConnection {
      *
      * @throws \Exception
      *
-     * @return \Generator
+     * @return \Generator|\PHPWebSockets\AUpdate[]
      */
     public function update(float $timeout = NULL) : \Generator {
         yield from \PHPWebSockets::MultiUpdate([$this], $timeout);
     }
 
     /**
-     * Attempts to read from our connection
+     * @throws \Exception
      *
-     * @return \Generator
+     * @return \Generator|\PHPWebSockets\AUpdate[]
      */
     public function handleRead() : \Generator {
 
@@ -245,6 +256,8 @@ class Client extends AConnection {
         }
 
         if (strlen($newData) === 0) {
+
+            $this->_isClosed = TRUE;
 
             if ($this->_remoteSentDisconnect && $this->_weSentDisconnect) {
                 yield new Update\Read(Update\Read::C_SOCK_DISCONNECT, $this);
@@ -347,12 +360,25 @@ class Client extends AConnection {
     }
 
     /**
+     * If we should send our frames masked
+     *
+     * Note: Setting this to FALSE is officially not supported by the websocket RFC, but can improve performance when communicating with servers that support this
+     *
+     * @see https://tools.ietf.org/html/rfc6455#section-5.3
+     *
+     * @param bool $mask
+     */
+    public function setMasksPayload(bool $mask) {
+        $this->_shouldMask = $mask;
+    }
+
+    /**
      * Returns if the frame we are writing should be masked
      *
      * @return bool
      */
     protected function _shouldMask() : bool {
-        return TRUE;
+        return $this->_shouldMask;
     }
 
     /**
@@ -379,7 +405,7 @@ class Client extends AConnection {
      * @return bool
      */
     public function isOpen() : bool {
-        return is_resource($this->_stream);
+        return $this->_isClosed === FALSE && is_resource($this->_stream);
     }
 
     /**
@@ -404,6 +430,8 @@ class Client extends AConnection {
      * Simply closes the connection
      */
     public function close() {
+
+        $this->_isClosed = TRUE;
 
         if (is_resource($this->_stream)) {
             fclose($this->_stream);

@@ -23,11 +23,22 @@
     },
     "autoload": {
         "psr-4": {
-            "": "src/"
-        }
+            "PHPWebSockets\\": [
+                "src/PHPWebSockets/"
+            ]
+        },
+        "classmap": [
+            "src/PHPWebSockets.php"
+        ]
     },
     "archive": {
-        "exclude": ["/Resources", "/Tests"]
+        "exclude": [
+            "/*",
+            "/.*",
+            "!/src",
+            "!/VERSION",
+            "!/.editorconfig"
+        ]
     },
     "non-feature-branches": [
         "develop",

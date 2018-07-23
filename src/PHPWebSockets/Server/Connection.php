@@ -6,7 +6,7 @@ declare(strict_types = 1);
  * - - - - - - - - - - - - - BEGIN LICENSE BLOCK - - - - - - - - - - - - -
  * The MIT License (MIT)
  *
- * Copyright (c) 2017 Kevin Meijer
+ * Copyright (c) 2018 Kevin Meijer
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -89,7 +89,7 @@ class Connection extends AConnection {
     /**
      * The websocket server related to this connection
      *
-     * @var \PHPWebSockets\Server
+     * @var \PHPWebSockets\Server|null
      */
     protected $_server = NULL;
 
@@ -134,14 +134,14 @@ class Connection extends AConnection {
     /**
      * Attempts to read from our connection
      *
-     * @return \Generator
+     * @return \Generator|\PHPWebSockets\AUpdate[]
      */
     public function handleRead() : \Generator {
 
         $this->_log(LogLevel::DEBUG, __METHOD__);
 
         $readRate = $this->getReadRate();
-        $newData = fread($this->getStream(), min($this->_currentFrameRemainingBytes ?? $readRate, $readRate));
+        $newData = @fread($this->getStream(), min($this->_currentFrameRemainingBytes ?? $readRate, $readRate));
         if ($newData === FALSE) {
             yield new Update\Error(Update\Error::C_READ, $this);
 
@@ -150,7 +150,9 @@ class Connection extends AConnection {
 
         if (strlen($newData) === 0) {
 
-            if ($this->_remoteSentDisconnect && $this->_weSentDisconnect) {
+            if (!$this->hasHandshake()) {
+                yield new Update\Error(Update\Error::C_READ_DISCONNECT_DURING_HANDSHAKE, $this);
+            } elseif ($this->_remoteSentDisconnect && $this->_weSentDisconnect) {
                 yield new Update\Read(Update\Read::C_SOCK_DISCONNECT, $this);
             } else {
                 yield new Update\Error(Update\Error::C_READ_UNEXPECTED_DISCONNECT, $this);
@@ -228,7 +230,7 @@ class Connection extends AConnection {
     /**
      * Gets called just before stream_select gets called
      *
-     * @return \Generator
+     * @return \Generator|\PHPWebSockets\AUpdate[]
      */
     public function beforeStreamSelect() : \Generator {
 
@@ -328,6 +330,20 @@ class Connection extends AConnection {
     }
 
     /**
+     * Detaches this connection from its server
+     */
+    public function detach() {
+
+        if (!$this->isAccepted()) {
+            throw new \LogicException('Connections can only be detached after it has been accepted');
+        }
+
+        $this->_server->removeConnection($this, FALSE);
+        $this->_server = NULL;
+
+    }
+
+    /**
      * Sets the time in seconds in which the client has to send its handshake
      *
      * @param float $timeout
@@ -357,9 +373,9 @@ class Connection extends AConnection {
     /**
      * Returns the related websocket server
      *
-     * @return \PHPWebSockets\Server
+     * @return \PHPWebSockets\Server|null
      */
-    public function getServer() : Server {
+    public function getServer() {
         return $this->_server;
     }
 
@@ -423,7 +439,7 @@ class Connection extends AConnection {
      * @return bool
      */
     public function isOpen() : bool {
-        return is_resource($this->_stream);
+        return $this->_isClosed === FALSE && is_resource($this->_stream);
     }
 
     /**
@@ -431,12 +447,16 @@ class Connection extends AConnection {
      */
     public function close() {
 
+        $this->_isClosed = TRUE;
+
         if (is_resource($this->_stream)) {
             fclose($this->_stream);
             $this->_stream = NULL;
         }
 
-        $this->_server->removeConnection($this);
+        if ($this->_server !== NULL) {
+            $this->_server->removeConnection($this);
+        }
 
     }
 
@@ -444,6 +464,6 @@ class Connection extends AConnection {
 
         $remoteIP = $this->getRemoteIP();
 
-        return 'WSConnection #' . $this->_resourceIndex . ($remoteIP ? ' => ' . $remoteIP : '') . ' @ ' . $this->_server;
+        return 'WSConnection #' . $this->_resourceIndex . ($remoteIP ? ' => ' . $remoteIP : '') . ($this->_server !== NULL ? ' @ ' . $this->_server : '');
     }
 }
