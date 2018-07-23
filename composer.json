@@ -27,7 +27,7 @@
                 "src/PHPWebSockets/"
             ]
         },
-        "files": [
+        "classmap": [
             "src/PHPWebSockets.php"
         ]
     },
