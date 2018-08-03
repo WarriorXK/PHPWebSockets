@@ -135,6 +135,7 @@ class Connection extends AConnection {
      * Attempts to read from our connection
      *
      * @return \Generator|\PHPWebSockets\AUpdate[]
+     * @throws \Exception
      */
     public function handleRead() : \Generator {
 

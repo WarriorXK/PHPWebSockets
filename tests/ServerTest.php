@@ -101,7 +101,7 @@ class ServerTest extends TestCase {
 
     }
 
-    public function testClient() {
+    public function testServer() {
 
         \PHPWebSockets::Log(LogLevel::INFO, 'Starting test..');
 
