@@ -53,6 +53,13 @@ class Server implements LoggerAwareInterface {
     protected $_cleanupAcceptingConnectionOnClose = TRUE;
 
     /**
+     * If the X-Forwarded-For and X-Client-IP headers should be trusted and returned in connection->getRemoteIP()
+     *
+     * @var bool
+     */
+    protected $_trustForwardedHeaders = FALSE;
+
+    /**
      * The time in seconds in which the stream_socket_accept method has to accept the connection or fail
      *
      * @var float
@@ -245,7 +252,7 @@ class Server implements LoggerAwareInterface {
     public function gotNewConnection() : \Generator {
 
         if (!$this->_autoAccept) {
-            yield new Update\Read(Update\Read::C_NEW_TCP_CONNECTION_AVAILABLE, $this->_acceptingConnection);
+            yield new Update\Read(Update\Read::C_NEW_SOCKET_CONNECTION_AVAILABLE, $this->_acceptingConnection);
         } else {
             yield from $this->acceptNewConnection();
         }
@@ -279,7 +286,7 @@ class Server implements LoggerAwareInterface {
 
         $this->_connectionIndex++;
 
-        yield new Update\Read(Update\Read::C_NEW_TCP_CONNECTION, $newConnection);
+        yield new Update\Read(Update\Read::C_NEW_SOCKET_CONNECTED, $newConnection);
 
     }
 
@@ -452,6 +459,24 @@ class Server implements LoggerAwareInterface {
     }
 
     /**
+     * Sets if the X-Forwarded-For and X-Client-IP headers should be trusted and returned in connection->getRemoteIP()
+     *
+     * @param bool $trust
+     *
+     * @return void
+     */
+    public function setTrustForwardedHeaders(bool $trust) {
+        $this->_trustForwardedHeaders = $trust;
+    }
+
+    /**
+     * @return bool
+     */
+    public function getTrustForwardedHeaders() : bool {
+        return $this->_trustForwardedHeaders;
+    }
+
+    /**
      * Sets the time in seconds in which the stream_socket_accept method has to accept the connection or fail
      *
      * @param float $timeout
@@ -488,7 +513,7 @@ class Server implements LoggerAwareInterface {
     }
 
     /**
-     * Sets if we should automatically accept the TCP connection
+     * Sets if we should automatically accept the connection
      *
      * @param bool $autoAccept
      */
@@ -512,7 +537,7 @@ class Server implements LoggerAwareInterface {
     }
 
     /**
-     * Returns if we accept the TCP connection automatically
+     * Returns if we accept the connection automatically
      *
      * @return bool
      */

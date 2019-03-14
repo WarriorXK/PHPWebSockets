@@ -414,6 +414,22 @@ class Connection extends AConnection {
      * @return string|null
      */
     public function getRemoteIP() {
+
+        if ($this->_server && $this->_server->getTrustForwardedHeaders()) {
+
+            $realIP = $this->_headers['x-client-ip'] ?? $this->_headers['x-client-ip'] ?? NULL;
+            if ($realIP) {
+                return $realIP;
+            }
+
+            $forwardedForParts = explode(',', $headers['x-forwarded-for'] ?? '');
+            $forwardedFor = reset($forwardedForParts);
+            if ($forwardedFor) {
+                return $forwardedFor;
+            }
+
+        }
+
         return $this->_remoteIP;
     }
 
