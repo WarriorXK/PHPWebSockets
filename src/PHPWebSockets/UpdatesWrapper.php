@@ -322,18 +322,22 @@ class UpdatesWrapper {
         }
     }
 
-    private function _triggerDisconnectHandler(AConnection $connection, bool $wasClean, string $data) {
+    private function _triggerDisconnectHandler(AConnection $connection, bool $wasClean, string $data = NULL) {
 
         $reason = '';
         $code = 0;
 
-        $dataLen = strlen($data);
-        if ($dataLen >= 2) {
+        if ($data !== NULL) {
 
-            $code = unpack('n', substr($data, 0, 2))[1];
+            $dataLen = strlen($data);
+            if ($dataLen >= 2) {
 
-            if ($dataLen > 2) {
-                $reason = substr($data, 2);
+                $code = unpack('n', substr($data, 0, 2))[1];
+
+                if ($dataLen > 2) {
+                    $reason = substr($data, 2);
+                }
+
             }
 
         }

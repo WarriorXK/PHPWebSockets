@@ -31,6 +31,7 @@ declare(strict_types = 1);
 namespace PHPWebSockets;
 
 use Psr\Log\LoggerAwareInterface;
+use Psr\Log\LoggerInterface;
 use Psr\Log\LogLevel;
 
 class Server implements LoggerAwareInterface {
@@ -131,13 +132,18 @@ class Server implements LoggerAwareInterface {
     /**
      * Constructs a new webserver
      *
-     * @param string $address       This should be a protocol://address:port scheme url, if left NULL no accepting socket will be created
-     * @param array  $streamContext The streamcontext @see https://secure.php.net/manual/en/function.stream-context-create.php
-     * @param bool   $useCrypto     If we should enable crypto on newly accepted connections
+     * @param string                        $address       This should be a protocol://address:port scheme url, if left NULL no accepting socket will be created
+     * @param array                         $streamContext The streamcontext @see https://secure.php.net/manual/en/function.stream-context-create.php
+     * @param bool                          $useCrypto     If we should enable crypto on newly accepted connections
+     * @param \Psr\Log\LoggerInterface|null $logger
      *
      * @throws \RuntimeException
      */
-    public function __construct(string $address = NULL, array $streamContext = [], bool $useCrypto = FALSE) {
+    public function __construct(string $address = NULL, array $streamContext = [], bool $useCrypto = FALSE, LoggerInterface $logger = NULL) {
+
+        if ($logger !== NULL) {
+            $this->setLogger($logger);
+        }
 
         $this->_serverIndex = self::$_ServerCounter;
         $this->_useCrypto = $useCrypto;
