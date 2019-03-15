@@ -274,6 +274,8 @@ class Connection extends AConnection {
 
         $this->_headers = $headers;
 
+        $this->_parseHeaders();
+
         if ($responseCode >= 300) {
             return FALSE;
         }
@@ -287,6 +289,36 @@ class Connection extends AConnection {
         }
 
         return TRUE;
+    }
+
+    /**
+     * @return void
+     */
+    protected function _parseHeaders() {
+
+        if ($this->_server && $this->_server->getTrustForwardedHeaders()) {
+
+            $headers = $this->getHeaders();
+
+            $realIP = $headers['x-real-ip'] ?? NULL;
+            if ($realIP) {
+                $this->_remoteIP = $realIP;
+            } else {
+
+                /*
+                 * X-Forwarded-For is a comma separated list of proxies, the first entry is the client's IP
+                 */
+
+                $forwardedForParts = explode(',', $headers['x-forwarded-for'] ?? '');
+                $forwardedFor = reset($forwardedForParts);
+                if ($forwardedFor) {
+                    $this->_remoteIP = $forwardedFor;
+                }
+
+            }
+
+        }
+
     }
 
     /**
@@ -400,12 +432,12 @@ class Connection extends AConnection {
     }
 
     /**
-     * Returns the headers set during the http request
+     * Returns the headers set during the http request, this can be empty if called before the handshake has been completed
      *
      * @return array
      */
     public function getHeaders() : array {
-        return $this->_headers;
+        return $this->_headers ?: [];
     }
 
     /**
@@ -414,22 +446,6 @@ class Connection extends AConnection {
      * @return string|null
      */
     public function getRemoteIP() {
-
-        if ($this->_server && $this->_server->getTrustForwardedHeaders()) {
-
-            $realIP = $this->_headers['x-client-ip'] ?? $this->_headers['x-client-ip'] ?? NULL;
-            if ($realIP) {
-                return $realIP;
-            }
-
-            $forwardedForParts = explode(',', $headers['x-forwarded-for'] ?? '');
-            $forwardedFor = reset($forwardedForParts);
-            if ($forwardedFor) {
-                return $forwardedFor;
-            }
-
-        }
-
         return $this->_remoteIP;
     }
 
