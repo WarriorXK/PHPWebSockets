@@ -37,17 +37,17 @@ class UpdatesWrapper {
     /**
      * @var callable|null
      */
+    private $_socketDisconnectHandler = NULL;
+
+    /**
+     * @var callable|null
+     */
     private $_clientConnectedHandler = NULL;
 
     /**
      * @var callable|null
      */
     private $_newConnectionHandler = NULL;
-
-    /**
-     * @var callable|null
-     */
-    private $_socketEventsHandler = NULL;
 
     /**
      * @var callable|null
@@ -183,7 +183,7 @@ class UpdatesWrapper {
                         $this->_onSocketConnect($update);
                         break;
                     case Update\Read::C_NEW_SOCKET_CONNECTION_AVAILABLE:
-                        $this->_onSocketConnectionAvailable($update);
+//                        $this->_onSocketConnectionAvailable($update);
                         break;
                     default:
                         throw new \UnexpectedValueException('Unknown or unsupported update code for read: ' . $code);
@@ -264,8 +264,8 @@ class UpdatesWrapper {
     /**
      * @param callable|null $callable
      */
-    public function setSocketEventsHandler(callable $callable = NULL) {
-        $this->_socketEventsHandler = $callable;
+    public function setSocketDisconnectHandler(callable $callable = NULL) {
+        $this->_socketDisconnectHandler = $callable;
     }
 
     /**
@@ -320,12 +320,6 @@ class UpdatesWrapper {
             $connection->deny(400);
         }
 
-    }
-
-    private function _triggerSocketEventsHandler(AConnection $connection, int $code) {
-        if ($this->_socketEventsHandler) {
-            call_user_func($this->_socketEventsHandler, $connection, $code);
-        }
     }
 
     private function _triggerNewMessageHandler(AConnection $connection, string $message, int $opcode) {
@@ -409,7 +403,7 @@ class UpdatesWrapper {
     }
 
     private function _onSocketDisconnect(Update\Read $update) {
-        $this->_triggerSocketEventsHandler($update->getSourceConnection(), $update->getCode());
+        $this->_triggerSocketDisconnectHandler($update->getSourceConnection());
     }
 
     private function _onConnectionRefused(Update\Read $update) {
@@ -431,11 +425,11 @@ class UpdatesWrapper {
     }
 
     private function _onSocketConnect(Update\Read $update) {
-        $this->_triggerSocketEventsHandler($update->getSourceConnection(), $update->getCode());
+        // Todo
     }
 
     private function _onSocketConnectionAvailable(Update\Read $update) {
-        $this->_triggerSocketEventsHandler($update->getSourceConnection(), $update->getCode());
+        // Todo
     }
 
     /*
