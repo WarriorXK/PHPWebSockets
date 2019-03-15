@@ -538,5 +538,4 @@ class UpdatesWrapper {
     private function _onDisconnectDuringHandshake(Update\Error $update) {
         $this->_triggerErrorHandler($update->getSourceConnection(), $update->getCode());
     }
-
 }
