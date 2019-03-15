@@ -31,7 +31,6 @@ declare(strict_types = 1);
 namespace PHPWebSockets;
 
 interface IStreamContainer {
-
     /**
      * Gets called just before stream_select gets called
      *

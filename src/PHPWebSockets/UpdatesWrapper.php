@@ -33,7 +33,6 @@ namespace PHPWebSockets;
 use PHPWebSockets\Server\Connection;
 
 class UpdatesWrapper {
-
     /**
      * @var callable|null
      */

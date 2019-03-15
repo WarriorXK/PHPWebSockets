@@ -568,7 +568,7 @@ abstract class AConnection implements IStreamContainer, LoggerAwareInterface {
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function beforeStreamSelect() : \Generator {
 
