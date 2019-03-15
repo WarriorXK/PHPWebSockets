@@ -307,6 +307,12 @@ class UpdatesWrapper {
      * Triggers
      */
 
+    private function _triggerSocketDisconnectHandler(AConnection $connection) {
+        if ($this->_disconnectHandler) {
+            call_user_func($this->_disconnectHandler, $connection);
+        }
+    }
+
     private function _triggerNewConnectionHandler(Connection $connection) {
 
         $accept = NULL;

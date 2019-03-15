@@ -188,6 +188,8 @@ final class PHPWebSockets {
             }
             $read[] = $stream;
 
+            yield from $object->afterStreamSelect();
+
         }
 
         if (!empty($read) || !empty($write) || !empty($exceptional)) {

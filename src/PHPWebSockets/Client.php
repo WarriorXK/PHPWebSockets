@@ -431,6 +431,10 @@ class Client extends AConnection {
      */
     public function close() {
 
+        if (!$this->_isClosed) {
+            $this->_shouldReportClose = TRUE;
+        }
+
         $this->_isClosed = TRUE;
 
         if (is_resource($this->_stream)) {

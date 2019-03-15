@@ -102,6 +102,13 @@ abstract class AConnection implements IStreamContainer, LoggerAwareInterface {
     protected $_maxHandshakeLength = 8192;
 
     /**
+     * If we should yield an has closed event on the next update
+     *
+     * @var bool
+     */
+    protected $_shouldReportClose = FALSE;
+
+    /**
      * If we've sent the disconnect message to the remote
      *
      * @var bool
@@ -458,7 +465,10 @@ abstract class AConnection implements IStreamContainer, LoggerAwareInterface {
 
                             $this->_log(LogLevel::DEBUG, '  We initiated the disconnect, close the connection');
 
+                            $this->_isClosed = TRUE;
+
                             $this->close();
+
                             yield new Update\Read(Update\Read::C_SOCK_DISCONNECT, $this);
 
                         } elseif (!$this->_weSentDisconnect) {
@@ -553,6 +563,21 @@ abstract class AConnection implements IStreamContainer, LoggerAwareInterface {
         if ($this->_closeAfterWrite && $this->isWriteBufferEmpty()) {
             $this->_log(LogLevel::DEBUG, '      Close after write');
             $this->close();
+        }
+
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function beforeStreamSelect() : \Generator {
+
+        if ($this->_shouldReportClose) {
+
+            yield new Update\Read(Update\Read::C_SOCK_DISCONNECT, $this);
+
+            $this->_shouldReportClose = FALSE;
+
         }
 
     }

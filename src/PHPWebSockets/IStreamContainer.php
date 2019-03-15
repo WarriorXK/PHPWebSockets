@@ -31,12 +31,20 @@ declare(strict_types = 1);
 namespace PHPWebSockets;
 
 interface IStreamContainer {
+
     /**
      * Gets called just before stream_select gets called
      *
      * @return \Generator|\PHPWebSockets\AUpdate[]
      */
     public function beforeStreamSelect() : \Generator;
+
+    /**
+     * Gets called just after stream_select gets called
+     *
+     * @return \Generator|\PHPWebSockets\AUpdate[]
+     */
+    public function afterStreamSelect() : \Generator;
 
     /**
      * Returns if we have (partial)frames ready to be send

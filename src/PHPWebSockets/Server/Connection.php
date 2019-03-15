@@ -152,6 +152,8 @@ class Connection extends AConnection {
 
         if (strlen($newData) === 0) {
 
+            $this->_isClosed = TRUE;
+
             if (!$this->hasHandshake()) {
                 yield new Update\Error(Update\Error::C_READ_DISCONNECT_DURING_HANDSHAKE, $this);
             } elseif ($this->_remoteSentDisconnect && $this->_weSentDisconnect) {
@@ -480,6 +482,10 @@ class Connection extends AConnection {
      * Simply closes the connection
      */
     public function close() {
+
+        if (!$this->_isClosed) {
+            $this->_shouldReportClose = TRUE;
+        }
 
         $this->_isClosed = TRUE;
 

@@ -43,6 +43,17 @@ trait TStreamContainerDefaults {
     }
 
     /**
+     * Gets called just after stream_select gets called
+     *
+     * @return \Generator|\PHPWebSockets\AUpdate[]
+     */
+    public function afterStreamSelect() : \Generator {
+        if (FALSE) {
+            yield;
+        }
+    }
+
+    /**
      * Returns if we have (partial)frames ready to be send
      *
      * @return bool
