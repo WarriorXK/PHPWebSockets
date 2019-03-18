@@ -341,6 +341,11 @@ abstract class AConnection implements IStreamContainer, LoggerAwareInterface {
                     case \PHPWebSockets::OPCODE_FRAME_TEXT:
                     case \PHPWebSockets::OPCODE_FRAME_BINARY:
 
+                        if ($this->_remoteSentDisconnect) {
+                            $this->_log(LogLevel::WARNING, 'Found frame AFTER remote has send us a disconnect frame, dropping');
+                            return;
+                        }
+
                         if (($this->_partialMessageOpcode ?: $opcode) === \PHPWebSockets::OPCODE_FRAME_TEXT) {
 
                             if (!\PHPWebSockets::ValidateUTF8($framePayload, $this->_utfValidationState) || ($headers[Framer::IND_FIN] && $this->_utfValidationState !== \PHPWebSockets::UTF8_ACCEPT)) {

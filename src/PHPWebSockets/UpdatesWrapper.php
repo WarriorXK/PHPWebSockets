@@ -362,10 +362,6 @@ class UpdatesWrapper {
      * Read events
      */
 
-    private function _onSocketDisconnect(Update\Read $update) {
-
-    }
-
     private function _onNewConnection(Update\Read $update) {
 
         /** @var \PHPWebSockets\Server\Connection $source */
@@ -391,6 +387,10 @@ class UpdatesWrapper {
 
     private function _onPong(Update\Read $update) {
         $this->_triggerLastContactHandler($update->getSourceConnection());
+    }
+
+    private function _onSocketDisconnect(Update\Read $update) {
+        // Nothing
     }
 
     private function _onConnectionRefused(Update\Read $update) {
@@ -514,7 +514,6 @@ class UpdatesWrapper {
 
         $this->_triggerErrorHandler($source, $update->getCode());
         $this->_triggerDisconnectHandler($source, FALSE, NULL);
-
 
     }
 
