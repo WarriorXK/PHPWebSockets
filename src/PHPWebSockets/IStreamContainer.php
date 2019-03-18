@@ -39,6 +39,13 @@ interface IStreamContainer {
     public function beforeStreamSelect() : \Generator;
 
     /**
+     * Gets called just after stream_select gets called
+     *
+     * @return \Generator|\PHPWebSockets\AUpdate[]
+     */
+    public function afterStreamSelect() : \Generator;
+
+    /**
      * Returns if we have (partial)frames ready to be send
      *
      * @return bool

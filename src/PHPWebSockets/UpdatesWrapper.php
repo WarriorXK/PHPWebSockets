@@ -33,7 +33,6 @@ namespace PHPWebSockets;
 use PHPWebSockets\Server\Connection;
 
 class UpdatesWrapper {
-
     /**
      * @var callable|null
      */
@@ -174,12 +173,12 @@ class UpdatesWrapper {
                     case Update\Read::C_READ_DISCONNECT:
                         $this->_onDisconnect($update);
                         break;
-                    case Update\Read::C_NEW_TCP_CONNECTION:
-                        $this->_onTCPConnect($update);
+                    case Update\Read::C_NEW_SOCKET_CONNECTED:
+                        $this->_onSocketConnect($update);
                         break;
-                    case Update\Read::C_NEW_TCP_CONNECTION_AVAILABLE:
-//                        $this->_onTCPConnectionAvailable($update);
-//                        break;
+                    case Update\Read::C_NEW_SOCKET_CONNECTION_AVAILABLE:
+//                        $this->_onSocketConnectionAvailable($update);
+                        break;
                     default:
                         throw new \UnexpectedValueException('Unknown or unsupported update code for read: ' . $code);
                 }
@@ -412,12 +411,12 @@ class UpdatesWrapper {
         $this->_triggerDisconnectHandler($update->getSourceConnection(), TRUE, $update->getMessage());
     }
 
-    private function _onTCPConnect(Update\Read $update) {
-        // Nothing
+    private function _onSocketConnect(Update\Read $update) {
+        // Todo
     }
 
-    private function _onTCPConnectionAvailable(Update\Read $update) {
-        // Ignored for now
+    private function _onSocketConnectionAvailable(Update\Read $update) {
+        // Todo
     }
 
     /*
@@ -461,7 +460,7 @@ class UpdatesWrapper {
         $source = $update->getSourceConnection();
 
         $this->_triggerErrorHandler($source, $update->getCode());
-        $this->_triggerDisconnectHandler($source, FALSE, '');
+        $this->_triggerDisconnectHandler($source, FALSE, NULL);
 
     }
 
@@ -474,7 +473,7 @@ class UpdatesWrapper {
         $source = $update->getSourceConnection();
 
         $this->_triggerErrorHandler($source, $update->getCode());
-        $this->_triggerDisconnectHandler($source, FALSE, '');
+        $this->_triggerDisconnectHandler($source, FALSE, NULL);
 
     }
 
@@ -483,7 +482,7 @@ class UpdatesWrapper {
         $source = $update->getSourceConnection();
 
         $this->_triggerErrorHandler($source, $update->getCode());
-        $this->_triggerDisconnectHandler($source, FALSE, '');
+        $this->_triggerDisconnectHandler($source, FALSE, NULL);
 
     }
 
@@ -492,7 +491,7 @@ class UpdatesWrapper {
         $source = $update->getSourceConnection();
 
         $this->_triggerErrorHandler($source, $update->getCode());
-        $this->_triggerDisconnectHandler($source, FALSE, '');
+        $this->_triggerDisconnectHandler($source, FALSE, NULL);
 
     }
 
@@ -505,7 +504,7 @@ class UpdatesWrapper {
         $source = $update->getSourceConnection();
 
         $this->_triggerErrorHandler($source, $update->getCode());
-        $this->_triggerDisconnectHandler($source, FALSE, '');
+        $this->_triggerDisconnectHandler($source, FALSE, NULL);
 
     }
 
@@ -514,7 +513,7 @@ class UpdatesWrapper {
         $source = $update->getSourceConnection();
 
         $this->_triggerErrorHandler($source, $update->getCode());
-        $this->_triggerDisconnectHandler($source, FALSE, '');
+        $this->_triggerDisconnectHandler($source, FALSE, NULL);
 
     }
 
