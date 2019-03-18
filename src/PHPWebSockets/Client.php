@@ -257,6 +257,8 @@ class Client extends AConnection {
 
         if (strlen($newData) === 0) {
 
+            $this->_log(LogLevel::DEBUG, 'Read length of 0, socket is closed');
+
             $this->_isClosed = TRUE;
 
             if ($this->_remoteSentDisconnect && $this->_weSentDisconnect) {
@@ -430,6 +432,12 @@ class Client extends AConnection {
      * Simply closes the connection
      */
     public function close() {
+
+        $this->_log(LogLevel::DEBUG, __METHOD__);
+
+        if (!$this->_isClosed) {
+            $this->_shouldReportClose = TRUE;
+        }
 
         $this->_isClosed = TRUE;
 

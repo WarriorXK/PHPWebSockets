@@ -152,6 +152,8 @@ class Connection extends AConnection {
 
         if (strlen($newData) === 0) {
 
+            $this->_isClosed = TRUE;
+
             if (!$this->hasHandshake()) {
                 yield new Update\Error(Update\Error::C_READ_DISCONNECT_DURING_HANDSHAKE, $this);
             } elseif ($this->_remoteSentDisconnect && $this->_weSentDisconnect) {
@@ -274,6 +276,8 @@ class Connection extends AConnection {
 
         $this->_headers = $headers;
 
+        $this->_parseHeaders();
+
         if ($responseCode >= 300) {
             return FALSE;
         }
@@ -287,6 +291,36 @@ class Connection extends AConnection {
         }
 
         return TRUE;
+    }
+
+    /**
+     * @return void
+     */
+    protected function _parseHeaders() {
+
+        if ($this->_server && $this->_server->getTrustForwardedHeaders()) {
+
+            $headers = $this->getHeaders();
+
+            $realIP = $headers['x-real-ip'] ?? NULL;
+            if ($realIP) {
+                $this->_remoteIP = $realIP;
+            } else {
+
+                /*
+                 * X-Forwarded-For is a comma separated list of proxies, the first entry is the client's IP
+                 */
+
+                $forwardedForParts = explode(',', $headers['x-forwarded-for'] ?? '');
+                $forwardedFor = reset($forwardedForParts);
+                if ($forwardedFor) {
+                    $this->_remoteIP = $forwardedFor;
+                }
+
+            }
+
+        }
+
     }
 
     /**
@@ -400,12 +434,12 @@ class Connection extends AConnection {
     }
 
     /**
-     * Returns the headers set during the http request
+     * Returns the headers set during the http request, this can be empty if called before the handshake has been completed
      *
      * @return array
      */
     public function getHeaders() : array {
-        return $this->_headers;
+        return $this->_headers ?: [];
     }
 
     /**
@@ -448,6 +482,10 @@ class Connection extends AConnection {
      * Simply closes the connection
      */
     public function close() {
+
+        if (!$this->_isClosed) {
+            $this->_shouldReportClose = TRUE;
+        }
 
         $this->_isClosed = TRUE;
 

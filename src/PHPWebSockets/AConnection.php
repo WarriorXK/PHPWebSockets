@@ -102,6 +102,13 @@ abstract class AConnection implements IStreamContainer, LoggerAwareInterface {
     protected $_maxHandshakeLength = 8192;
 
     /**
+     * If we should yield an has closed event on the next update
+     *
+     * @var bool
+     */
+    protected $_shouldReportClose = FALSE;
+
+    /**
      * If we've sent the disconnect message to the remote
      *
      * @var bool
@@ -334,6 +341,15 @@ abstract class AConnection implements IStreamContainer, LoggerAwareInterface {
                     case \PHPWebSockets::OPCODE_FRAME_TEXT:
                     case \PHPWebSockets::OPCODE_FRAME_BINARY:
 
+                        if ($this->_remoteSentDisconnect) {
+
+                            $this->_log(LogLevel::WARNING, 'Found frame AFTER remote has send us a disconnect frame, dropping');
+
+                            $this->_resetFrameData();
+
+                            return;
+                        }
+
                         if (($this->_partialMessageOpcode ?: $opcode) === \PHPWebSockets::OPCODE_FRAME_TEXT) {
 
                             if (!\PHPWebSockets::ValidateUTF8($framePayload, $this->_utfValidationState) || ($headers[Framer::IND_FIN] && $this->_utfValidationState !== \PHPWebSockets::UTF8_ACCEPT)) {
@@ -415,11 +431,7 @@ abstract class AConnection implements IStreamContainer, LoggerAwareInterface {
 
                             yield new Update\Read(Update\Read::C_READ, $this, $this->_partialMessageOpcode, $this->_partialMessage, $this->_partialMessageStream);
 
-                            $this->_partialMessageOpcode = NULL;
-                            $this->_partialMessageStream = NULL;
-                            $this->_partialMessage = NULL;
-
-                            $this->_utfValidationState = \PHPWebSockets::UTF8_ACCEPT;
+                            $this->_resetFrameData();
 
                         }
 
@@ -458,7 +470,10 @@ abstract class AConnection implements IStreamContainer, LoggerAwareInterface {
 
                             $this->_log(LogLevel::DEBUG, '  We initiated the disconnect, close the connection');
 
+                            $this->_isClosed = TRUE;
+
                             $this->close();
+
                             yield new Update\Read(Update\Read::C_SOCK_DISCONNECT, $this);
 
                         } elseif (!$this->_weSentDisconnect) {
@@ -508,6 +523,19 @@ abstract class AConnection implements IStreamContainer, LoggerAwareInterface {
     }
 
     /**
+     * @return void
+     */
+    private function _resetFrameData() {
+
+        $this->_partialMessageOpcode = NULL;
+        $this->_partialMessageStream = NULL;
+        $this->_partialMessage = NULL;
+
+        $this->_utfValidationState = \PHPWebSockets::UTF8_ACCEPT;
+
+    }
+
+    /**
      * Writes the current buffer to the connection
      *
      * @return \Generator|\PHPWebSockets\AUpdate[]
@@ -553,6 +581,21 @@ abstract class AConnection implements IStreamContainer, LoggerAwareInterface {
         if ($this->_closeAfterWrite && $this->isWriteBufferEmpty()) {
             $this->_log(LogLevel::DEBUG, '      Close after write');
             $this->close();
+        }
+
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function beforeStreamSelect() : \Generator {
+
+        if ($this->_shouldReportClose) {
+
+            yield new Update\Read(Update\Read::C_SOCK_DISCONNECT, $this);
+
+            $this->_shouldReportClose = FALSE;
+
         }
 
     }
