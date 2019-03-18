@@ -342,7 +342,11 @@ abstract class AConnection implements IStreamContainer, LoggerAwareInterface {
                     case \PHPWebSockets::OPCODE_FRAME_BINARY:
 
                         if ($this->_remoteSentDisconnect) {
+
                             $this->_log(LogLevel::WARNING, 'Found frame AFTER remote has send us a disconnect frame, dropping');
+
+                            $this->_resetFrameData();
+
                             return;
                         }
 
@@ -427,11 +431,7 @@ abstract class AConnection implements IStreamContainer, LoggerAwareInterface {
 
                             yield new Update\Read(Update\Read::C_READ, $this, $this->_partialMessageOpcode, $this->_partialMessage, $this->_partialMessageStream);
 
-                            $this->_partialMessageOpcode = NULL;
-                            $this->_partialMessageStream = NULL;
-                            $this->_partialMessage = NULL;
-
-                            $this->_utfValidationState = \PHPWebSockets::UTF8_ACCEPT;
+                            $this->_resetFrameData();
 
                         }
 
@@ -519,6 +519,19 @@ abstract class AConnection implements IStreamContainer, LoggerAwareInterface {
             }
 
         }
+
+    }
+
+    /**
+     * @return void
+     */
+    private function _resetFrameData() {
+
+        $this->_partialMessageOpcode = NULL;
+        $this->_partialMessageStream = NULL;
+        $this->_partialMessage = NULL;
+
+        $this->_utfValidationState = \PHPWebSockets::UTF8_ACCEPT;
 
     }
 
