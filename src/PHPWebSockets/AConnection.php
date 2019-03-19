@@ -137,6 +137,20 @@ abstract class AConnection implements IStreamContainer, LoggerAwareInterface {
     protected $_partialMessage = NULL;
 
     /**
+     * The stream's resource index
+     *
+     * @var int|null
+     */
+    protected $_resourceIndex = NULL;
+
+    /**
+     * If we've finished the handshake
+     *
+     * @var bool
+     */
+    protected $_hasHandshake = FALSE;
+
+    /**
      * The frames ready to be send
      *
      * @var string[]
@@ -592,6 +606,8 @@ abstract class AConnection implements IStreamContainer, LoggerAwareInterface {
 
         if ($this->_shouldReportClose) {
 
+            $this->_log(LogLevel::DEBUG, 'Reporting close');
+
             yield new Update\Read(Update\Read::C_SOCK_DISCONNECT, $this);
 
             $this->_shouldReportClose = FALSE;
@@ -728,6 +744,22 @@ abstract class AConnection implements IStreamContainer, LoggerAwareInterface {
      */
     public function setNewMessageStreamCallback(callable $callable = NULL) {
         $this->_newMessageStreamCallback = $callable;
+    }
+
+    /**
+     * Returns if we've received the handshake
+     *
+     * @return bool
+     */
+    public function hasHandshake() : bool {
+        return $this->_hasHandshake;
+    }
+
+    /**
+     * @return int|null
+     */
+    public function getResourceIndex() {
+        return $this->_resourceIndex;
     }
 
     /**

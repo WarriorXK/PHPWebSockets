@@ -38,25 +38,11 @@ use Psr\Log\LogLevel;
 class Connection extends AConnection {
 
     /**
-     * The stream's resource index
-     *
-     * @var int|null
-     */
-    protected $_resourceIndex = NULL;
-
-    /**
      * The time in seconds in which the client has to send its handshake
      *
      * @var float
      */
     protected $_acceptTimeout = 5.0;
-
-    /**
-     * If we've finished the handshake
-     *
-     * @var bool
-     */
-    protected $_hasHandshake = FALSE;
 
     /**
      * If the connection has been accepted
@@ -413,15 +399,6 @@ class Connection extends AConnection {
      */
     public function getServer() {
         return $this->_server;
-    }
-
-    /**
-     * Returns if we've received the handshake
-     *
-     * @return bool
-     */
-    public function hasHandshake() : bool {
-        return $this->_hasHandshake;
     }
 
     /**

@@ -57,13 +57,6 @@ class Client extends AConnection {
     protected $_streamLastError = NULL;
 
     /**
-     * The stream's resource index
-     *
-     * @var int|null
-     */
-    protected $_resourceIndex = NULL;
-
-    /**
      * If we should send our frames masked
      *
      * Note: Setting this to FALSE is officially not supported by the websocket RFC, but can improve performance
@@ -312,7 +305,10 @@ class Client extends AConnection {
 
                 $this->_headers = \PHPWebSockets::ParseHTTPHeaders($rawHandshake);
                 if (($this->_headers['status-code'] ?? NULL) === 101) {
+
                     $this->_handshakeAccepted = TRUE;
+                    $this->_hasHandshake = TRUE;
+
                     yield new Update\Read(Update\Read::C_CONNECTION_ACCEPTED, $this);
                 } else {
 
