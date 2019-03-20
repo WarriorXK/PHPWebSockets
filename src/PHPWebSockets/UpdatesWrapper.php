@@ -381,8 +381,8 @@ class UpdatesWrapper {
 
         $source = $update->getSourceConnection();
 
-        $this->_triggerNewMessageHandler($source, $update->getMessage(), $update->getOpcode());
         $this->_triggerLastContactHandler($source);
+        $this->_triggerNewMessageHandler($source, $update->getMessage(), $update->getOpcode());
 
     }
 
@@ -427,8 +427,8 @@ class UpdatesWrapper {
         /** @var \PHPWebSockets\Client $source */
         $source = $update->getSourceConnection();
 
-        $this->_triggerConnected($source);
         $this->_triggerLastContactHandler($source);
+        $this->_triggerConnected($source);
 
     }
 
