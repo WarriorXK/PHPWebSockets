@@ -193,6 +193,13 @@ abstract class AConnection implements IStreamContainer, LoggerAwareInterface {
     protected $_readRate = 16384;
 
     /**
+     * The resource stream
+     *
+     * @var resource
+     */
+    protected $_stream = NULL;
+
+    /**
      * Sets the maximum size for the handshake in bytes
      *
      * @param int $maxLength
@@ -747,6 +754,15 @@ abstract class AConnection implements IStreamContainer, LoggerAwareInterface {
     }
 
     /**
+     * Returns the stream object for this connection
+     *
+     * @return resource
+     */
+    public function getStream() {
+        return $this->_stream;
+    }
+
+    /**
      * Returns if we've received the handshake
      *
      * @return bool
@@ -815,16 +831,33 @@ abstract class AConnection implements IStreamContainer, LoggerAwareInterface {
     abstract protected function _shouldMask() : bool;
 
     /**
-     * Returns TRUE if our connection is open
+     * Returns if our connection is open
      *
      * @return bool
      */
-    abstract public function isOpen() : bool;
+    public function isOpen() : bool {
+        return $this->_isClosed === FALSE && is_resource($this->_stream);
+    }
 
     /**
      * Simply closes the connection
+     *
+     * @return void
      */
-    abstract public function close();
+    public function close() {
+
+        if (!$this->_isClosed) {
+            $this->_shouldReportClose = TRUE;
+        }
+
+        $this->_isClosed = TRUE;
+
+        if (is_resource($this->_stream)) {
+            fclose($this->_stream);
+            $this->_stream = NULL;
+        }
+
+    }
 
     public function __destruct() {
 

@@ -80,13 +80,6 @@ class Connection extends AConnection {
     protected $_server = NULL;
 
     /**
-     * The resource stream
-     *
-     * @var resource
-     */
-    protected $_stream = NULL;
-
-    /**
      * The connection's index in the connections array
      *
      * @var int
@@ -429,15 +422,6 @@ class Connection extends AConnection {
     }
 
     /**
-     * Returns the stream object for this connection
-     *
-     * @return resource
-     */
-    public function getStream() {
-        return $this->_stream;
-    }
-
-    /**
      * Returns the index for this connection
      *
      * @return int
@@ -447,29 +431,11 @@ class Connection extends AConnection {
     }
 
     /**
-     * Returns if our connection is open
-     *
-     * @return bool
-     */
-    public function isOpen() : bool {
-        return $this->_isClosed === FALSE && is_resource($this->_stream);
-    }
-
-    /**
-     * Simply closes the connection
+     * {@inheritdoc}
      */
     public function close() {
 
-        if (!$this->_isClosed) {
-            $this->_shouldReportClose = TRUE;
-        }
-
-        $this->_isClosed = TRUE;
-
-        if (is_resource($this->_stream)) {
-            fclose($this->_stream);
-            $this->_stream = NULL;
-        }
+        parent::close();
 
         if ($this->_server !== NULL) {
             $this->_server->removeConnection($this);
