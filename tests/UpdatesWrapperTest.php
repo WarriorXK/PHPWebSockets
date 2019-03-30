@@ -191,7 +191,7 @@ class UpdatesWrapperTest extends TestCase {
 
                 if (proc_get_status($clientProcess)['running'] ?? FALSE) {
 
-                    \PHPWebSockets::Log(LogLevel::INFO, 'Killing client');
+                    \PHPWebSockets::Log(LogLevel::INFO, 'Killing client ' . proc_get_status($clientProcess)['pid']);
                     proc_terminate($clientProcess, SIGKILL);
 
                 }
