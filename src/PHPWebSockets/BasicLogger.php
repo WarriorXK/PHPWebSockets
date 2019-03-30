@@ -43,7 +43,7 @@ class BasicLogger implements LoggerInterface {
      *
      * @var bool
      */
-    protected $_debug = TRUE;
+    protected $_debug = FALSE;
 
     /**
      * {@inheritdoc}

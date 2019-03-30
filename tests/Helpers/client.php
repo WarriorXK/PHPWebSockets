@@ -6,11 +6,11 @@ declare(strict_types = 1);
 require_once __DIR__ . '/../../vendor/autoload.php';
 
 $cliArgs = [
-    'address' => '',
-    'message' => '',
+    'address'          => '',
+    'message'          => '',
     'message-interval' => 1,
-    'message-count' => 0,
-    'ping-interval' => 0,
+    'message-count'    => 0,
+    'ping-interval'    => 0,
 ];
 
 foreach ($argv as $item) {

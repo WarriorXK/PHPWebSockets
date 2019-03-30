@@ -28,7 +28,6 @@ declare(strict_types = 1);
  * - - - - - - - - - - - - - - END LICENSE BLOCK - - - - - - - - - - - - -
  */
 
-use PHPWebSockets\Update\Read;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LogLevel;
 
@@ -58,7 +57,7 @@ class UpdatesWrapperTest extends TestCase {
     protected function setUp() {
 
         $this->_updatesWrapper = new \PHPWebSockets\UpdatesWrapper();
-        $this->_updatesWrapper->setDisconnectHandler(function(\PHPWebSockets\AConnection $connection, bool $wasClean, int $code, string $reason) {
+        $this->_updatesWrapper->setDisconnectHandler(function (\PHPWebSockets\AConnection $connection, bool $wasClean, int $code, string $reason) {
 
             /*
              * If a connection closes, check if we have the connection and remove it
@@ -71,7 +70,7 @@ class UpdatesWrapperTest extends TestCase {
             unset($this->_connectionList[$connection->getResourceIndex()]);
 
         });
-        $this->_updatesWrapper->setClientConnectedHandler(function(\PHPWebSockets\Client $client) {
+        $this->_updatesWrapper->setClientConnectedHandler(function (\PHPWebSockets\Client $client) {
 
             /*
              * If a client has connected check if it doesn't already exist and add it to the list
@@ -89,7 +88,7 @@ class UpdatesWrapperTest extends TestCase {
             $this->_connectionList[$index] = $client;
 
         });
-        $this->_updatesWrapper->setNewConnectionHandler(function(\PHPWebSockets\Server\Connection $connection) {
+        $this->_updatesWrapper->setNewConnectionHandler(function (\PHPWebSockets\Server\Connection $connection) {
 
             /*
              * If a client has connected to the server, check if it doesn't already exist and add it to the list
@@ -109,7 +108,7 @@ class UpdatesWrapperTest extends TestCase {
             $this->_connectionList[$index] = $connection;
 
         });
-        $this->_updatesWrapper->setLastContactHandler(function(\PHPWebSockets\AConnection $connection) {
+        $this->_updatesWrapper->setLastContactHandler(function (\PHPWebSockets\AConnection $connection) {
 
             /*
              * Check if we have the connection
@@ -120,7 +119,7 @@ class UpdatesWrapperTest extends TestCase {
             $this->assertContains($connection, $this->_connectionList);
 
         });
-        $this->_updatesWrapper->setMessageHandler(function(\PHPWebSockets\AConnection $connection, string $message, int $opcode) {
+        $this->_updatesWrapper->setMessageHandler(function (\PHPWebSockets\AConnection $connection, string $message, int $opcode) {
 
             /*
              * Check if we have the connection and echo the received message
@@ -133,7 +132,7 @@ class UpdatesWrapperTest extends TestCase {
             $connection->write($message, $opcode);
 
         });
-        $this->_updatesWrapper->setErrorHandler(function(\PHPWebSockets\AConnection $connection, int $code) {
+        $this->_updatesWrapper->setErrorHandler(function (\PHPWebSockets\AConnection $connection, int $code) {
 
             \PHPWebSockets::Log(LogLevel::INFO, 'Got error ' . $code . ' from ' . $connection);
 
@@ -162,11 +161,9 @@ class UpdatesWrapperTest extends TestCase {
 
             $this->_updatesWrapper->update(0.1, $this->_wsServer->getConnections(TRUE));
 
-        };
+        }
 
         \PHPWebSockets::Log(LogLevel::INFO, 'Test finished');
 
     }
-
-
 }
