@@ -11,6 +11,7 @@ $cliArgs = [
     'message-interval' => 1,
     'message-count'    => 0,
     'ping-interval'    => 0,
+    'die-at'           => 0,
 ];
 
 foreach ($argv as $item) {
@@ -25,6 +26,8 @@ foreach ($argv as $item) {
         $cliArgs['message-count'] = (int) substr($item, 16);
     } elseif (substr($item, 0, 16) === '--ping-interval=') {
         $cliArgs['ping-interval'] = (int) substr($item, 16);
+    } elseif (substr($item, 0, 9) === '--die-at=') {
+        $cliArgs['die-at'] = (float) substr($item, 16);
     }
 
 }
@@ -40,6 +43,10 @@ $pingCount = 0;
 $lastPing = 0;
 
 while ($client->isOpen()) {
+
+    if ($cliArgs['die-at'] > 0.0 && microtime(TRUE) >= $cliArgs['die-at']) {
+        die();
+    }
 
     foreach ($client->update(0.1) as $update) {
         // Nothing

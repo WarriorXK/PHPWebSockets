@@ -175,24 +175,23 @@ class UpdatesWrapperTest extends TestCase {
 
         $this->assertEmpty($this->_wsServer->getConnections(FALSE));
 
-        $descriptorSpec = [['pipe', 'r'], STDOUT, STDERR];
-        $clientProcess = proc_open('./tests/Helpers/client.php --address=' . escapeshellarg(self::ADDRESS) . ' --message=' . escapeshellarg('Hello world') . ' --message-count=5', $descriptorSpec, $pipes, realpath(__DIR__ . '/../'));
+        $dieAt = microtime(TRUE) + 2.0;
+        $runUntil = $dieAt + 6.0;
 
-        $killAt = microtime(TRUE) + 2.0;
-        $runUntil = $killAt + 6.0;
+        $descriptorSpec = [['pipe', 'r'], STDOUT, STDERR];
+        $clientProcess = proc_open('./tests/Helpers/client.php --address=' . escapeshellarg(self::ADDRESS) . ' --message=' . escapeshellarg('Hello world') . ' --message-count=5 --die-at=' . escapeshellarg($dieAt), $descriptorSpec, $pipes, realpath(__DIR__ . '/../'));
 
         while (microtime(TRUE) <= $runUntil) {
 
             $this->_updatesWrapper->update(0.5, $this->_wsServer->getConnections(TRUE));
 
-            if (microtime(TRUE) >= $killAt) {
+            if ($clientProcess !== NULL) {
 
-                passthru('ps auxf');
+                $status = proc_get_status($clientProcess);
+                if (!$status['running']) {
 
-                if (proc_get_status($clientProcess)['running'] ?? FALSE) {
-
-                    \PHPWebSockets::Log(LogLevel::INFO, 'Killing client ' . proc_get_status($clientProcess)['pid']);
-                    proc_terminate($clientProcess, SIGKILL);
+                    \PHPWebSockets::Log(LogLevel::INFO, 'Client disappeared');
+                    $clientProcess = NULL;
 
                 }
 
