@@ -30,6 +30,7 @@ declare(strict_types = 1);
 
 namespace PHPWebSockets;
 
+use PHPWebSockets\Update\Read;
 use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LogLevel;
 
@@ -485,8 +486,6 @@ abstract class AConnection implements IStreamContainer, LoggerAwareInterface {
 
                         $this->_remoteSentDisconnect = TRUE;
 
-                        yield new Update\Read(Update\Read::C_READ_DISCONNECT, $this, $opcode, $framePayload);
-
                         if ($this->_weInitiateDisconnect) {
 
                             $this->_log(LogLevel::DEBUG, '  We initiated the disconnect, close the connection');
@@ -500,6 +499,8 @@ abstract class AConnection implements IStreamContainer, LoggerAwareInterface {
                         } elseif (!$this->_weSentDisconnect) {
 
                             $this->_log(LogLevel::DEBUG, '  Remote initiated the disconnect, echo disconnect');
+
+                            yield new Update\Read(Update\Read::C_READ_DISCONNECT, $this, $opcode, $framePayload);
 
                             $this->sendDisconnect($code, $disconnectMessage); // Echo the disconnect
                             $this->setCloseAfterWrite();
