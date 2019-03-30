@@ -159,7 +159,7 @@ class UpdatesWrapperTest extends TestCase {
 
         while (proc_get_status($clientProcess)['running'] ?? FALSE) {
 
-            $this->_updatesWrapper->update(0.1, $this->_wsServer->getConnections(TRUE));
+            $this->_updatesWrapper->update(0.5, $this->_wsServer->getConnections(TRUE));
 
         }
 
@@ -183,12 +183,18 @@ class UpdatesWrapperTest extends TestCase {
 
         while (microtime(TRUE) <= $runUntil) {
 
-            $this->_updatesWrapper->update(0.1, $this->_wsServer->getConnections(TRUE));
+            $this->_updatesWrapper->update(0.5, $this->_wsServer->getConnections(TRUE));
 
-            if (microtime(TRUE) >= $killAt && proc_get_status($clientProcess)['running'] ?? FALSE) {
+            if (microtime(TRUE) >= $killAt) {
 
-                \PHPWebSockets::Log(LogLevel::INFO, 'Killing client');
-                proc_terminate($clientProcess, 9);
+                if (proc_get_status($clientProcess)['running'] ?? FALSE) {
+
+                    \PHPWebSockets::Log(LogLevel::INFO, 'Killing client');
+                    proc_terminate($clientProcess, SIGKILL);
+
+                } else {
+                    passthru('ps auxf');
+                }
 
             }
 
