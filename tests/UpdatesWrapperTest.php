@@ -163,6 +163,39 @@ class UpdatesWrapperTest extends TestCase {
 
         }
 
+        $this->assertEmpty($this->_wsServer->getConnections(FALSE));
+
+        \PHPWebSockets::Log(LogLevel::INFO, 'Test finished');
+
+    }
+
+    public function testWrapperClientDisappeared() {
+
+        \PHPWebSockets::Log(LogLevel::INFO, 'Starting test..');
+
+        $this->assertEmpty($this->_wsServer->getConnections(FALSE));
+
+        $descriptorSpec = [['pipe', 'r'], STDOUT, STDERR];
+        $clientProcess = proc_open('./tests/Helpers/client.php --address=' . escapeshellarg(self::ADDRESS) . ' --message=' . escapeshellarg('Hello world') . ' --message-count=5', $descriptorSpec, $pipes, realpath(__DIR__ . '/../'));
+
+        $killAt = microtime(TRUE) + 2.0;
+        $runUntil = $killAt + 6.0;
+
+        while (microtime(TRUE) <= $runUntil) {
+
+            $this->_updatesWrapper->update(0.1, $this->_wsServer->getConnections(TRUE));
+
+            if (microtime(TRUE) >= $killAt && proc_get_status($clientProcess)['running'] ?? FALSE) {
+
+                \PHPWebSockets::Log(LogLevel::INFO, 'Killing client');
+                proc_terminate($clientProcess, SIGKILL);
+
+            }
+
+        }
+
+        $this->assertEmpty($this->_wsServer->getConnections(FALSE));
+
         \PHPWebSockets::Log(LogLevel::INFO, 'Test finished');
 
     }
