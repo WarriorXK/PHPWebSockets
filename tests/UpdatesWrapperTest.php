@@ -187,13 +187,13 @@ class UpdatesWrapperTest extends TestCase {
 
             if (microtime(TRUE) >= $killAt) {
 
+                passthru('ps auxf');
+
                 if (proc_get_status($clientProcess)['running'] ?? FALSE) {
 
                     \PHPWebSockets::Log(LogLevel::INFO, 'Killing client');
                     proc_terminate($clientProcess, SIGKILL);
 
-                } else {
-                    passthru('ps auxf');
                 }
 
             }
