@@ -188,7 +188,7 @@ class UpdatesWrapperTest extends TestCase {
             if (microtime(TRUE) >= $killAt && proc_get_status($clientProcess)['running'] ?? FALSE) {
 
                 \PHPWebSockets::Log(LogLevel::INFO, 'Killing client');
-                proc_terminate($clientProcess, SIGKILL);
+                proc_terminate($clientProcess, 9);
 
             }
 
