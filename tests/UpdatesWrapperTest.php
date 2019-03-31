@@ -175,11 +175,11 @@ class UpdatesWrapperTest extends TestCase {
 
         $this->assertEmpty($this->_wsServer->getConnections(FALSE));
 
-        $dieAt = microtime(TRUE) + 2.0;
-        $runUntil = $dieAt + 6.0;
+        $dieAt = microtime(TRUE) + 3.0;
+        $runUntil = $dieAt + 4.0;
 
         $descriptorSpec = [['pipe', 'r'], STDOUT, STDERR];
-        $clientProcess = proc_open('./tests/Helpers/client.php --address=' . escapeshellarg(self::ADDRESS) . ' --message=' . escapeshellarg('Hello world') . ' --message-count=5 --die-at=' . escapeshellarg($dieAt), $descriptorSpec, $pipes, realpath(__DIR__ . '/../'));
+        $clientProcess = proc_open('./tests/Helpers/client.php --address=' . escapeshellarg(self::ADDRESS) . ' --message=' . escapeshellarg('Hello world') . ' --die-at=' . escapeshellarg((string) $dieAt), $descriptorSpec, $pipes, realpath(__DIR__ . '/../'));
 
         while (microtime(TRUE) <= $runUntil) {
 

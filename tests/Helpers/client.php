@@ -27,7 +27,7 @@ foreach ($argv as $item) {
     } elseif (substr($item, 0, 16) === '--ping-interval=') {
         $cliArgs['ping-interval'] = (int) substr($item, 16);
     } elseif (substr($item, 0, 9) === '--die-at=') {
-        $cliArgs['die-at'] = (float) substr($item, 16);
+        $cliArgs['die-at'] = (float) substr($item, 9);
     }
 
 }
