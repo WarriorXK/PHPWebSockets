@@ -14,7 +14,9 @@
         }
     ],
     "require-dev": {
-        "phpunit/phpunit": "^6.1"
+        "phpunit/phpunit": "^6.1",
+        "ext-pcntl": "*",
+        "ext-json": "*"
     },
     "require": {
         "php": ">=7.0.0",

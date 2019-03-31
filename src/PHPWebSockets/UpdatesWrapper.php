@@ -44,6 +44,11 @@ class UpdatesWrapper {
     private $_newConnectionHandler = NULL;
 
     /**
+     * @var array
+     */
+    private $_handledDisconnects = [];
+
+    /**
      * @var callable|null
      */
     private $_lastContactHandler = NULL;
@@ -367,8 +372,8 @@ class UpdatesWrapper {
         /** @var \PHPWebSockets\Server\Connection $source */
         $source = $update->getSourceConnection();
 
-        $this->_triggerLastContactHandler($source);
         $this->_triggerNewConnectionHandler($source);
+        $this->_triggerLastContactHandler($source);
 
     }
 
@@ -390,11 +395,31 @@ class UpdatesWrapper {
     }
 
     private function _onSocketDisconnect(Update\Read $update) {
-        // Nothing
+
+        $source = $update->getSourceConnection();
+        $index = $source->getResourceIndex();
+
+        if (!isset($this->_handledDisconnects[$index])) {
+
+            /*
+             * If the socket has closed without the disconnect handler being triggered we'll trigger it anyway
+             */
+
+            $this->_triggerDisconnectHandler($source, FALSE, NULL);
+
+        }
+
+        unset($this->_handledDisconnects[$index]);
+
     }
 
     private function _onConnectionRefused(Update\Read $update) {
-        $this->_triggerDisconnectHandler($update->getSourceConnection(), TRUE, $update->getMessage());
+
+        $source = $update->getSourceConnection();
+
+        $this->_triggerDisconnectHandler($source, TRUE, $update->getMessage());
+        $this->_handledDisconnects[$source->getResourceIndex()] = TRUE;
+
     }
 
     private function _onConnect(Update\Read $update) {
@@ -408,7 +433,12 @@ class UpdatesWrapper {
     }
 
     private function _onDisconnect(Update\Read $update) {
-        $this->_triggerDisconnectHandler($update->getSourceConnection(), TRUE, $update->getMessage());
+
+        $source = $update->getSourceConnection();
+
+        $this->_triggerDisconnectHandler($source, TRUE, $update->getMessage());
+        $this->_handledDisconnects[$source->getResourceIndex()] = TRUE;
+
     }
 
     private function _onSocketConnect(Update\Read $update) {
@@ -462,6 +492,8 @@ class UpdatesWrapper {
         $this->_triggerErrorHandler($source, $update->getCode());
         $this->_triggerDisconnectHandler($source, FALSE, NULL);
 
+        $this->_handledDisconnects[$source->getResourceIndex()] = TRUE;
+
     }
 
     private function _onInvalidHeaders(Update\Error $update) {
@@ -475,6 +507,8 @@ class UpdatesWrapper {
         $this->_triggerErrorHandler($source, $update->getCode());
         $this->_triggerDisconnectHandler($source, FALSE, NULL);
 
+        $this->_handledDisconnects[$source->getResourceIndex()] = TRUE;
+
     }
 
     private function _onProtocolError(Update\Error $update) {
@@ -484,6 +518,8 @@ class UpdatesWrapper {
         $this->_triggerErrorHandler($source, $update->getCode());
         $this->_triggerDisconnectHandler($source, FALSE, NULL);
 
+        $this->_handledDisconnects[$source->getResourceIndex()] = TRUE;
+
     }
 
     private function _onInvalidRSVBit(Update\Error $update) {
@@ -492,6 +528,8 @@ class UpdatesWrapper {
 
         $this->_triggerErrorHandler($source, $update->getCode());
         $this->_triggerDisconnectHandler($source, FALSE, NULL);
+
+        $this->_handledDisconnects[$source->getResourceIndex()] = TRUE;
 
     }
 
@@ -506,6 +544,8 @@ class UpdatesWrapper {
         $this->_triggerErrorHandler($source, $update->getCode());
         $this->_triggerDisconnectHandler($source, FALSE, NULL);
 
+        $this->_handledDisconnects[$source->getResourceIndex()] = TRUE;
+
     }
 
     private function _writeStreamInvalid(Update\Error $update) {
@@ -514,6 +554,8 @@ class UpdatesWrapper {
 
         $this->_triggerErrorHandler($source, $update->getCode());
         $this->_triggerDisconnectHandler($source, FALSE, NULL);
+
+        $this->_handledDisconnects[$source->getResourceIndex()] = TRUE;
 
     }
 

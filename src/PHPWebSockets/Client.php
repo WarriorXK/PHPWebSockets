@@ -57,13 +57,6 @@ class Client extends AConnection {
     protected $_streamLastError = NULL;
 
     /**
-     * The stream's resource index
-     *
-     * @var int|null
-     */
-    protected $_resourceIndex = NULL;
-
-    /**
      * If we should send our frames masked
      *
      * Note: Setting this to FALSE is officially not supported by the websocket RFC, but can improve performance
@@ -85,13 +78,6 @@ class Client extends AConnection {
      * @var array|null
      */
     protected $_headers = NULL;
-
-    /**
-     * The stream connection
-     *
-     * @var null
-     */
-    protected $_stream = NULL;
 
     /**
      * The remote address we are connecting to
@@ -176,7 +162,7 @@ class Client extends AConnection {
     }
 
     /**
-     * Should be called after the path and stream has been set to initialize
+     * {@inheritdoc}
      */
     protected function _afterOpen() {
 
@@ -214,15 +200,6 @@ class Client extends AConnection {
      */
     public function getLastError() {
         return $this->_streamLastError;
-    }
-
-    /**
-     * Returns the stream resource for this client
-     *
-     * @return resource|null
-     */
-    public function getStream() {
-        return $this->_stream;
     }
 
     /**
@@ -312,7 +289,10 @@ class Client extends AConnection {
 
                 $this->_headers = \PHPWebSockets::ParseHTTPHeaders($rawHandshake);
                 if (($this->_headers['status-code'] ?? NULL) === 101) {
+
                     $this->_handshakeAccepted = TRUE;
+                    $this->_hasHandshake = TRUE;
+
                     yield new Update\Read(Update\Read::C_CONNECTION_ACCEPTED, $this);
                 } else {
 
@@ -402,15 +382,6 @@ class Client extends AConnection {
     }
 
     /**
-     * Returns if our connection is open
-     *
-     * @return bool
-     */
-    public function isOpen() : bool {
-        return $this->_isClosed === FALSE && is_resource($this->_stream);
-    }
-
-    /**
      * Returns the address that we connected to
      *
      * @return string|null
@@ -426,26 +397,6 @@ class Client extends AConnection {
      */
     public function getPath() {
         return $this->_path;
-    }
-
-    /**
-     * Simply closes the connection
-     */
-    public function close() {
-
-        $this->_log(LogLevel::DEBUG, __METHOD__);
-
-        if (!$this->_isClosed) {
-            $this->_shouldReportClose = TRUE;
-        }
-
-        $this->_isClosed = TRUE;
-
-        if (is_resource($this->_stream)) {
-            fclose($this->_stream);
-            $this->_stream = NULL;
-        }
-
     }
 
     public function __toString() {

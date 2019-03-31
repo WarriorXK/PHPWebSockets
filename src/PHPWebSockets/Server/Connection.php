@@ -38,25 +38,11 @@ use Psr\Log\LogLevel;
 class Connection extends AConnection {
 
     /**
-     * The stream's resource index
-     *
-     * @var int|null
-     */
-    protected $_resourceIndex = NULL;
-
-    /**
      * The time in seconds in which the client has to send its handshake
      *
      * @var float
      */
     protected $_acceptTimeout = 5.0;
-
-    /**
-     * If we've finished the handshake
-     *
-     * @var bool
-     */
-    protected $_hasHandshake = FALSE;
 
     /**
      * If the connection has been accepted
@@ -92,13 +78,6 @@ class Connection extends AConnection {
      * @var \PHPWebSockets\Server|null
      */
     protected $_server = NULL;
-
-    /**
-     * The resource stream
-     *
-     * @var resource
-     */
-    protected $_stream = NULL;
 
     /**
      * The connection's index in the connections array
@@ -232,11 +211,11 @@ class Connection extends AConnection {
     }
 
     /**
-     * Gets called just before stream_select gets called
-     *
-     * @return \Generator|\PHPWebSockets\AUpdate[]
+     * {@inheritdoc}
      */
     public function beforeStreamSelect() : \Generator {
+
+        yield from parent::beforeStreamSelect();
 
         if (!$this->isAccepted() && $this->hasHandshake() && $this->getOpenedTimestamp() + $this->getAcceptTimeout() < time()) {
 
@@ -416,15 +395,6 @@ class Connection extends AConnection {
     }
 
     /**
-     * Returns if we've received the handshake
-     *
-     * @return bool
-     */
-    public function hasHandshake() : bool {
-        return $this->_hasHandshake;
-    }
-
-    /**
      * Returns if the frame we are writing should be masked
      *
      * @return bool
@@ -452,15 +422,6 @@ class Connection extends AConnection {
     }
 
     /**
-     * Returns the stream object for this connection
-     *
-     * @return resource
-     */
-    public function getStream() {
-        return $this->_stream;
-    }
-
-    /**
      * Returns the index for this connection
      *
      * @return int
@@ -470,32 +431,39 @@ class Connection extends AConnection {
     }
 
     /**
-     * Returns if our connection is open
-     *
-     * @return bool
-     */
-    public function isOpen() : bool {
-        return $this->_isClosed === FALSE && is_resource($this->_stream);
-    }
-
-    /**
-     * Simply closes the connection
+     * {@inheritdoc}
      */
     public function close() {
 
-        if (!$this->_isClosed) {
-            $this->_shouldReportClose = TRUE;
-        }
-
-        $this->_isClosed = TRUE;
-
-        if (is_resource($this->_stream)) {
-            fclose($this->_stream);
-            $this->_stream = NULL;
-        }
+        parent::close();
 
         if ($this->_server !== NULL) {
+
+            if (!$this->_shouldReportClose) {
+
+                $this->_log(LogLevel::DEBUG, 'Not reporting, remove now');
+                $this->_server->removeConnection($this);
+
+            } else {
+                $this->_log(LogLevel::DEBUG, 'Going to report later, not removing');
+            }
+
+        } else {
+            $this->_log(LogLevel::DEBUG, 'No server, not removing');
+        }
+
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    protected function _afterReportClose() {
+
+        if ($this->_server !== NULL) {
+
+            $this->_log(LogLevel::DEBUG, 'We reported close, removing from server');
             $this->_server->removeConnection($this);
+
         }
 
     }

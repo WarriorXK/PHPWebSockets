@@ -137,6 +137,20 @@ abstract class AConnection implements IStreamContainer, LoggerAwareInterface {
     protected $_partialMessage = NULL;
 
     /**
+     * The stream's resource index
+     *
+     * @var int|null
+     */
+    protected $_resourceIndex = NULL;
+
+    /**
+     * If we've finished the handshake
+     *
+     * @var bool
+     */
+    protected $_hasHandshake = FALSE;
+
+    /**
      * The frames ready to be send
      *
      * @var string[]
@@ -177,6 +191,13 @@ abstract class AConnection implements IStreamContainer, LoggerAwareInterface {
      * @var int
      */
     protected $_readRate = 16384;
+
+    /**
+     * The resource stream
+     *
+     * @var resource
+     */
+    protected $_stream = NULL;
 
     /**
      * Sets the maximum size for the handshake in bytes
@@ -242,6 +263,8 @@ abstract class AConnection implements IStreamContainer, LoggerAwareInterface {
 
     /**
      * Should be called after the path and stream has been set to initialize
+     *
+     * @return void
      */
     protected function _afterOpen() {
 
@@ -464,8 +487,6 @@ abstract class AConnection implements IStreamContainer, LoggerAwareInterface {
 
                         $this->_remoteSentDisconnect = TRUE;
 
-                        yield new Update\Read(Update\Read::C_READ_DISCONNECT, $this, $opcode, $framePayload);
-
                         if ($this->_weInitiateDisconnect) {
 
                             $this->_log(LogLevel::DEBUG, '  We initiated the disconnect, close the connection');
@@ -479,6 +500,8 @@ abstract class AConnection implements IStreamContainer, LoggerAwareInterface {
                         } elseif (!$this->_weSentDisconnect) {
 
                             $this->_log(LogLevel::DEBUG, '  Remote initiated the disconnect, echo disconnect');
+
+                            yield new Update\Read(Update\Read::C_READ_DISCONNECT, $this, $opcode, $framePayload);
 
                             $this->sendDisconnect($code, $disconnectMessage); // Echo the disconnect
                             $this->setCloseAfterWrite();
@@ -592,12 +615,23 @@ abstract class AConnection implements IStreamContainer, LoggerAwareInterface {
 
         if ($this->_shouldReportClose) {
 
+            $this->_log(LogLevel::DEBUG, 'Reporting close');
+
             yield new Update\Read(Update\Read::C_SOCK_DISCONNECT, $this);
 
             $this->_shouldReportClose = FALSE;
 
+            $this->_afterReportClose();
+
         }
 
+    }
+
+    /**
+     * @return void
+     */
+    protected function _afterReportClose() {
+        // For child classes
     }
 
     /**
@@ -731,6 +765,31 @@ abstract class AConnection implements IStreamContainer, LoggerAwareInterface {
     }
 
     /**
+     * Returns the stream object for this connection
+     *
+     * @return resource
+     */
+    public function getStream() {
+        return $this->_stream;
+    }
+
+    /**
+     * Returns if we've received the handshake
+     *
+     * @return bool
+     */
+    public function hasHandshake() : bool {
+        return $this->_hasHandshake;
+    }
+
+    /**
+     * @return int|null
+     */
+    public function getResourceIndex() {
+        return $this->_resourceIndex;
+    }
+
+    /**
      * Returns the timestamp at which the connection was opened
      *
      * @return float|null
@@ -783,16 +842,33 @@ abstract class AConnection implements IStreamContainer, LoggerAwareInterface {
     abstract protected function _shouldMask() : bool;
 
     /**
-     * Returns TRUE if our connection is open
+     * Returns if our connection is open
      *
      * @return bool
      */
-    abstract public function isOpen() : bool;
+    public function isOpen() : bool {
+        return $this->_isClosed === FALSE && is_resource($this->_stream);
+    }
 
     /**
      * Simply closes the connection
+     *
+     * @return void
      */
-    abstract public function close();
+    public function close() {
+
+        if (!$this->_isClosed) {
+            $this->_shouldReportClose = TRUE;
+        }
+
+        $this->_isClosed = TRUE;
+
+        if (is_resource($this->_stream)) {
+            fclose($this->_stream);
+            $this->_stream = NULL;
+        }
+
+    }
 
     public function __destruct() {
 
