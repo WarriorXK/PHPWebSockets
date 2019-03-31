@@ -13,6 +13,7 @@ env:
   - $TESTCLASS=PHPWebSocket/Client $TESTSCRIPT=tests/ClientTest.php $BUFFERTPE=tmpfile
   - $TESTCLASS=PHPWebSocket/Server $TESTSCRIPT=tests/ServerTest.php $BUFFERTPE=memory
   - $TESTCLASS=PHPWebSocket/Server $TESTSCRIPT=tests/ServerTest.php $BUFFERTPE=tmpfile
+  - $TESTCLASS=PHPWebSocket/UpdatesWrapper $TESTSCRIPT=tests/UpdatesWrapperTest.php
 before_script:
   - sudo apt-get update
   - sudo apt-get install python-pip python-virtualenv

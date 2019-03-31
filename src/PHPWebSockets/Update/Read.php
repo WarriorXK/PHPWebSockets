@@ -106,6 +106,7 @@ class Read extends AUpdate {
             self::C_NEWCONNECTION                   => 'New connection',
             self::C_READ                            => 'Read',
             self::C_PING                            => 'Ping',
+            self::C_PONG                            => 'Pong',
             self::C_SOCK_DISCONNECT                 => 'Socket disconnected',
             self::C_CONNECTION_DENIED               => 'Connection denied',
             self::C_CONNECTION_ACCEPTED             => 'Connection accepted',
