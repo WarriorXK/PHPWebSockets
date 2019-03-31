@@ -164,6 +164,7 @@ class UpdatesWrapperTest extends TestCase {
         }
 
         $this->assertEmpty($this->_wsServer->getConnections(FALSE));
+        $this->assertEmpty($this->_connectionList);
 
         \PHPWebSockets::Log(LogLevel::INFO, 'Test finished');
 
@@ -200,6 +201,7 @@ class UpdatesWrapperTest extends TestCase {
         }
 
         $this->assertEmpty($this->_wsServer->getConnections(FALSE));
+        $this->assertEmpty($this->_connectionList);
 
         \PHPWebSockets::Log(LogLevel::INFO, 'Test finished');
 
