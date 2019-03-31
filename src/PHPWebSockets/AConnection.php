@@ -30,9 +30,7 @@ declare(strict_types = 1);
 
 namespace PHPWebSockets;
 
-use PHPWebSockets\Update\Read;
-use Psr\Log\LoggerAwareInterface;
-use Psr\Log\LogLevel;
+use Psr\Log\{ LoggerAwareInterface, LogLevel };
 
 abstract class AConnection implements IStreamContainer, LoggerAwareInterface {
 
@@ -264,6 +262,8 @@ abstract class AConnection implements IStreamContainer, LoggerAwareInterface {
 
     /**
      * Should be called after the path and stream has been set to initialize
+     *
+     * @return void
      */
     protected function _afterOpen() {
 
@@ -620,8 +620,17 @@ abstract class AConnection implements IStreamContainer, LoggerAwareInterface {
 
             $this->_shouldReportClose = FALSE;
 
+            $this->_afterReportClose();
+
         }
 
+    }
+
+    /**
+     * @return void
+     */
+    protected function _afterReportClose() {
+        // For child classes
     }
 
     /**

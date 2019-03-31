@@ -211,11 +211,11 @@ class Connection extends AConnection {
     }
 
     /**
-     * Gets called just before stream_select gets called
-     *
-     * @return \Generator|\PHPWebSockets\AUpdate[]
+     * {@inheritDoc}
      */
     public function beforeStreamSelect() : \Generator {
+
+        yield from parent::beforeStreamSelect();
 
         if (!$this->isAccepted() && $this->hasHandshake() && $this->getOpenedTimestamp() + $this->getAcceptTimeout() < time()) {
 
@@ -438,7 +438,32 @@ class Connection extends AConnection {
         parent::close();
 
         if ($this->_server !== NULL) {
+
+            if (!$this->_shouldReportClose) {
+
+                $this->_log(LogLevel::DEBUG, 'Not reporting, remove now');
+                $this->_server->removeConnection($this);
+
+            } else {
+                $this->_log(LogLevel::DEBUG, 'Going to report later, not removing');
+            }
+
+        } else {
+            $this->_log(LogLevel::DEBUG, 'No server, not removing');
+        }
+
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    protected function _afterReportClose() {
+
+        if ($this->_server !== NULL) {
+
+            $this->_log(LogLevel::DEBUG, 'We reported close, removing from server');
             $this->_server->removeConnection($this);
+
         }
 
     }

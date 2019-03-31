@@ -37,6 +37,7 @@ trait TStreamContainerDefaults {
      * @return \Generator|\PHPWebSockets\AUpdate[]
      */
     public function beforeStreamSelect() : \Generator {
+
         if (FALSE) {
             yield;
         }

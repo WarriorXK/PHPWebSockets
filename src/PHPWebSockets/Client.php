@@ -162,7 +162,7 @@ class Client extends AConnection {
     }
 
     /**
-     * Should be called after the path and stream has been set to initialize
+     * {@inheritDoc}
      */
     protected function _afterOpen() {
 

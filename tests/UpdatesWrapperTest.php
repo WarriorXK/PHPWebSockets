@@ -150,7 +150,7 @@ class UpdatesWrapperTest extends TestCase {
 
     public function testWrapperNormal() {
 
-        \PHPWebSockets::Log(LogLevel::INFO, 'Starting test..');
+        \PHPWebSockets::Log(LogLevel::INFO, 'Starting test..' . PHP_EOL);
 
         $this->assertEmpty($this->_wsServer->getConnections(FALSE));
 
@@ -166,13 +166,13 @@ class UpdatesWrapperTest extends TestCase {
         $this->assertEmpty($this->_wsServer->getConnections(FALSE));
         $this->assertEmpty($this->_connectionList);
 
-        \PHPWebSockets::Log(LogLevel::INFO, 'Test finished');
+        \PHPWebSockets::Log(LogLevel::INFO, 'Test finished' . PHP_EOL);
 
     }
 
     public function testWrapperClientDisappeared() {
 
-        \PHPWebSockets::Log(LogLevel::INFO, 'Starting test..');
+        \PHPWebSockets::Log(LogLevel::INFO, 'Starting test..' . PHP_EOL);
 
         $this->assertEmpty($this->_wsServer->getConnections(FALSE));
 
@@ -203,7 +203,53 @@ class UpdatesWrapperTest extends TestCase {
         $this->assertEmpty($this->_wsServer->getConnections(FALSE));
         $this->assertEmpty($this->_connectionList);
 
-        \PHPWebSockets::Log(LogLevel::INFO, 'Test finished');
+        \PHPWebSockets::Log(LogLevel::INFO, 'Test finished' . PHP_EOL);
+
+    }
+
+    public function testWrapperClientClose() {
+
+        \PHPWebSockets::Log(LogLevel::INFO, 'Starting test..' . PHP_EOL);
+
+        $this->assertEmpty($this->_wsServer->getConnections(FALSE));
+
+        $closeAt = microtime(TRUE) + 3.0;
+        $runUntil = $closeAt + 4.0;
+
+        $didClose = FALSE;
+
+        $descriptorSpec = [['pipe', 'r'], STDOUT, STDERR];
+        $clientProcess = proc_open('./tests/Helpers/client.php --address=' . escapeshellarg(self::ADDRESS) . ' --message=' . escapeshellarg('Hello world') . ' --message-count=5', $descriptorSpec, $pipes, realpath(__DIR__ . '/../'));
+
+        while (microtime(TRUE) <= $runUntil) {
+
+            $this->_updatesWrapper->update(0.5, $c = $this->_wsServer->getConnections(TRUE));
+
+            if (!$didClose) {
+                $this->assertTrue(proc_get_status($clientProcess)['running'] ?? FALSE);
+            }
+
+            if (microtime(TRUE) >= $closeAt && !$didClose) {
+
+                $connections = $this->_wsServer->getConnections(FALSE);
+
+                $this->assertNotEmpty($connections);
+
+                \PHPWebSockets::Log(LogLevel::INFO, 'Closing connection');
+
+                $connection = reset($connections);
+                $connection->close();
+
+                $didClose = TRUE;
+
+            }
+
+        }
+
+        $this->assertEmpty($this->_wsServer->getConnections(FALSE));
+        $this->assertEmpty($this->_connectionList);
+
+        \PHPWebSockets::Log(LogLevel::INFO, 'Test finished' . PHP_EOL);
 
     }
 }
