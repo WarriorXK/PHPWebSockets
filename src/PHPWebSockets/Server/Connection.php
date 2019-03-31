@@ -211,7 +211,7 @@ class Connection extends AConnection {
     }
 
     /**
-     * {@inheritDoc}
+     * {@inheritdoc}
      */
     public function beforeStreamSelect() : \Generator {
 

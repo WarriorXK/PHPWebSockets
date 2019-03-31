@@ -162,7 +162,7 @@ class Client extends AConnection {
     }
 
     /**
-     * {@inheritDoc}
+     * {@inheritdoc}
      */
     protected function _afterOpen() {
 
