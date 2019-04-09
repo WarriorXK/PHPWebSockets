@@ -373,7 +373,10 @@ class UpdatesWrapper {
         $source = $update->getSourceConnection();
 
         $this->_triggerNewConnectionHandler($source);
-        $this->_triggerLastContactHandler($source);
+
+        if ($source->isAccepted()) {
+            $this->_triggerLastContactHandler($source);
+        }
 
     }
 

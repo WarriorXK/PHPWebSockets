@@ -437,6 +437,16 @@ class Connection extends AConnection {
 
         parent::close();
 
+        if ($this->_shouldReportClose && !$this->isAccepted()) {
+
+            /*
+             * Don't report close if we've never been accepted
+             */
+
+            $this->_shouldReportClose = FALSE;
+
+        }
+
         if ($this->_server !== NULL) {
 
             if (!$this->_shouldReportClose) {
