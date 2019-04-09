@@ -36,6 +36,11 @@ class UpdatesWrapperTest extends TestCase {
     const ADDRESS = 'tcp://127.0.0.1:9001';
 
     /**
+     * @var bool
+     */
+    protected $_refuseNextConnection = FALSE;
+
+    /**
      * @var \PHPWebSockets\AConnection[]
      */
     protected $_connectionList = [];
@@ -103,9 +108,21 @@ class UpdatesWrapperTest extends TestCase {
             $this->assertInternalType('int', $index);
             $this->assertArrayNotHasKey($index, $this->_connectionList);
 
-            $connection->accept();
+            if ($this->_refuseNextConnection) {
 
-            $this->_connectionList[$index] = $connection;
+                \PHPWebSockets::Log(LogLevel::INFO, 'Denying ' . $connection);
+
+                $connection->deny(500);
+
+                $this->_refuseNextConnection = FALSE;
+
+            } else {
+
+                $connection->accept();
+
+                $this->_connectionList[$index] = $connection;
+
+            }
 
         });
         $this->_updatesWrapper->setLastContactHandler(function (\PHPWebSockets\AConnection $connection) {
@@ -241,6 +258,44 @@ class UpdatesWrapperTest extends TestCase {
                 $connection->close();
 
                 $didClose = TRUE;
+
+            }
+
+        }
+
+        $this->assertEmpty($this->_wsServer->getConnections(FALSE));
+        $this->assertEmpty($this->_connectionList);
+
+        \PHPWebSockets::Log(LogLevel::INFO, 'Test finished' . PHP_EOL);
+
+    }
+
+    public function testWrapperClientRefuse() {
+
+        \PHPWebSockets::Log(LogLevel::INFO, 'Starting test..' . PHP_EOL);
+
+        $this->assertEmpty($this->_wsServer->getConnections(FALSE));
+
+        $this->_refuseNextConnection = TRUE;
+
+        $runUntil = microtime(TRUE) + 8.0;
+
+        $descriptorSpec = [['pipe', 'r'], STDOUT, STDERR];
+        $clientProcess = proc_open('./tests/Helpers/client.php --address=' . escapeshellarg(self::ADDRESS) . ' --message=' . escapeshellarg('Hello world') . ' --message-count=1', $descriptorSpec, $pipes, realpath(__DIR__ . '/../'));
+
+        while (microtime(TRUE) <= $runUntil) {
+
+            $this->_updatesWrapper->update(0.5, $c = $this->_wsServer->getConnections(TRUE));
+
+            if ($clientProcess !== NULL) {
+
+                $status = proc_get_status($clientProcess);
+                if (!$status['running']) {
+
+                    \PHPWebSockets::Log(LogLevel::INFO, 'Client disappeared');
+                    $clientProcess = NULL;
+
+                }
 
             }
 
