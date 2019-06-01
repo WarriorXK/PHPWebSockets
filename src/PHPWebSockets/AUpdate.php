@@ -40,6 +40,11 @@ abstract class AUpdate {
     protected $_sourceConnection = NULL;
 
     /**
+     * @var array|null
+     */
+    protected $_trace = NULL;
+
+    /**
      * The code for this update
      *
      * @var int
@@ -50,6 +55,10 @@ abstract class AUpdate {
 
         $this->_sourceConnection = $sourceObject;
         $this->_code = $code;
+
+        if (\PHPWebSockets::ShouldUpdateTrace($this)) {
+            $this->_trace = debug_backtrace(0);
+        }
 
     }
 
@@ -71,6 +80,13 @@ abstract class AUpdate {
      */
     public function getSourceObject() {
         return $this->_sourceConnection;
+    }
+
+    /**
+     * @return array|null
+     */
+    public function getTrace() {
+        return $this->_trace;
     }
 
     /**
