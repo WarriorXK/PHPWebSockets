@@ -74,6 +74,11 @@ class UpdatesWrapper {
     private $_errorHandler = NULL;
 
     /**
+     * @var \PHPWebSockets\AUpdate|null
+     */
+    private $_lastUpdate = NULL;
+
+    /**
      * @var bool
      */
     private $_shouldRun = FALSE;
@@ -135,6 +140,16 @@ class UpdatesWrapper {
 
     }
 
+    /**
+     * @return \PHPWebSockets\AUpdate|null
+     */
+    public function getLastUpdate() {
+        return $this->_lastUpdate;
+    }
+
+    /**
+     * @return void
+     */
     public function stop() {
         $this->_shouldRun = FALSE;
     }
@@ -149,6 +164,8 @@ class UpdatesWrapper {
 
         $updates = \PHPWebSockets::MultiUpdate(array_merge($this->_streamContainers, $tempStreams), $timeout);
         foreach ($updates as $update) {
+
+            $this->_lastUpdate = $update;
 
             if ($update instanceof Update\Read) {
 

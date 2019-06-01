@@ -131,6 +131,13 @@ final class PHPWebSockets {
     ];
 
     /**
+     * If we should add debug traces in the constructor of AUpdate
+     *
+     * @var bool
+     */
+    private static $_TraceAllUpdates = FALSE;
+
+    /**
      * The current version of PHPWebSockets
      *
      * @var string|null
@@ -432,6 +439,24 @@ final class PHPWebSockets {
         }
 
         return self::$_Version = trim(file_get_contents(__DIR__ . DIRECTORY_SEPARATOR . '..' . DIRECTORY_SEPARATOR . 'VERSION'));
+    }
+
+    /**
+     * @param \PHPWebSockets\AUpdate $update
+     *
+     * @return bool
+     */
+    public static function ShouldUpdateTrace(\PHPWebSockets\AUpdate $update) : bool {
+        return self::$_TraceAllUpdates;
+    }
+
+    /**
+     * @param bool $value
+     *
+     * @return void
+     */
+    public static function SetTraceAllUpdates(bool $value) {
+        self::$_TraceAllUpdates = $value;
     }
 
     /**
