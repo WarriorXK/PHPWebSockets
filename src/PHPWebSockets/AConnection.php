@@ -714,7 +714,7 @@ abstract class AConnection implements IStreamContainer, LoggerAwareInterface {
     }
 
     /**
-     * @param float|NULL $timeout
+     * @param float|null $timeout
      *
      * @return bool
      */
