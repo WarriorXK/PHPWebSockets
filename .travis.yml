@@ -3,27 +3,40 @@ cache:
   directories:
     - $HOME/.composer/cache/files
     - $HOME/.cache/pip
+
 php:
-  - '7.0'
-  - '7.1'
-  - '7.2'
-  - '7.3'
+  - 7.0
+  - 7.1
+  - 7.2
+  - 7.3
+  - 7.4snapshot
+  - nightly
+
 env:
   - $TESTCLASS=PHPWebSocket/Client $TESTSCRIPT=tests/ClientTest.php $BUFFERTPE=memory
   - $TESTCLASS=PHPWebSocket/Client $TESTSCRIPT=tests/ClientTest.php $BUFFERTPE=tmpfile
   - $TESTCLASS=PHPWebSocket/Server $TESTSCRIPT=tests/ServerTest.php $BUFFERTPE=memory
   - $TESTCLASS=PHPWebSocket/Server $TESTSCRIPT=tests/ServerTest.php $BUFFERTPE=tmpfile
   - $TESTCLASS=PHPWebSocket/UpdatesWrapper $TESTSCRIPT=tests/UpdatesWrapperTest.php
+
+matrix:
+  fast_finish: true
+  allow_failures:
+    - php: 7.4snapshot
+    - php: nightly
+
 before_script:
   - sudo apt-get update
   - sudo apt-get install python-pip python-virtualenv
   - virtualenv ~/wstest
   - source ~/wstest/bin/activate
   - pip install autobahntestsuite
-  - phpenv config-rm xdebug.ini
-  - composer update
+  - phpenv config-rm xdebug.ini || true
+  - composer install
+
 script:
   - vendor/bin/phpunit $TESTCLASS $TESTSCRIPT buffertype=$BUFFERTPE
+
 notifications:
   email:
     recipients:
