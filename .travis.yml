@@ -4,17 +4,23 @@ cache:
     - $HOME/.composer/cache/files
     - $HOME/.cache/pip
 php:
-  - '7.0'
-  - '7.1'
-  - '7.2'
-  - '7.3'
-  - '7.4'
+  - 7.0
+  - 7.1
+  - 7.2
+  - 7.3
+  - nightly
 env:
   - $TESTCLASS=PHPWebSocket/Client $TESTSCRIPT=tests/ClientTest.php $BUFFERTPE=memory
   - $TESTCLASS=PHPWebSocket/Client $TESTSCRIPT=tests/ClientTest.php $BUFFERTPE=tmpfile
   - $TESTCLASS=PHPWebSocket/Server $TESTSCRIPT=tests/ServerTest.php $BUFFERTPE=memory
   - $TESTCLASS=PHPWebSocket/Server $TESTSCRIPT=tests/ServerTest.php $BUFFERTPE=tmpfile
   - $TESTCLASS=PHPWebSocket/UpdatesWrapper $TESTSCRIPT=tests/UpdatesWrapperTest.php
+
+matrix:
+  fast_finish: true
+  allow_failures:
+    - php: nightly
+
 before_script:
   - sudo apt-get update
   - sudo apt-get install python-pip python-virtualenv
