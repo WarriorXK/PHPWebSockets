@@ -211,7 +211,7 @@ class Server implements LoggerAwareInterface {
     /**
      * Creates a new client/connection pair to be used in fork communication
      *
-     * @return array
+     * @return \PHPWebSockets\AConnection[]
      */
     public function createServerClientPair() : array {
 
@@ -226,6 +226,7 @@ class Server implements LoggerAwareInterface {
         $this->_connectionIndex++;
 
         $clientConnection = new Client();
+        $clientConnection->setMasksPayload(FALSE);
         $clientConnection->connectToResource($client);
 
         return [$serverConnection, $clientConnection];

@@ -3,12 +3,14 @@ cache:
   directories:
     - $HOME/.composer/cache/files
     - $HOME/.cache/pip
+
 php:
   - 7.0
   - 7.1
   - 7.2
   - 7.3
   - nightly
+
 env:
   - $TESTCLASS=PHPWebSocket/Client $TESTSCRIPT=tests/ClientTest.php $BUFFERTPE=memory
   - $TESTCLASS=PHPWebSocket/Client $TESTSCRIPT=tests/ClientTest.php $BUFFERTPE=tmpfile
@@ -28,9 +30,11 @@ before_script:
   - source ~/wstest/bin/activate
   - pip install autobahntestsuite
   - phpenv config-rm xdebug.ini
-  - composer update
+  - composer install
+
 script:
   - vendor/bin/phpunit $TESTCLASS $TESTSCRIPT buffertype=$BUFFERTPE
+
 notifications:
   email:
     recipients:
