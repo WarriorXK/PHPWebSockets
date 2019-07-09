@@ -714,6 +714,27 @@ abstract class AConnection implements IStreamContainer, LoggerAwareInterface {
     }
 
     /**
+     * @param float|NULL $timeout
+     *
+     * @return bool
+     */
+    public function waitUntilDisconnect(float $timeout = NULL) : bool {
+
+        $start = microtime(TRUE);
+        do {
+
+            iterator_to_array(\PHPWebSockets::MultiUpdate([$this], 1.0));
+
+            if ($timeout !== NULL && microtime(TRUE) - $start > $timeout) {
+                return FALSE;
+            }
+
+        } while ($this->isOpen());
+
+        return TRUE;
+    }
+
+    /**
      * Sends a disconnect message to the remote, this causes the connection to be closed once they responds with its disconnect message
      *
      * @param int    $code
