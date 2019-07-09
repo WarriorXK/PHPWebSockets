@@ -29,7 +29,7 @@ before_script:
   - virtualenv ~/wstest
   - source ~/wstest/bin/activate
   - pip install autobahntestsuite
-  - phpenv config-rm xdebug.ini
+  - phpenv config-rm xdebug.ini || true
   - composer install
 
 script:
