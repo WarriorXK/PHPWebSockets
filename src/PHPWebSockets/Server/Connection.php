@@ -220,7 +220,7 @@ class Connection extends AConnection {
         if (!$this->isAccepted() && $this->hasHandshake() && $this->getOpenedTimestamp() + $this->getAcceptTimeout() < time()) {
 
             yield new Update\Error(Update\Error::C_ACCEPT_TIMEOUT_PASSED, $this);
-            $this->deny(408); // Request Timeout
+            $this->deny(504); // Gateway Timeout
 
         }
 

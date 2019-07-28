@@ -314,7 +314,7 @@ abstract class AConnection implements IStreamContainer, LoggerAwareInterface {
             if (!$this->_checkRSVBits($headers)) {
 
                 $this->sendDisconnect(\PHPWebSockets::CLOSECODE_PROTOCOL_ERROR, 'Invalid RSV value');
-                $this->setCloseAfterWrite();
+//                $this->setCloseAfterWrite();
 
                 yield new Update\Error(Update\Error::C_READ_RSVBIT_SET, $this);
 
@@ -339,7 +339,7 @@ abstract class AConnection implements IStreamContainer, LoggerAwareInterface {
             } elseif ($framePayload === FALSE) {
 
                 $this->sendDisconnect(\PHPWebSockets::CLOSECODE_PROTOCOL_ERROR);
-                $this->setCloseAfterWrite();
+//                $this->setCloseAfterWrite();
 
                 yield new Update\Error(Update\Error::C_READ_PROTOCOL_ERROR, $this);
 
@@ -353,7 +353,7 @@ abstract class AConnection implements IStreamContainer, LoggerAwareInterface {
                         if ($this->_partialMessage === NULL && $this->_partialMessageStream === NULL) {
 
                             $this->sendDisconnect(\PHPWebSockets::CLOSECODE_PROTOCOL_ERROR, 'Got OPCODE_CONTINUE but no frame that could be continued');
-                            $this->setCloseAfterWrite();
+//                            $this->setCloseAfterWrite();
 
                             yield new Update\Error(Update\Error::C_READ_PROTOCOL_ERROR, $this);
 
@@ -378,7 +378,7 @@ abstract class AConnection implements IStreamContainer, LoggerAwareInterface {
                             if (!\PHPWebSockets::ValidateUTF8($framePayload, $this->_utfValidationState) || ($headers[Framer::IND_FIN] && $this->_utfValidationState !== \PHPWebSockets::UTF8_ACCEPT)) {
 
                                 $this->sendDisconnect(\PHPWebSockets::CLOSECODE_INVALID_PAYLOAD, 'Could not decode text frame as UTF-8');
-                                $this->setCloseAfterWrite();
+//                                $this->setCloseAfterWrite();
 
                                 yield new Update\Error(Update\Error::C_READ_INVALID_PAYLOAD, $this);
 
@@ -392,7 +392,7 @@ abstract class AConnection implements IStreamContainer, LoggerAwareInterface {
                             if ($this->_partialMessage !== NULL || $this->_partialMessageStream !== NULL) {
 
                                 $this->sendDisconnect(\PHPWebSockets::CLOSECODE_PROTOCOL_ERROR, 'Got new frame without completing the previous');
-                                $this->setCloseAfterWrite();
+//                                $this->setCloseAfterWrite();
 
                                 yield new Update\Error(Update\Error::C_READ_INVALID_PAYLOAD, $this);
 
@@ -403,7 +403,9 @@ abstract class AConnection implements IStreamContainer, LoggerAwareInterface {
                             if ($newMessageStream === FALSE) {
 
                                 $this->sendDisconnect(\PHPWebSockets::CLOSECODE_UNSUPPORTED_PAYLOAD);
-                                $this->setCloseAfterWrite();
+//                                $this->setCloseAfterWrite();
+
+                                yield new Update\Error(Update\Error::C_READ_NO_STREAM_FOR_NEW_MESSAGE, $this);
 
                                 return;
                             }
