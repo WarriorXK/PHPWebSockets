@@ -188,7 +188,7 @@ class Connection extends AConnection {
 
                 $responseCode = 0;
                 if ($this->_doHandshake($rawHandshake, $responseCode)) {
-                    yield new Update\Read(Update\Read::C_NEWCONNECTION, $this);
+                    yield new Update\Read(Update\Read::C_NEW_CONNECTION, $this);
                 } else {
 
                     $this->writeRaw($this->_server->getErrorPageForCode($responseCode), FALSE);
