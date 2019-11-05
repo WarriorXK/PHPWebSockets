@@ -304,7 +304,7 @@ final class PHPWebSockets {
      */
     public static function IsPriorityOpcode(int $opcode) : bool {
 
-        /**
+        /*
          * Note:
          * We do not consider the opcode for CLOSE to be a priority since this would cause us to send the close frame before finishing our queue
          * In those cases it can be possible for the remote site to read both a close and another frame at the same time and process them in that order

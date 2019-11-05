@@ -371,5 +371,4 @@ class UpdatesWrapperTest extends TestCase {
         \PHPWebSockets::Log(LogLevel::INFO, 'Test finished' . PHP_EOL);
 
     }
-
 }

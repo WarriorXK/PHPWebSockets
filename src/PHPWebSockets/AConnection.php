@@ -322,6 +322,7 @@ abstract class AConnection implements IStreamContainer, LoggerAwareInterface {
 
             if (!$this->isOpen()) {
                 $this->_log(LogLevel::WARNING, 'Got frame after close, dropping');
+
                 return;
             }
 
