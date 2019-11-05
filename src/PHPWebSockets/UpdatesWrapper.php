@@ -171,7 +171,7 @@ class UpdatesWrapper {
 
                 $code = $update->getCode();
                 switch ($code) {
-                    case Update\Read::C_NEWCONNECTION:
+                    case Update\Read::C_NEW_CONNECTION:
                         $this->_onNewConnection($update);
                         break;
                     case Update\Read::C_READ:

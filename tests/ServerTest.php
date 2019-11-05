@@ -115,7 +115,7 @@ class ServerTest extends TestCase {
                     $sourceObj = $update->getSourceObject();
                     $opcode = $update->getCode();
                     switch ($opcode) {
-                        case Read::C_NEWCONNECTION:
+                        case Read::C_NEW_CONNECTION:
 
                             $sourceObj->accept();
 

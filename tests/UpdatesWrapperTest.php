@@ -72,6 +72,10 @@ class UpdatesWrapperTest extends TestCase {
 
             $this->assertContains($connection, $this->_connectionList);
 
+            if ($connection instanceof \PHPWebSockets\Server\Connection) {
+                $this->assertTrue($connection->getServer()->hasConnection($connection), 'Server doesn\'t have a reference to its connection!');
+            }
+
             unset($this->_connectionList[$connection->getResourceIndex()]);
 
         });
@@ -296,6 +300,66 @@ class UpdatesWrapperTest extends TestCase {
                     $clientProcess = NULL;
 
                 }
+
+            }
+
+        }
+
+        $this->assertEmpty($this->_wsServer->getConnections(FALSE));
+        $this->assertEmpty($this->_connectionList);
+
+        $this->_refuseNextConnection = FALSE;
+
+        \PHPWebSockets::Log(LogLevel::INFO, 'Test finished' . PHP_EOL);
+
+    }
+
+    public function testDoubleClose() {
+
+        \PHPWebSockets::Log(LogLevel::INFO, 'Starting test..' . PHP_EOL);
+
+        $this->assertEmpty($this->_wsServer->getConnections(FALSE));
+
+        $closeAt = microtime(TRUE) + 3.0;
+        $runUntil = $closeAt + 4.0;
+
+        $didSendDisconnect = FALSE;
+        $didClose = FALSE;
+
+        $descriptorSpec = [['pipe', 'r'], STDOUT, STDERR];
+        $clientProcess = proc_open('./tests/Helpers/client.php --address=' . escapeshellarg(self::ADDRESS) . ' --message=' . escapeshellarg('Hello world') . ' --message-count=5', $descriptorSpec, $pipes, realpath(__DIR__ . '/../'));
+
+        while (microtime(TRUE) <= $runUntil) {
+
+            $this->_updatesWrapper->update(0.5, $c = $this->_wsServer->getConnections(TRUE));
+
+            if (!$didSendDisconnect) {
+                $this->assertTrue(proc_get_status($clientProcess)['running'] ?? FALSE);
+            }
+
+            if ($didSendDisconnect && !$didClose) {
+
+                /** @var \PHPWebSockets\AConnection $connection */
+                $connection = reset($connections);
+                $connection->close();
+
+                $didClose = TRUE;
+
+            }
+
+            if (microtime(TRUE) >= $closeAt && !$didSendDisconnect) {
+
+                $connections = $this->_wsServer->getConnections(FALSE);
+
+                $this->assertNotEmpty($connections);
+
+                \PHPWebSockets::Log(LogLevel::INFO, 'Sending disconnect + close');
+
+                /** @var \PHPWebSockets\AConnection $connection */
+                $connection = reset($connections);
+                $connection->sendDisconnect(\PHPWebSockets::CLOSECODE_NORMAL);
+
+                $didSendDisconnect = TRUE;
 
             }
 

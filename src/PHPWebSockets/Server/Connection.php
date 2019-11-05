@@ -188,7 +188,7 @@ class Connection extends AConnection {
 
                 $responseCode = 0;
                 if ($this->_doHandshake($rawHandshake, $responseCode)) {
-                    yield new Update\Read(Update\Read::C_NEWCONNECTION, $this);
+                    yield new Update\Read(Update\Read::C_NEW_CONNECTION, $this);
                 } else {
 
                     $this->writeRaw($this->_server->getErrorPageForCode($responseCode), FALSE);
@@ -220,7 +220,7 @@ class Connection extends AConnection {
         if (!$this->isAccepted() && $this->hasHandshake() && $this->getOpenedTimestamp() + $this->getAcceptTimeout() < time()) {
 
             yield new Update\Error(Update\Error::C_ACCEPT_TIMEOUT_PASSED, $this);
-            $this->deny(408); // Request Timeout
+            $this->deny(504); // Gateway Timeout
 
         }
 

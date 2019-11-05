@@ -53,6 +53,13 @@ abstract class AConnection implements IStreamContainer, LoggerAwareInterface {
     protected $_newMessageStreamCallback = NULL;
 
     /**
+     * The timestamp at which we will close the connection if the remote doesn't reply with an disconnect, this will only be set if we initiated the disconnect
+     *
+     * @var float|null
+     */
+    protected $_cleanDisconnectTimeout = NULL;
+
+    /**
      * If we've initiated the disconnect
      *
      * @var bool
@@ -297,18 +304,26 @@ abstract class AConnection implements IStreamContainer, LoggerAwareInterface {
             $this->_readBuffer .= $newData;
         }
 
+        $bufferLength = strlen($this->_readBuffer);
+
         $orgBuffer = $this->_readBuffer;
-        $numBytes = strlen($this->_readBuffer);
+        $numBytes = $bufferLength;
         $framePos = 0;
         $pongs = [];
 
-        $this->_log(LogLevel::DEBUG, 'Handling packet, current buffer size: ' . strlen($this->_readBuffer));
+        $this->_log(LogLevel::DEBUG, 'Handling packet, current buffer size: ' . $bufferLength);
 
         while ($framePos < $numBytes) {
 
             $headers = Framer::GetFrameHeaders($this->_readBuffer);
             if ($headers === NULL) { // Incomplete headers, probably due to a partial read
                 break;
+            }
+
+            if (!$this->isOpen()) {
+                $this->_log(LogLevel::WARNING, 'Got frame after close, dropping');
+
+                return;
             }
 
             if (!$this->_checkRSVBits($headers)) {
@@ -404,6 +419,8 @@ abstract class AConnection implements IStreamContainer, LoggerAwareInterface {
 
                                 $this->sendDisconnect(\PHPWebSockets::CLOSECODE_UNSUPPORTED_PAYLOAD);
                                 $this->setCloseAfterWrite();
+
+                                yield new Update\Error(Update\Error::C_READ_NO_STREAM_FOR_NEW_MESSAGE, $this);
 
                                 return;
                             }
@@ -613,6 +630,14 @@ abstract class AConnection implements IStreamContainer, LoggerAwareInterface {
      */
     public function beforeStreamSelect() : \Generator {
 
+        if ($this->_cleanDisconnectTimeout !== NULL && microtime(TRUE) >= $this->_cleanDisconnectTimeout) {
+
+            $this->close();
+
+            yield new Update\Error(Update\Error::C_DISCONNECT_TIMEOUT, $this);
+
+        }
+
         if ($this->_shouldReportClose) {
 
             $this->_log(LogLevel::DEBUG, 'Reporting close');
@@ -739,13 +764,17 @@ abstract class AConnection implements IStreamContainer, LoggerAwareInterface {
      *
      * @param int    $code
      * @param string $reason
+     * @param float  $timeout
      *
      * @throws \Exception
      */
-    public function sendDisconnect(int $code, string $reason = '') {
+    public function sendDisconnect(int $code, string $reason = '', float $timeout = 10.0) {
 
         if (!$this->_remoteSentDisconnect) {
+
             $this->_weInitiateDisconnect = TRUE;
+            $this->_cleanDisconnectTimeout = microtime(TRUE) + $timeout;
+
         }
 
         $this->_weSentDisconnect = TRUE;

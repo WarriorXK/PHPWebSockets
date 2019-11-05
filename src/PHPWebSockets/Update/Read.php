@@ -36,7 +36,7 @@ use PHPWebSockets\AUpdate;
 class Read extends AUpdate {
 
     const   C_UNKNOWN = 0,
-            C_NEWCONNECTION = 1,
+            C_NEW_CONNECTION = 1,
             C_READ = 2,
             C_PING = 3,
             C_PONG = 4,
@@ -56,6 +56,11 @@ class Read extends AUpdate {
      * @deprecated Use C_NEW_SOCKET_CONNECTED instead
      */
     const C_NEW_TCP_CONNECTION = self::C_NEW_SOCKET_CONNECTED;
+
+    /**
+     * @deprecated Use C_NEW_CONNECTION instead
+     */
+    const C_NEWCONNECTION = self::C_NEW_CONNECTION;
 
     /**
      * The message from the client
@@ -103,7 +108,7 @@ class Read extends AUpdate {
 
         $codes = [
             self::C_UNKNOWN                         => 'Unknown error',
-            self::C_NEWCONNECTION                   => 'New connection',
+            self::C_NEW_CONNECTION                  => 'New connection',
             self::C_READ                            => 'Read',
             self::C_PING                            => 'Ping',
             self::C_PONG                            => 'Pong',
