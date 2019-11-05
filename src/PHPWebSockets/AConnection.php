@@ -304,18 +304,25 @@ abstract class AConnection implements IStreamContainer, LoggerAwareInterface {
             $this->_readBuffer .= $newData;
         }
 
+        $bufferLength = strlen($this->_readBuffer);
+
         $orgBuffer = $this->_readBuffer;
-        $numBytes = strlen($this->_readBuffer);
+        $numBytes = $bufferLength;
         $framePos = 0;
         $pongs = [];
 
-        $this->_log(LogLevel::DEBUG, 'Handling packet, current buffer size: ' . strlen($this->_readBuffer));
+        $this->_log(LogLevel::DEBUG, 'Handling packet, current buffer size: ' . $bufferLength);
 
         while ($framePos < $numBytes) {
 
             $headers = Framer::GetFrameHeaders($this->_readBuffer);
             if ($headers === NULL) { // Incomplete headers, probably due to a partial read
                 break;
+            }
+
+            if (!$this->isOpen()) {
+                $this->_log(LogLevel::WARNING, 'Got frame after close, dropping');
+                return;
             }
 
             if (!$this->_checkRSVBits($headers)) {
