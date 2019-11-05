@@ -274,13 +274,13 @@ class Server implements LoggerAwareInterface {
             throw new \LogicException('This server has no accepting connection, unable to accept a new connection!');
         }
 
-        $peername = '';
-        $newStream = stream_socket_accept($this->_acceptingConnection->getStream(), $this->getSocketAcceptTimeout(), $peername);
+        $peerName = '';
+        $newStream = stream_socket_accept($this->_acceptingConnection->getStream(), $this->getSocketAcceptTimeout(), $peerName);
         if (!$newStream) {
             throw new \RuntimeException('Unable to accept stream socket!');
         }
 
-        $newConnection = new $this->_connectionClass($this, $newStream, $peername, $this->_connectionIndex);
+        $newConnection = new $this->_connectionClass($this, $newStream, $peerName, $this->_connectionIndex);
         $this->_connections[$this->_connectionIndex] = $newConnection;
 
         $this->_log(LogLevel::DEBUG, 'Got new connection: ' . $newConnection);
