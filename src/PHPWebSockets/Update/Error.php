@@ -50,7 +50,8 @@ class Error extends AUpdate {
             C_ACCEPT_TIMEOUT_PASSED = 13,
             C_WRITE_INVALID_TARGET_STREAM = 14,
             C_READ_DISCONNECT_DURING_HANDSHAKE = 15,
-            C_READ_NO_STREAM_FOR_NEW_MESSAGE = 16;
+            C_DISCONNECT_TIMEOUT = 16,
+            C_READ_NO_STREAM_FOR_NEW_MESSAGE = 17;
 
     /**
      * @deprecated Constant has the wrong name, use C_WRITE_INVALID_TARGET_STREAM instead
@@ -82,6 +83,7 @@ class Error extends AUpdate {
             self::C_WRITE                            => 'Write failure',
             self::C_ACCEPT_TIMEOUT_PASSED            => 'Accept timeout passed',
             self::C_READ_DISCONNECT_DURING_HANDSHAKE => 'Disconnect during handshake',
+            self::C_DISCONNECT_TIMEOUT               => 'The remote failed to respond in time to our disconnect',
             self::C_READ_NO_STREAM_FOR_NEW_MESSAGE   => 'No stream was returned by the newMessageStreamCallback',
         ];
 
