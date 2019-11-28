@@ -228,7 +228,7 @@ class UpdatesWrapperTest extends TestCase {
 
     }
 
-    public function testWrapperClientClose() {
+    public function testWrapperServerClose() {
 
         \PHPWebSockets::Log(LogLevel::INFO, 'Starting test..' . PHP_EOL);
 
@@ -244,7 +244,7 @@ class UpdatesWrapperTest extends TestCase {
 
         while (microtime(TRUE) <= $runUntil) {
 
-            $this->_updatesWrapper->update(0.5, $c = $this->_wsServer->getConnections(TRUE));
+            $this->_updatesWrapper->update(0.5, $this->_wsServer->getConnections(TRUE));
 
             if (!$didClose) {
                 $this->assertTrue(proc_get_status($clientProcess)['running'] ?? FALSE);
@@ -274,6 +274,34 @@ class UpdatesWrapperTest extends TestCase {
 
     }
 
+    public function testWrapperClientClose() {
+
+        \PHPWebSockets::Log(LogLevel::INFO, 'Starting test..' . PHP_EOL);
+
+        $this->assertEmpty($this->_wsServer->getConnections(FALSE));
+
+        $closeAt = microtime(TRUE) + 3.0;
+
+        $descriptorSpec = [['pipe', 'r'], STDOUT, STDERR];
+        $clientProcess = proc_open('./tests/Helpers/client.php --address=' . escapeshellarg(self::ADDRESS) . ' --message=' . escapeshellarg('Hello world') . ' --close-at=' . $closeAt . ' --message-count=5', $descriptorSpec, $pipes, realpath(__DIR__ . '/../'));
+
+        while (TRUE) {
+
+            $this->_updatesWrapper->update(0.5, $this->_wsServer->getConnections(TRUE));
+
+            if (!proc_get_status($clientProcess)['running'] ?? FALSE) {
+                break;
+            }
+
+        }
+
+        $this->assertEmpty($this->_wsServer->getConnections(FALSE));
+        $this->assertEmpty($this->_connectionList);
+
+        \PHPWebSockets::Log(LogLevel::INFO, 'Test finished' . PHP_EOL);
+
+    }
+
     public function testWrapperClientRefuse() {
 
         \PHPWebSockets::Log(LogLevel::INFO, 'Starting test..' . PHP_EOL);
@@ -289,7 +317,7 @@ class UpdatesWrapperTest extends TestCase {
 
         while (microtime(TRUE) <= $runUntil) {
 
-            $this->_updatesWrapper->update(0.5, $c = $this->_wsServer->getConnections(TRUE));
+            $this->_updatesWrapper->update(0.5, $this->_wsServer->getConnections(TRUE));
 
             if ($clientProcess !== NULL) {
 
@@ -331,7 +359,7 @@ class UpdatesWrapperTest extends TestCase {
 
         while (microtime(TRUE) <= $runUntil) {
 
-            $this->_updatesWrapper->update(0.5, $c = $this->_wsServer->getConnections(TRUE));
+            $this->_updatesWrapper->update(0.5, $this->_wsServer->getConnections(TRUE));
 
             if (!$didSendDisconnect) {
                 $this->assertTrue(proc_get_status($clientProcess)['running'] ?? FALSE);
