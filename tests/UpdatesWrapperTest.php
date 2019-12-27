@@ -364,6 +364,46 @@ class UpdatesWrapperTest extends TestCase {
 
     }
 
+    public function testWrapperAsyncClientTCPRefuse() {
+
+        \PHPWebSockets::Log(LogLevel::INFO, 'Starting test..' . PHP_EOL);
+
+        $this->assertEmpty($this->_wsServer->getConnections(FALSE));
+
+        $this->_refuseNextConnection = TRUE;
+
+        $runUntil = microtime(TRUE) + 8.0;
+
+        $descriptorSpec = [['pipe', 'r'], STDOUT, STDERR];
+        $clientProcess = proc_open('./tests/Helpers/client.php --address=' . escapeshellarg('tcp://127.0.0.1:9000') . ' --message=' . escapeshellarg('Hello world') . ' --message-count=1 --async', $descriptorSpec, $pipes, realpath(__DIR__ . '/../'));
+
+        while (microtime(TRUE) <= $runUntil) {
+
+            $this->_updatesWrapper->update(0.5, $this->_wsServer->getConnections(TRUE));
+
+            if ($clientProcess !== NULL) {
+
+                $status = proc_get_status($clientProcess);
+                if (!$status['running']) {
+
+                    \PHPWebSockets::Log(LogLevel::INFO, 'Client disappeared');
+                    $clientProcess = NULL;
+
+                }
+
+            }
+
+        }
+
+        $this->assertEmpty($this->_wsServer->getConnections(FALSE));
+        $this->assertEmpty($this->_connectionList);
+
+        $this->_refuseNextConnection = FALSE;
+
+        \PHPWebSockets::Log(LogLevel::INFO, 'Test finished' . PHP_EOL);
+
+    }
+
     public function testDoubleClose() {
 
         \PHPWebSockets::Log(LogLevel::INFO, 'Starting test..' . PHP_EOL);

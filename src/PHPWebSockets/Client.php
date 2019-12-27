@@ -50,6 +50,13 @@ class Client extends AConnection {
     protected $_handshakeAccepted = FALSE;
 
     /**
+     * If we are currently trying to connect async
+     *
+     * @var bool
+     */
+    protected $_isConnectingAsync = FALSE;
+
+    /**
      * The last error received from the stream
      *
      * @var string|null
@@ -115,7 +122,7 @@ class Client extends AConnection {
     public function connectToResource($resource, string $path = '/') {
 
         if (!is_resource($resource)) {
-            throw new \InvalidArgumentException('Argument is not a resource!');
+            throw new \InvalidArgumentException('Argument 1 is not a resource!');
         }
 
         if ($this->isOpen()) {
@@ -148,6 +155,8 @@ class Client extends AConnection {
         if ($this->isOpen()) {
             throw new \LogicException('The connection is already open!');
         }
+
+        $this->_isConnectingAsync = $async;
 
         $flags = ($async ? STREAM_CLIENT_ASYNC_CONNECT : STREAM_CLIENT_CONNECT);
 
@@ -243,6 +252,8 @@ class Client extends AConnection {
 
             if ($this->_remoteSentDisconnect && $this->_weSentDisconnect) {
                 yield new Update\Read(Update\Read::C_SOCK_DISCONNECT, $this);
+            } elseif ($this->_isConnectingAsync) {
+                yield new Update\Error(Update\Error::C_ASYNC_CONNECT_FAILED, $this);
             } else {
                 yield new Update\Error(Update\Error::C_READ_UNEXPECTED_DISCONNECT, $this);
             }
@@ -252,6 +263,9 @@ class Client extends AConnection {
             return;
 
         } else {
+
+            // If we've received data we can be sure we're connected
+            $this->_isConnectingAsync = FALSE;
 
             $handshakeAccepted = $this->handshakeAccepted();
             if (!$handshakeAccepted) {

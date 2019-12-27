@@ -246,14 +246,14 @@ class Server implements LoggerAwareInterface {
     }
 
     /**
-     * Gets called by the accepting web socket to notify the server that a new connection attempt has occured
+     * Gets called by the accepting web socket to notify the server that a new connection attempt has occurred
      *
      * @return \Generator|\PHPWebSockets\AUpdate[]
      */
     public function gotNewConnection() : \Generator {
 
         if (!$this->_autoAccept) {
-            yield new Update\Read(Update\Read::C_NEW_SOCKET_CONNECTION_AVAILABLE, $this->_acceptingConnection);
+            yield new Update\Read(Update\Read::C_NEW_SOCKET_CONNECTION_AVAILABLE, NULL);
         } else {
             yield from $this->acceptNewConnection();
         }
@@ -307,7 +307,7 @@ class Server implements LoggerAwareInterface {
             '%serverIdentifier%' => $this->getServerIdentifier(),
         ];
 
-        return str_replace(array_keys($replaceFields), array_values($replaceFields), "HTTP/1.1 %errorCode% %errorString%\r\nServer: %serverIdentifier%\r\n\r\n<html><head><title>%errorCode% %errorString%</title></head><body bgcolor='white'><h1 align=\"center\">%errorCode% %errorString%</h1><hr><div align=\"center\">%serverIdentifier%</div></body></html>\r\n\r\n");
+        return str_replace(array_keys($replaceFields), array_values($replaceFields), "HTTP/1.1 %errorCode% %errorString%\r\nServer: %serverIdentifier%\r\n\r\n<html lang=\"en\"><head><title>%errorCode% %errorString%</title></head><body bgcolor=\"white\"><h1 align=\"center\">%errorCode% %errorString%</h1><hr><div align=\"center\">%serverIdentifier%</div></body></html>\r\n\r\n");
     }
 
     /**

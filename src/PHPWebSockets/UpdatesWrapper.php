@@ -254,6 +254,9 @@ class UpdatesWrapper {
                     case Update\Error::C_READ_DISCONNECT_DURING_HANDSHAKE:
 //                        $this->_onDisconnectDuringHandshake($update);
                         break;
+                    case Update\Error::C_ASYNC_CONNECT_FAILED:
+                        $this->_onDisconnect($update);
+                        break;
                     default:
                         throw new \UnexpectedValueException('Unknown or unsupported update code for error: ' . $code);
                 }
