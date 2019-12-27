@@ -191,6 +191,28 @@ class UpdatesWrapperTest extends TestCase {
 
     }
 
+    public function testWrapperAsyncClient() {
+
+        \PHPWebSockets::Log(LogLevel::INFO, 'Starting test..' . PHP_EOL);
+
+        $this->assertEmpty($this->_wsServer->getConnections(FALSE));
+
+        $descriptorSpec = [['pipe', 'r'], STDOUT, STDERR];
+        $clientProcess = proc_open('./tests/Helpers/client.php --address=' . escapeshellarg(self::ADDRESS) . ' --message=' . escapeshellarg('Hello world') . ' --message-count=5 --async', $descriptorSpec, $pipes, realpath(__DIR__ . '/../'));
+
+        while (proc_get_status($clientProcess)['running'] ?? FALSE) {
+
+            $this->_updatesWrapper->update(0.5, $this->_wsServer->getConnections(TRUE));
+
+        }
+
+        $this->assertEmpty($this->_wsServer->getConnections(FALSE));
+        $this->assertEmpty($this->_connectionList);
+
+        \PHPWebSockets::Log(LogLevel::INFO, 'Test finished' . PHP_EOL);
+
+    }
+
     public function testWrapperClientDisappeared() {
 
         \PHPWebSockets::Log(LogLevel::INFO, 'Starting test..' . PHP_EOL);

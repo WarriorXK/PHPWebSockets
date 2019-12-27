@@ -137,18 +137,21 @@ class Client extends AConnection {
      * @param string $address
      * @param string $path
      * @param array  $streamContext
+     * @param bool   $async
      *
      * @throws \LogicException
      *
      * @return bool
      */
-    public function connect(string $address, string $path = '/', array $streamContext = []) {
+    public function connect(string $address, string $path = '/', array $streamContext = [], bool $async = FALSE) {
 
         if ($this->isOpen()) {
             throw new \LogicException('The connection is already open!');
         }
 
-        $this->_stream = @stream_socket_client($address, $this->_streamLastErrorCode, $this->_streamLastError, $this->getConnectTimeout(), STREAM_CLIENT_CONNECT, stream_context_create($streamContext));
+        $flags = ($async ? STREAM_CLIENT_ASYNC_CONNECT : STREAM_CLIENT_CONNECT);
+
+        $this->_stream = @stream_socket_client($address, $this->_streamLastErrorCode, $this->_streamLastError, $this->getConnectTimeout(), $flags, stream_context_create($streamContext));
         if ($this->_stream === FALSE) {
             return FALSE;
         }

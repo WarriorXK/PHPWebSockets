@@ -173,6 +173,7 @@ final class PHPWebSockets {
 
         }
 
+        /** @var \PHPWebSockets\IStreamContainer[] $objectStreamMap */
         $objectStreamMap = [];
         $exceptional = [];
         $write = [];
