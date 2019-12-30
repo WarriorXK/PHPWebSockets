@@ -226,8 +226,6 @@ class Client extends AConnection {
     }
 
     /**
-     * @throws \Exception
-     *
      * @return \Generator|\PHPWebSockets\AUpdate[]
      */
     public function handleRead() : \Generator {

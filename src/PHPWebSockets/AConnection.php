@@ -210,6 +210,8 @@ abstract class AConnection implements IStreamContainer, LoggerAwareInterface {
      * Sets the maximum size for the handshake in bytes
      *
      * @param int $maxLength
+     *
+     * @return void
      */
     public function setMaxHandshakeLength(int $maxLength) {
         $this->_maxHandshakeLength = $maxLength;
@@ -263,6 +265,8 @@ abstract class AConnection implements IStreamContainer, LoggerAwareInterface {
 
     /**
      * Sets that we should close the connection after all our writes have finished
+     *
+     * @return void
      */
     public function setCloseAfterWrite() {
         $this->_closeAfterWrite = TRUE;
@@ -289,8 +293,6 @@ abstract class AConnection implements IStreamContainer, LoggerAwareInterface {
      * In here we attempt to find frames and unmask them, returns finished messages if available
      *
      * @param string $newData
-     *
-     * @throws \Exception
      *
      * @return \Generator|\PHPWebSockets\AUpdate[]
      */
@@ -666,7 +668,7 @@ abstract class AConnection implements IStreamContainer, LoggerAwareInterface {
      * @param int    $opcode
      * @param int    $frameSize
      *
-     * @throws \Exception
+     * @return void
      */
     public function writeMultiFramed(string $data, int $opcode = \PHPWebSockets::OPCODE_FRAME_TEXT, int $frameSize = 65535) {
 
@@ -766,7 +768,7 @@ abstract class AConnection implements IStreamContainer, LoggerAwareInterface {
      * @param string $reason
      * @param float  $timeout
      *
-     * @throws \Exception
+     * @return void
      */
     public function sendDisconnect(int $code, string $reason = '', float $timeout = 10.0) {
 
@@ -809,6 +811,8 @@ abstract class AConnection implements IStreamContainer, LoggerAwareInterface {
      * If TRUE is returned from the callback a memory buffer will be used instead
      *
      * @param callable|null $callable
+     *
+     * @return void
      */
     public function setNewMessageStreamCallback(callable $callable = NULL) {
         $this->_newMessageStreamCallback = $callable;

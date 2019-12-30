@@ -144,7 +144,7 @@ class Server implements LoggerAwareInterface {
      * @param bool                          $useCrypto     If we should enable crypto on newly accepted connections
      * @param \Psr\Log\LoggerInterface|null $logger
      *
-     * @throws \RuntimeException
+     * @return void
      */
     public function __construct(string $address = NULL, array $streamContext = [], bool $useCrypto = FALSE, LoggerInterface $logger = NULL) {
 
@@ -236,8 +236,6 @@ class Server implements LoggerAwareInterface {
      * Checks for updates
      *
      * @param float|null $timeout The amount of seconds to wait for updates, setting this value to NULL causes this function to block indefinitely until there is an update
-     *
-     * @throws \Exception
      *
      * @return \Generator|\PHPWebSockets\AUpdate[]
      */
@@ -343,6 +341,8 @@ class Server implements LoggerAwareInterface {
      * Sets the server identifier string reported to clients
      *
      * @param string|null $identifier
+     *
+     * @return void
      */
     public function setServerIdentifier(string $identifier = NULL) {
         $this->_serverIdentifier = $identifier;
@@ -373,7 +373,7 @@ class Server implements LoggerAwareInterface {
      *
      * @param bool $includeAccepting
      *
-     * @return array|\PHPWebSockets\Server\Connection[]
+     * @return \PHPWebSockets\Server\Connection[]
      */
     public function getConnections(bool $includeAccepting = FALSE) : array {
 
@@ -396,7 +396,7 @@ class Server implements LoggerAwareInterface {
      * @param int    $closeCode
      * @param string $reason
      *
-     * @throws \Exception
+     * @return void
      */
     public function disconnectAll(int $closeCode, string $reason = '') {
 
@@ -419,6 +419,8 @@ class Server implements LoggerAwareInterface {
      * This should be called after a process has been fork with the PID returned from pcntl_fork, this ensures that the connection is closed in the new fork without interupting the main process
      *
      * @param int $pid
+     *
+     * @return void
      */
     public function processDidFork(int $pid) {
 
@@ -441,7 +443,7 @@ class Server implements LoggerAwareInterface {
      * @param \PHPWebSockets\Server\Connection $connection
      * @param bool                             $closeConnection
      *
-     * @throws \LogicException
+     * @return void
      */
     public function removeConnection(Server\Connection $connection, bool $closeConnection = TRUE) {
 
@@ -481,6 +483,8 @@ class Server implements LoggerAwareInterface {
      * Sets the time in seconds in which the stream_socket_accept method has to accept the connection or fail
      *
      * @param float $timeout
+     *
+     * @return void
      */
     public function setSocketAcceptTimeout(float $timeout) {
         $this->_socketAcceptTimeout = $timeout;
@@ -499,6 +503,8 @@ class Server implements LoggerAwareInterface {
      * Sets if we should disable the cleanup which happens after forking
      *
      * @param bool $disableForkCleanup
+     *
+     * @return void
      */
     public function setDisableForkCleanup(bool $disableForkCleanup) {
         $this->_disableForkCleanup = $disableForkCleanup;
@@ -517,6 +523,8 @@ class Server implements LoggerAwareInterface {
      * Sets if we should automatically accept the connection
      *
      * @param bool $autoAccept
+     *
+     * @return void
      */
     public function setAutoAccept(bool $autoAccept) {
         $this->_autoAccept = $autoAccept;
@@ -526,6 +534,8 @@ class Server implements LoggerAwareInterface {
      * Sets the class that will be our connection, this has to be an extension of \PHPWebSockets\Server\Connection
      *
      * @param string $class
+     *
+     * @return void
      */
     public function setConnectionClass(string $class) {
 
@@ -557,6 +567,8 @@ class Server implements LoggerAwareInterface {
 
     /**
      * Closes the webserver, note: clients should be notified beforehand that we are disconnecting, calling close while having connected clients will result in an improper disconnect
+     *
+     * @return void
      */
     public function close() {
 
