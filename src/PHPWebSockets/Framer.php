@@ -174,17 +174,15 @@ final class Framer {
     }
 
     /**
-     * Frames a message
-     *
      * @param string $data
      * @param bool   $mask
      * @param int    $opcode
      * @param bool   $isFinal
      * @param int    $rsv
      *
-     * @throws \Exception
-     *
      * @return string
+     * @throws \RangeException
+     * @throws \LogicException
      */
     public static function Frame(string $data, bool $mask, int $opcode = \PHPWebSockets::OPCODE_FRAME_TEXT, bool $isFinal = TRUE, int $rsv = 0) : string {
 

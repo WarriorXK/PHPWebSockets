@@ -219,8 +219,6 @@ class Client extends AConnection {
      *
      * @param float|null $timeout The amount of seconds to wait for updates, setting this value to NULL causes this function to block indefinitely until there is an update
      *
-     * @throws \Exception
-     *
      * @return \Generator|\PHPWebSockets\AUpdate[]
      */
     public function update(float $timeout = NULL) : \Generator {

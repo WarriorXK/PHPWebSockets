@@ -732,7 +732,7 @@ abstract class AConnection implements IStreamContainer, LoggerAwareInterface {
      * @param int    $opcode
      * @param bool   $isFinal
      *
-     * @throws \Exception
+     * @return void
      */
     public function write(string $data, int $opcode = \PHPWebSockets::OPCODE_FRAME_TEXT, bool $isFinal = TRUE) {
         $this->writeRaw(Framer::Frame($data, $this->_shouldMask(), $opcode, $isFinal), \PHPWebSockets::IsPriorityOpcode($opcode));
