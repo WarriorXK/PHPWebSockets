@@ -173,14 +173,17 @@ final class PHPWebSockets {
 
         /** @var \PHPWebSockets\IStreamContainer[] $objectStreamMap */
         $objectStreamMap = [];
+        /** @var resource[] $exceptional */
         $exceptional = [];
+        /** @var resource[] $write */
         $write = [];
+        /** @var resource[] $read */
         $read = [];
 
         foreach ($updateObjects as $object) {
 
             if (!$object instanceof \PHPWebSockets\IStreamContainer) {
-                throw new \InvalidArgumentException('Got invalid object, all provided objects should implement of \PHPWebSockets\IStreamContainer');
+                throw new \InvalidArgumentException('Got invalid object, all provided objects should implement ' . \PHPWebSockets\IStreamContainer::class);
             }
 
             yield from $object->beforeStreamSelect();

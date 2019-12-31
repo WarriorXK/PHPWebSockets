@@ -303,7 +303,7 @@ class Connection extends AConnection {
     /**
      * Accepts the connection
      *
-     * @param string|NULL $protocol The accepted protocol
+     * @param string|null $protocol The accepted protocol
      *
      * @return void
      */
