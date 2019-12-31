@@ -50,6 +50,13 @@ class Client extends AConnection {
     protected $_handshakeAccepted = FALSE;
 
     /**
+     * If we are currently trying to connect async
+     *
+     * @var bool
+     */
+    protected $_isConnectingAsync = FALSE;
+
+    /**
      * The last error received from the stream
      *
      * @var string|null
@@ -107,15 +114,12 @@ class Client extends AConnection {
      * @param resource $resource
      * @param string   $path
      *
-     * @throws \InvalidArgumentException
-     * @throws \LogicException
-     *
      * @return bool
      */
-    public function connectToResource($resource, string $path = '/') {
+    public function connectToResource($resource, string $path = '/') : bool {
 
         if (!is_resource($resource)) {
-            throw new \InvalidArgumentException('Argument is not a resource!');
+            throw new \InvalidArgumentException('Argument 1 is not a resource!');
         }
 
         if ($this->isOpen()) {
@@ -137,18 +141,21 @@ class Client extends AConnection {
      * @param string $address
      * @param string $path
      * @param array  $streamContext
-     *
-     * @throws \LogicException
+     * @param bool   $async
      *
      * @return bool
      */
-    public function connect(string $address, string $path = '/', array $streamContext = []) {
+    public function connect(string $address, string $path = '/', array $streamContext = [], bool $async = FALSE) {
 
         if ($this->isOpen()) {
             throw new \LogicException('The connection is already open!');
         }
 
-        $this->_stream = @stream_socket_client($address, $this->_streamLastErrorCode, $this->_streamLastError, $this->getConnectTimeout(), STREAM_CLIENT_CONNECT, stream_context_create($streamContext));
+        $this->_isConnectingAsync = $async;
+
+        $flags = ($async ? STREAM_CLIENT_ASYNC_CONNECT : STREAM_CLIENT_CONNECT);
+
+        $this->_stream = @stream_socket_client($address, $this->_streamLastErrorCode, $this->_streamLastError, $this->getConnectTimeout(), $flags, stream_context_create($streamContext));
         if ($this->_stream === FALSE) {
             return FALSE;
         }
@@ -207,8 +214,6 @@ class Client extends AConnection {
      *
      * @param float|null $timeout The amount of seconds to wait for updates, setting this value to NULL causes this function to block indefinitely until there is an update
      *
-     * @throws \Exception
-     *
      * @return \Generator|\PHPWebSockets\AUpdate[]
      */
     public function update(float $timeout = NULL) : \Generator {
@@ -216,8 +221,6 @@ class Client extends AConnection {
     }
 
     /**
-     * @throws \Exception
-     *
      * @return \Generator|\PHPWebSockets\AUpdate[]
      */
     public function handleRead() : \Generator {
@@ -240,6 +243,8 @@ class Client extends AConnection {
 
             if ($this->_remoteSentDisconnect && $this->_weSentDisconnect) {
                 yield new Update\Read(Update\Read::C_SOCK_DISCONNECT, $this);
+            } elseif ($this->_isConnectingAsync) {
+                yield new Update\Error(Update\Error::C_ASYNC_CONNECT_FAILED, $this);
             } else {
                 yield new Update\Error(Update\Error::C_READ_UNEXPECTED_DISCONNECT, $this);
             }
@@ -249,6 +254,9 @@ class Client extends AConnection {
             return;
 
         } else {
+
+            // If we've received data we can be sure we're connected
+            $this->_isConnectingAsync = FALSE;
 
             $handshakeAccepted = $this->handshakeAccepted();
             if (!$handshakeAccepted) {
@@ -349,6 +357,8 @@ class Client extends AConnection {
      * @see https://tools.ietf.org/html/rfc6455#section-5.3
      *
      * @param bool $mask
+     *
+     * @return void
      */
     public function setMasksPayload(bool $mask) {
         $this->_shouldMask = $mask;

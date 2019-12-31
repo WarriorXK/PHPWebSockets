@@ -12,6 +12,8 @@ $cliArgs = [
     'message-count'    => 0,
     'ping-interval'    => 0,
     'die-at'           => 0,
+    'close-at'         => 0,
+    'async'            => FALSE,
 ];
 
 foreach ($argv as $item) {
@@ -28,12 +30,16 @@ foreach ($argv as $item) {
         $cliArgs['ping-interval'] = (int) substr($item, 16);
     } elseif (substr($item, 0, 9) === '--die-at=') {
         $cliArgs['die-at'] = (float) substr($item, 9);
+    } elseif (substr($item, 0, 11) === '--close-at=') {
+        $cliArgs['close-at'] = (float) substr($item, 11);
+    } elseif ($item === '--async') {
+        $cliArgs['async'] = TRUE;
     }
 
 }
 
 $client = new \PHPWebSockets\Client();
-if (!$client->connect($cliArgs['address'])) {
+if (!$client->connect($cliArgs['address'], '/', [], $cliArgs['async'])) {
     throw new \RuntimeException('Unable to connect to ' . $cliArgs['address']);
 }
 
@@ -46,6 +52,10 @@ while ($client->isOpen()) {
 
     if ($cliArgs['die-at'] > 0.0 && microtime(TRUE) >= $cliArgs['die-at']) {
         die();
+    }
+
+    if ($cliArgs['close-at'] > 0.0 && microtime(TRUE) >= $cliArgs['close-at']) {
+        $client->close();
     }
 
     foreach ($client->update(0.1) as $update) {

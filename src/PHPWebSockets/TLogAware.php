@@ -70,6 +70,8 @@ trait TLogAware {
      * @param string $level
      * @param string $message
      * @param array  $context
+     *
+     * @return void
      */
     protected function _log(string $level, string $message, array $context = []) {
 

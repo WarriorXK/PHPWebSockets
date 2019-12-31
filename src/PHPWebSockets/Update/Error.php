@@ -51,7 +51,8 @@ class Error extends AUpdate {
             C_WRITE_INVALID_TARGET_STREAM = 14,
             C_READ_DISCONNECT_DURING_HANDSHAKE = 15,
             C_DISCONNECT_TIMEOUT = 16,
-            C_READ_NO_STREAM_FOR_NEW_MESSAGE = 17;
+            C_READ_NO_STREAM_FOR_NEW_MESSAGE = 17,
+            C_ASYNC_CONNECT_FAILED = 18;
 
     /**
      * @deprecated Constant has the wrong name, use C_WRITE_INVALID_TARGET_STREAM instead
@@ -85,6 +86,7 @@ class Error extends AUpdate {
             self::C_READ_DISCONNECT_DURING_HANDSHAKE => 'Disconnect during handshake',
             self::C_DISCONNECT_TIMEOUT               => 'The remote failed to respond in time to our disconnect',
             self::C_READ_NO_STREAM_FOR_NEW_MESSAGE   => 'No stream was returned by the newMessageStreamCallback',
+            self::C_ASYNC_CONNECT_FAILED             => 'Async connect failed',
         ];
 
         return $codes[$code] ?? 'Unknown error code ' . $code;

@@ -62,6 +62,8 @@ class BasicLogger implements LoggerInterface {
      * Enables or disables debug logging
      *
      * @param bool $debug
+     *
+     * @return void
      */
     public function setDebugMode(bool $debug) {
         $this->_debug = $debug;

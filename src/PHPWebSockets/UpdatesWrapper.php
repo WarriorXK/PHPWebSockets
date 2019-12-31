@@ -210,7 +210,7 @@ class UpdatesWrapper {
                 $code = $update->getCode();
                 switch ($code) {
                     case Update\Error::C_SELECT:
-                        $this->_onSelectInterupt($update);
+                        $this->_onSelectInterrupt($update);
                         break;
                     case Update\Error::C_READ:
                         $this->_onReadFail($update);
@@ -253,6 +253,9 @@ class UpdatesWrapper {
                         break;
                     case Update\Error::C_READ_DISCONNECT_DURING_HANDSHAKE:
 //                        $this->_onDisconnectDuringHandshake($update);
+                        break;
+                    case Update\Error::C_ASYNC_CONNECT_FAILED:
+                        $this->_onDisconnect($update);
                         break;
                     default:
                         throw new \UnexpectedValueException('Unknown or unsupported update code for error: ' . $code);
@@ -473,7 +476,7 @@ class UpdatesWrapper {
      * Error events
      */
 
-    private function _onSelectInterupt(Update\Error $update) {
+    private function _onSelectInterrupt(Update\Error $update) {
         // Nothing
     }
 
