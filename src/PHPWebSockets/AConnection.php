@@ -856,6 +856,8 @@ abstract class AConnection implements IStreamContainer, LoggerAwareInterface {
      * Sets the maximum amount of bytes to write per cycle
      *
      * @param int $rate
+     *
+     * @return void
      */
     public function setWriteRate(int $rate) {
         $this->_writeRate = $rate;

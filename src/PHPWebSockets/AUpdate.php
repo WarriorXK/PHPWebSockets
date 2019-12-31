@@ -35,7 +35,7 @@ abstract class AUpdate {
     /**
      * The source object related to this update
      *
-     * @var object|null
+     * @var \PHPWebSockets\AConnection|null
      */
     protected $_sourceConnection = NULL;
 
@@ -51,9 +51,9 @@ abstract class AUpdate {
      */
     protected $_code = 0;
 
-    public function __construct(int $code, AConnection $sourceObject = NULL) {
+    public function __construct(int $code, AConnection $sourceConnection = NULL) {
 
-        $this->_sourceConnection = $sourceObject;
+        $this->_sourceConnection = $sourceConnection;
         $this->_code = $code;
 
         if (\PHPWebSockets::ShouldUpdateTrace($this)) {

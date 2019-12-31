@@ -157,8 +157,6 @@ final class PHPWebSockets {
      * @param \PHPWebSockets\IStreamContainer[] $updateObjects
      * @param float|null                        $timeout       The amount of seconds to wait for updates, setting this value to NULL causes this function to block indefinitely until there is an update
      *
-     * @throws \InvalidArgumentException
-     *
      * @return \Generator|\PHPWebSockets\AUpdate[]
      */
     public static function MultiUpdate(array $updateObjects, float $timeout = NULL) : \Generator {

@@ -261,9 +261,6 @@ class Server implements LoggerAwareInterface {
     /**
      * Accepts a new connection from the accepting socket
      *
-     * @throws \LogicException
-     * @throws \RuntimeException
-     *
      * @return \Generator|\PHPWebSockets\AUpdate[]
      */
     public function acceptNewConnection() : \Generator {
@@ -313,7 +310,7 @@ class Server implements LoggerAwareInterface {
      *
      * @param resource $stream
      *
-     * @return Server\Connection|null
+     * @return \PHPWebSockets\Server\Connection|null
      */
     public function getConnectionByStream($stream) {
 

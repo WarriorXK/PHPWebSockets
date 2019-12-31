@@ -114,12 +114,9 @@ class Client extends AConnection {
      * @param resource $resource
      * @param string   $path
      *
-     * @throws \InvalidArgumentException
-     * @throws \LogicException
-     *
      * @return bool
      */
-    public function connectToResource($resource, string $path = '/') {
+    public function connectToResource($resource, string $path = '/') : bool {
 
         if (!is_resource($resource)) {
             throw new \InvalidArgumentException('Argument 1 is not a resource!');
@@ -145,8 +142,6 @@ class Client extends AConnection {
      * @param string $path
      * @param array  $streamContext
      * @param bool   $async
-     *
-     * @throws \LogicException
      *
      * @return bool
      */
@@ -362,6 +357,8 @@ class Client extends AConnection {
      * @see https://tools.ietf.org/html/rfc6455#section-5.3
      *
      * @param bool $mask
+     *
+     * @return void
      */
     public function setMasksPayload(bool $mask) {
         $this->_shouldMask = $mask;

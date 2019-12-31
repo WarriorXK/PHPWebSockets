@@ -303,9 +303,9 @@ class Connection extends AConnection {
     /**
      * Accepts the connection
      *
-     * @param string|null $protocol The accepted protocol
+     * @param string|NULL $protocol The accepted protocol
      *
-     * @throws \LogicException
+     * @return void
      */
     public function accept(string $protocol = NULL) {
 
@@ -329,7 +329,7 @@ class Connection extends AConnection {
      *
      * @param int $errCode
      *
-     * @throws \LogicException
+     * @return void
      */
     public function deny(int $errCode) {
 
@@ -344,6 +344,8 @@ class Connection extends AConnection {
 
     /**
      * Detaches this connection from its server
+     *
+     * @return void
      */
     public function detach() {
 
@@ -360,6 +362,8 @@ class Connection extends AConnection {
      * Sets the time in seconds in which the client has to send its handshake
      *
      * @param float $timeout
+     *
+     * @return void
      */
     public function setAcceptTimeout(float $timeout) {
         $this->_acceptTimeout = $timeout;
