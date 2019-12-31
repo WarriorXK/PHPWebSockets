@@ -157,8 +157,6 @@ final class PHPWebSockets {
      * @param \PHPWebSockets\IStreamContainer[] $updateObjects
      * @param float|null                        $timeout       The amount of seconds to wait for updates, setting this value to NULL causes this function to block indefinitely until there is an update
      *
-     * @throws \InvalidArgumentException
-     *
      * @return \Generator|\PHPWebSockets\AUpdate[]
      */
     public static function MultiUpdate(array $updateObjects, float $timeout = NULL) : \Generator {
@@ -175,14 +173,17 @@ final class PHPWebSockets {
 
         /** @var \PHPWebSockets\IStreamContainer[] $objectStreamMap */
         $objectStreamMap = [];
+        /** @var resource[] $exceptional */
         $exceptional = [];
+        /** @var resource[] $write */
         $write = [];
+        /** @var resource[] $read */
         $read = [];
 
         foreach ($updateObjects as $object) {
 
             if (!$object instanceof \PHPWebSockets\IStreamContainer) {
-                throw new \InvalidArgumentException('Got invalid object, all provided objects should implement of \PHPWebSockets\IStreamContainer');
+                throw new \InvalidArgumentException('Got invalid object, all provided objects should implement ' . \PHPWebSockets\IStreamContainer::class);
             }
 
             yield from $object->beforeStreamSelect();

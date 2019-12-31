@@ -210,7 +210,7 @@ class UpdatesWrapper {
                 $code = $update->getCode();
                 switch ($code) {
                     case Update\Error::C_SELECT:
-                        $this->_onSelectInterupt($update);
+                        $this->_onSelectInterrupt($update);
                         break;
                     case Update\Error::C_READ:
                         $this->_onReadFail($update);
@@ -476,7 +476,7 @@ class UpdatesWrapper {
      * Error events
      */
 
-    private function _onSelectInterupt(Update\Error $update) {
+    private function _onSelectInterrupt(Update\Error $update) {
         // Nothing
     }
 
