@@ -174,6 +174,8 @@ final class Framer {
     }
 
     /**
+     * Frames a message
+     *
      * @param string $data
      * @param bool   $mask
      * @param int    $opcode
