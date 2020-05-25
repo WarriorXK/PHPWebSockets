@@ -18,6 +18,7 @@ disabled:
   - no_blank_lines_after_class_opening
   - single_class_element_per_statement
   - alpha_ordered_imports
+  - return_type_declaration
 
 finder:
   name:
