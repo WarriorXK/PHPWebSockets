@@ -255,7 +255,7 @@ class UpdatesWrapper {
 //                        $this->_onDisconnectDuringHandshake($update);
                         break;
                     case Update\Error::C_DISCONNECT_TIMEOUT:
-                        // Ignored for now
+                        // Ignored for now since it already triggers a disconnect event
                         break;
                     case Update\Error::C_READ_NO_STREAM_FOR_NEW_MESSAGE:
                         $this->_onInvalidStream($update);
@@ -590,7 +590,7 @@ class UpdatesWrapper {
 
     private function _onInvalidStream(Update\Error $update) {
 
-        // Todo
+        // Not sure if we should implement a callback for this since the implementator did this on purpose
 
     }
 
