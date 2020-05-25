@@ -254,6 +254,12 @@ class UpdatesWrapper {
                     case Update\Error::C_READ_DISCONNECT_DURING_HANDSHAKE:
 //                        $this->_onDisconnectDuringHandshake($update);
                         break;
+                    case Update\Error::C_DISCONNECT_TIMEOUT:
+                        // Ignored for now since it already triggers a disconnect event
+                        break;
+                    case Update\Error::C_READ_NO_STREAM_FOR_NEW_MESSAGE:
+                        $this->_onInvalidStream($update);
+                        break;
                     case Update\Error::C_ASYNC_CONNECT_FAILED:
                         $this->_onDisconnect($update);
                         break;
@@ -579,6 +585,12 @@ class UpdatesWrapper {
         $this->_triggerDisconnectHandler($source, FALSE, NULL);
 
         $this->_handledDisconnects[$source->getResourceIndex()] = TRUE;
+
+    }
+
+    private function _onInvalidStream(Update\Error $update) {
+
+        // Not sure if we should implement a callback for this since the implementator did this on purpose
 
     }
 
