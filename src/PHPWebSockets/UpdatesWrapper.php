@@ -261,7 +261,7 @@ class UpdatesWrapper {
                         $this->_onInvalidStream($update);
                         break;
                     case Update\Error::C_ASYNC_CONNECT_FAILED:
-                        $this->_onDisconnect($update);
+                        $this->_onAsyncConnectFailed($update);
                         break;
                     default:
                         throw new \UnexpectedValueException('Unknown or unsupported update code for error: ' . $code);
@@ -596,5 +596,14 @@ class UpdatesWrapper {
 
     private function _onDisconnectDuringHandshake(Update\Error $update) {
         $this->_triggerErrorHandler($update->getSourceConnection(), $update->getCode());
+    }
+
+    private function _onAsyncConnectFailed(Update\Error $update) {
+
+        $source = $update->getSourceConnection();
+
+        $this->_triggerDisconnectHandler($source, FALSE, NULL);
+        $this->_handledDisconnects[$source->getResourceIndex()] = TRUE;
+
     }
 }
