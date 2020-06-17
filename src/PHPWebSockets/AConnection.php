@@ -471,9 +471,17 @@ abstract class AConnection implements IStreamContainer, LoggerAwareInterface {
 
                         if ($headers[Framer::IND_FIN]) {
 
-                            yield new Update\Read(Update\Read::C_READ, $this, $this->_partialMessageOpcode, $this->_partialMessage, $this->_partialMessageStream);
+                            $newMessageOpCode = $this->_partialMessageOpcode;
+                            $newMessageData = $this->_partialMessage;
+                            $newMessageStream = $this->_partialMessageStream;
 
+                            /*
+                             * We have to call _resetFrameData before yielding the update
+                             * If we don't, and the handler of the update tries to send and wait for a new reply we'd error with a C_READ_INVALID_PAYLOAD since we assume the message we're yielding the event for hasn't been completed yet
+                             */
                             $this->_resetFrameData();
+
+                            yield new Update\Read(Update\Read::C_READ, $this, $newMessageOpCode, $newMessageData, $newMessageStream);
 
                         }
 
