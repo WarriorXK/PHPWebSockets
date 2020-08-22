@@ -68,7 +68,7 @@ class ServerTest extends TestCase {
      */
     protected $_caseCount = NULL;
 
-    protected function setUp() {
+    protected function setUp() : void {
 
         global $argv;
 
@@ -94,7 +94,7 @@ class ServerTest extends TestCase {
 
     }
 
-    protected function tearDown() {
+    protected function tearDown() : void {
 
         \PHPWebSockets::Log(LogLevel::INFO, 'Tearing down');
         proc_terminate($this->_autobahnProcess);

@@ -59,7 +59,7 @@ class UpdatesWrapperTest extends TestCase {
 
     protected $_exit = FALSE;
 
-    protected function setUp() {
+    protected function setUp() : void {
 
         $this->_updatesWrapper = new \PHPWebSockets\UpdatesWrapper();
         $this->_updatesWrapper->setDisconnectHandler(function (\PHPWebSockets\AConnection $connection, bool $wasClean, int $code, string $reason) {
@@ -163,7 +163,7 @@ class UpdatesWrapperTest extends TestCase {
 
     }
 
-    protected function tearDown() {
+    protected function tearDown() : void {
 
         $this->_wsServer->close();
 
