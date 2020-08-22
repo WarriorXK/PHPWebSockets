@@ -203,7 +203,7 @@ class UpdatesWrapper {
                         $this->_onSocketConnect($update);
                         break;
                     case Update\Read::C_NEW_SOCKET_CONNECTION_AVAILABLE:
-                        // $this->_onSocketConnectionAvailable($update);
+                         $this->_onSocketConnectionAvailable($update);
                         break;
                     default:
                         throw new \UnexpectedValueException('Unknown or unsupported update code for read: ' . $code);
@@ -256,7 +256,7 @@ class UpdatesWrapper {
                         $this->_writeStreamInvalid($update);
                         break;
                     case Update\Error::C_READ_DISCONNECT_DURING_HANDSHAKE:
-                        // $this->_onDisconnectDuringHandshake($update);
+                         $this->_onDisconnectDuringHandshake($update);
                         break;
                     case Update\Error::C_DISCONNECT_TIMEOUT:
                         // Ignored for now since it already triggers a disconnect event
@@ -611,7 +611,7 @@ class UpdatesWrapper {
     }
 
     private function _onDisconnectDuringHandshake(Update\Error $update) : void {
-        $this->_triggerErrorHandler($update->getSourceConnection(), $update->getCode());
+        // $this->_triggerErrorHandler($update->getSourceConnection(), $update->getCode());
     }
 
     private function _onAsyncConnectFailed(Update\Error $update) : void {

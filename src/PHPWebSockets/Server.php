@@ -142,7 +142,7 @@ class Server implements LoggerAwareInterface {
      * Constructs a new webserver
      *
      * @param string|null                   $address       This should be a protocol://address:port scheme url, if left NULL no accepting socket will be created
-     * @param array                         $streamContext The streamcontext @see https://secure.php.net/manual/en/function.stream-context-create.php
+     * @param array                         $streamContext The stream context @see https://secure.php.net/manual/en/function.stream-context-create.php
      * @param bool                          $useCrypto     If we should enable crypto on newly accepted connections
      * @param \Psr\Log\LoggerInterface|null $logger
      *
@@ -415,7 +415,7 @@ class Server implements LoggerAwareInterface {
     }
 
     /**
-     * This should be called after a process has been fork with the PID returned from pcntl_fork, this ensures that the connection is closed in the new fork without interupting the main process
+     * This should be called after a process has been fork with the PID returned from pcntl_fork, this ensures that the connection is closed in the new fork without interrupting the main process
      *
      * @param int $pid
      *
