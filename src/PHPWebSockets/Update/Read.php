@@ -113,7 +113,7 @@ class Read extends AUpdate {
      *
      * @return string|null
      */
-    public function getMessage() {
+    public function getMessage() : ?string {
         return $this->_message;
     }
 
@@ -122,7 +122,7 @@ class Read extends AUpdate {
      *
      * @return int|null
      */
-    public function getOpcode() {
+    public function getOpcode() : ?int {
         return $this->_opcode;
     }
 

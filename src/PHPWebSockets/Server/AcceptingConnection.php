@@ -132,8 +132,10 @@ class AcceptingConnection implements IStreamContainer, LoggerAwareInterface {
      * Closes the stream
      *
      * @param bool $cleanup If we should remove our unix socket if we used one
+     *
+     * @return void
      */
-    public function close(bool $cleanup = TRUE) {
+    public function close(bool $cleanup = TRUE) : void {
 
         if (is_resource($this->_stream)) {
             fclose($this->_stream);
