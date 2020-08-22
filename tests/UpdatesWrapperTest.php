@@ -33,7 +33,7 @@ use Psr\Log\LogLevel;
 
 class UpdatesWrapperTest extends TestCase {
 
-    const ADDRESS = 'tcp://127.0.0.1:9001';
+    const ADDRESS = 'tcp://127.0.0.1:9124';
 
     /**
      * @var bool
@@ -91,7 +91,7 @@ class UpdatesWrapperTest extends TestCase {
 
             $index = $client->getResourceIndex();
 
-            $this->assertInternalType('int', $index);
+            $this->assertIsInt($index);
             $this->assertArrayNotHasKey($index, $this->_connectionList);
 
             $this->_connectionList[$index] = $client;
@@ -109,7 +109,7 @@ class UpdatesWrapperTest extends TestCase {
 
             $index = $connection->getResourceIndex();
 
-            $this->assertInternalType('int', $index);
+            $this->assertIsInt($index);
             $this->assertArrayNotHasKey($index, $this->_connectionList);
 
             if ($this->_refuseNextConnection) {
