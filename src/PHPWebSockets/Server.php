@@ -30,11 +30,7 @@ declare(strict_types = 1);
 
 namespace PHPWebSockets;
 
-use PHPWebSockets\Server\AcceptingConnection;
-use PHPWebSockets\Server\Connection;
-use Psr\Log\LoggerAwareInterface;
-use Psr\Log\LoggerInterface;
-use Psr\Log\LogLevel;
+use Psr\Log\{ LoggerAwareInterface, LoggerInterface, LogLevel };
 
 class Server implements LoggerAwareInterface {
 
@@ -314,7 +310,7 @@ class Server implements LoggerAwareInterface {
      *
      * @return \PHPWebSockets\Server\Connection|null
      */
-    public function getConnectionByStream($stream) : ?Connection {
+    public function getConnectionByStream($stream) : ?Server\Connection {
 
         foreach ($this->_connections as $connection) {
 
@@ -363,7 +359,7 @@ class Server implements LoggerAwareInterface {
      *
      * @return \PHPWebSockets\Server\AcceptingConnection|null
      */
-    public function getAcceptingConnection() : ?AcceptingConnection {
+    public function getAcceptingConnection() : ?Server\AcceptingConnection {
         return $this->_acceptingConnection;
     }
 

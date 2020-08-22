@@ -332,13 +332,13 @@ class Client extends AConnection {
     }
 
     /**
-     * Returns the user agent string that is reported to the server that we are connecting to, if left NULL the default value is used
+     * Returns the user agent string that is reported to the server that we are connecting to, if set to NULL the default value is used
      *
      * @param string|null $userAgent
      *
      * @return void
      */
-    public function setUserAgent(string $userAgent) : void {
+    public function setUserAgent(?string $userAgent) : void {
         $this->_userAgent = $userAgent;
     }
 
