@@ -35,8 +35,8 @@ use Psr\Log\LogLevel;
 
 class ClientTest extends TestCase {
 
-    const ADDRESS = 'tcp://127.0.0.1:9001';
-    const VALID_BUFFER_TYPES = [
+    protected const ADDRESS = 'tcp://127.0.0.1:9124';
+    protected const VALID_BUFFER_TYPES = [
         'memory',
         'tmpfile',
     ];

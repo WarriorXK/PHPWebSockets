@@ -33,7 +33,7 @@ use Psr\Log\LogLevel;
 
 class UpdatesWrapperTest extends TestCase {
 
-    const ADDRESS = 'tcp://127.0.0.1:9124';
+    protected const ADDRESS = 'tcp://127.0.0.1:9124';
 
     /**
      * @var bool

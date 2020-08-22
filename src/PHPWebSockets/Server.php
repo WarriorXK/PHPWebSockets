@@ -30,6 +30,8 @@ declare(strict_types = 1);
 
 namespace PHPWebSockets;
 
+use PHPWebSockets\Server\AcceptingConnection;
+use PHPWebSockets\Server\Connection;
 use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerInterface;
 use Psr\Log\LogLevel;
@@ -139,7 +141,7 @@ class Server implements LoggerAwareInterface {
     /**
      * Constructs a new webserver
      *
-     * @param string                        $address       This should be a protocol://address:port scheme url, if left NULL no accepting socket will be created
+     * @param string|null                   $address       This should be a protocol://address:port scheme url, if left NULL no accepting socket will be created
      * @param array                         $streamContext The streamcontext @see https://secure.php.net/manual/en/function.stream-context-create.php
      * @param bool                          $useCrypto     If we should enable crypto on newly accepted connections
      * @param \Psr\Log\LoggerInterface|null $logger
@@ -215,7 +217,7 @@ class Server implements LoggerAwareInterface {
      */
     public function createServerClientPair() : array {
 
-        list($server, $client) = stream_socket_pair(STREAM_PF_UNIX, STREAM_SOCK_STREAM, STREAM_IPPROTO_IP);
+        [$server, $client] = stream_socket_pair(STREAM_PF_UNIX, STREAM_SOCK_STREAM, STREAM_IPPROTO_IP);
 
         /** @var \PHPWebSockets\Server\Connection $serverConnection */
         $serverConnection = new $this->_connectionClass($this, $server, '', $this->_connectionIndex);
@@ -312,7 +314,7 @@ class Server implements LoggerAwareInterface {
      *
      * @return \PHPWebSockets\Server\Connection|null
      */
-    public function getConnectionByStream($stream) {
+    public function getConnectionByStream($stream) : ?Connection {
 
         foreach ($this->_connections as $connection) {
 
@@ -341,7 +343,7 @@ class Server implements LoggerAwareInterface {
      *
      * @return void
      */
-    public function setServerIdentifier(string $identifier = NULL) {
+    public function setServerIdentifier(?string $identifier) : void {
         $this->_serverIdentifier = $identifier;
     }
 
@@ -361,7 +363,7 @@ class Server implements LoggerAwareInterface {
      *
      * @return \PHPWebSockets\Server\AcceptingConnection|null
      */
-    public function getAcceptingConnection() {
+    public function getAcceptingConnection() : ?AcceptingConnection {
         return $this->_acceptingConnection;
     }
 
@@ -395,7 +397,7 @@ class Server implements LoggerAwareInterface {
      *
      * @return void
      */
-    public function disconnectAll(int $closeCode, string $reason = '') {
+    public function disconnectAll(int $closeCode, string $reason = '') : void {
 
         foreach ($this->getConnections() as $connection) {
             $connection->sendDisconnect($closeCode, $reason);
@@ -419,7 +421,7 @@ class Server implements LoggerAwareInterface {
      *
      * @return void
      */
-    public function processDidFork(int $pid) {
+    public function processDidFork(int $pid) : void {
 
         if ($this->_disableForkCleanup) {
             return;
@@ -442,7 +444,7 @@ class Server implements LoggerAwareInterface {
      *
      * @return void
      */
-    public function removeConnection(Server\Connection $connection, bool $closeConnection = TRUE) {
+    public function removeConnection(Server\Connection $connection, bool $closeConnection = TRUE) : void {
 
         if ($connection->getServer() !== $this) {
             throw new \LogicException('Unable to remove connection ' . $connection . ', this is not our connection!');
@@ -465,7 +467,7 @@ class Server implements LoggerAwareInterface {
      *
      * @return void
      */
-    public function setTrustForwardedHeaders(bool $trust) {
+    public function setTrustForwardedHeaders(bool $trust) : void {
         $this->_trustForwardedHeaders = $trust;
     }
 
@@ -483,7 +485,7 @@ class Server implements LoggerAwareInterface {
      *
      * @return void
      */
-    public function setSocketAcceptTimeout(float $timeout) {
+    public function setSocketAcceptTimeout(float $timeout) : void {
         $this->_socketAcceptTimeout = $timeout;
     }
 
@@ -503,7 +505,7 @@ class Server implements LoggerAwareInterface {
      *
      * @return void
      */
-    public function setDisableForkCleanup(bool $disableForkCleanup) {
+    public function setDisableForkCleanup(bool $disableForkCleanup) : void {
         $this->_disableForkCleanup = $disableForkCleanup;
     }
 
@@ -523,7 +525,7 @@ class Server implements LoggerAwareInterface {
      *
      * @return void
      */
-    public function setAutoAccept(bool $autoAccept) {
+    public function setAutoAccept(bool $autoAccept) : void {
         $this->_autoAccept = $autoAccept;
     }
 
@@ -534,7 +536,7 @@ class Server implements LoggerAwareInterface {
      *
      * @return void
      */
-    public function setConnectionClass(string $class) {
+    public function setConnectionClass(string $class) : void {
 
         if (!is_subclass_of($class, Server\Connection::class, TRUE)) {
             throw new \InvalidArgumentException('The provided class has to extend ' . Server\Connection::class);
@@ -567,7 +569,7 @@ class Server implements LoggerAwareInterface {
      *
      * @return void
      */
-    public function close() {
+    public function close() : void {
 
         foreach ($this->_connections as $connection) {
             $connection->close();

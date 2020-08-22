@@ -277,7 +277,7 @@ abstract class AConnection implements IStreamContainer, LoggerAwareInterface {
      *
      * @return void
      */
-    protected function _afterOpen() {
+    protected function _afterOpen() : void {
 
         $this->_openedTimestamp = microtime(TRUE);
         $stream = $this->getStream();
@@ -333,7 +333,7 @@ abstract class AConnection implements IStreamContainer, LoggerAwareInterface {
                 $this->sendDisconnect(\PHPWebSockets::CLOSECODE_PROTOCOL_ERROR, 'Invalid RSV value');
                 $this->setCloseAfterWrite();
 
-                yield new Update\Error(Update\Error::C_READ_RSVBIT_SET, $this);
+                yield new Update\Error(Update\Error::C_READ_RSV_BIT_SET, $this);
 
                 return;
             }

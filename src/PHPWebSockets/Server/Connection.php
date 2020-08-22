@@ -164,7 +164,7 @@ class Connection extends AConnection {
                         $this->writeRaw($this->_server->getErrorPageForCode(431), FALSE); // Request Header Fields Too Large
                         $this->setCloseAfterWrite();
 
-                        yield new Update\Error(Update\Error::C_READ_HANDSHAKETOLARGE, $this);
+                        yield new Update\Error(Update\Error::C_READ_HANDSHAKE_TO_LARGE, $this);
 
                     }
 
@@ -192,7 +192,7 @@ class Connection extends AConnection {
                     $this->writeRaw($this->_server->getErrorPageForCode($responseCode), FALSE);
                     $this->setCloseAfterWrite();
 
-                    yield new Update\Error(Update\Error::C_READ_HANDSHAKEFAILURE, $this);
+                    yield new Update\Error(Update\Error::C_READ_HANDSHAKE_FAILURE, $this);
 
                 }
 

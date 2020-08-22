@@ -34,20 +34,20 @@ use Psr\Log\LogLevel;
 
 final class Framer {
 
-    const   BYTE1_FIN = 0b10000000,
-            BYTE1_RSV = 0b01110000,
-            BYTE1_OPCODE = 0b00001111;
+    public const BYTE1_FIN = 0b10000000,
+                 BYTE1_RSV = 0b01110000,
+                 BYTE1_OPCODE = 0b00001111;
 
-    const   BYTE2_MASKED = 0b10000000,
-            BYTE2_LENGTH = 0b01111111;
+    public const BYTE2_MASKED = 0b10000000,
+                 BYTE2_LENGTH = 0b01111111;
 
-    const   IND_FIN = 'fin',
-            IND_RSV = 'rsv',
-            IND_OPCODE = 'opcode',
-            IND_MASK = 'mask',
-            IND_LENGTH = 'length',
-            IND_MASKING_KEY = 'masking-key',
-            IND_PAYLOAD_OFFSET = 'payload-offset';
+    public const IND_FIN = 'fin',
+                 IND_RSV = 'rsv',
+                 IND_OPCODE = 'opcode',
+                 IND_MASK = 'mask',
+                 IND_LENGTH = 'length',
+                 IND_MASKING_KEY = 'masking-key',
+                 IND_PAYLOAD_OFFSET = 'payload-offset';
 
     /**
      * Extracts the headers out of the provided frame, returns NULL if the provided frame has invalid headers
@@ -56,7 +56,7 @@ final class Framer {
      *
      * @return array|null
      */
-    public static function GetFrameHeaders(string $frame) {
+    public static function GetFrameHeaders(string $frame) : ?array {
 
         $frameLength = strlen($frame);
         if ($frameLength < 2) {
