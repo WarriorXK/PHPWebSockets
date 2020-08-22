@@ -112,16 +112,16 @@ class ServerTest extends TestCase {
 
                 if ($update instanceof Read) {
 
-                    $sourceObj = $update->getSourceObject();
+                    $sourceConn = $update->getSourceConnection();
                     $opcode = $update->getCode();
                     switch ($opcode) {
                         case Read::C_NEW_CONNECTION:
 
-                            $sourceObj->accept();
+                            $sourceConn->accept();
 
                             if ($this->_bufferType === 'tmpfile') {
 
-                                $sourceObj->setNewMessageStreamCallback(function (array $headers) {
+                                $sourceConn->setNewMessageStreamCallback(function(array $headers) {
                                     return tmpfile();
                                 });
 
@@ -136,7 +136,7 @@ class ServerTest extends TestCase {
                                 case \PHPWebSockets::OPCODE_FRAME_TEXT:
                                 case \PHPWebSockets::OPCODE_FRAME_BINARY:
 
-                                    if ($sourceObj->isDisconnecting()) {
+                                    if ($sourceConn->isDisconnecting()) {
                                         break;
                                     }
 
@@ -154,7 +154,7 @@ class ServerTest extends TestCase {
                                     }
 
                                     if ($message !== NULL) {
-                                        $sourceObj->write($message, $opcode);
+                                        $sourceConn->write($message, $opcode);
                                     }
 
                                     break;
