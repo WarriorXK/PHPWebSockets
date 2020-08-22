@@ -88,6 +88,10 @@ class Connection extends AConnection {
 
     public function __construct(Server $server, $stream, string $streamName, int $index) {
 
+        if (!is_resource($stream)) {
+            throw new \InvalidArgumentException('The $stream argument has to be a resource!');
+        }
+
         $this->_remoteIP = parse_url($streamName, PHP_URL_HOST);
         $this->_server = $server;
         $this->_stream = $stream;

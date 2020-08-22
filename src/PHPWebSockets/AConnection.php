@@ -239,7 +239,7 @@ abstract class AConnection implements IStreamContainer, LoggerAwareInterface {
      * Attempts to write until the write buffer is empty
      * Note: This will discard any reads that happen during this period
      *
-     * @param float $timeout
+     * @param float|null $timeout
      *
      * @return bool
      */
