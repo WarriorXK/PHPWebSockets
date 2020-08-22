@@ -241,7 +241,7 @@ class Server implements LoggerAwareInterface {
      *
      * @return \Generator|\PHPWebSockets\AUpdate[]
      */
-    public function update(float $timeout = NULL) : \Generator {
+    public function update(?float $timeout) : \Generator {
         yield from \PHPWebSockets::MultiUpdate($this->getConnections(TRUE), $timeout);
     }
 

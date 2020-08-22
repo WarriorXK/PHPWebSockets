@@ -92,7 +92,7 @@ class ClientTest extends TestCase {
 
         while ($client->isOpen()) {
 
-            foreach ($client->update() as $key => $value) {
+            foreach ($client->update(NULL) as $key => $value) {
 
                 \PHPWebSockets::Log(LogLevel::INFO, $value . '');
 
@@ -139,7 +139,7 @@ class ClientTest extends TestCase {
 
             while ($client->isOpen()) {
 
-                $updates = $client->update();
+                $updates = $client->update(NULL);
                 foreach ($updates as $update) {
 
                     if ($update instanceof Read && $update->getCode() === Read::C_READ) {
@@ -169,7 +169,7 @@ class ClientTest extends TestCase {
         $client->connect(static::ADDRESS, '/updateReports?agent=' . $client->getUserAgent());
 
         while ($client->isOpen()) {
-            foreach ($client->update() as $key => $value) {
+            foreach ($client->update(NULL) as $key => $value) {
                 // Nothing, the remote will close it for us
             }
         }

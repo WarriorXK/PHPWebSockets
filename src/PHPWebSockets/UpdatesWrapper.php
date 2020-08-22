@@ -164,7 +164,7 @@ class UpdatesWrapper {
      *
      * @return void
      */
-    public function update(float $timeout = NULL, array $tempStreams = []) : void {
+    public function update(?float $timeout, array $tempStreams = []) : void {
 
         $updates = \PHPWebSockets::MultiUpdate(array_merge($this->_streamContainers, $tempStreams), $timeout);
         foreach ($updates as $update) {

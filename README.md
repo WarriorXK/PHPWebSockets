@@ -29,11 +29,11 @@ while (TRUE) {
 }
 ```
 
-If more control is required you can manually call ```$server->update();``` instead of using the wrapper, this will yield update objects which can be responded to.
+If more control is required you can manually call ```$server->update(0.1);``` instead of using the wrapper, this will yield update objects which can be responded to.
 
 ## Client
 For connecting to a server the \PHPWebSockets\Client class should be constructed and the method connect($address, $port, $path) should be used to connect.
-For ease of use you can again use the UpdatesWrapper class or use ```$server->update();``` for better control.
+For ease of use you can again use the UpdatesWrapper class or use ```$server->update(0.1);``` for better control.
 
 A basic websocket echo client would be:
 

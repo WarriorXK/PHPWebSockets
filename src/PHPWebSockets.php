@@ -159,7 +159,7 @@ final class PHPWebSockets {
      *
      * @return \Generator|\PHPWebSockets\AUpdate[]
      */
-    public static function MultiUpdate(array $updateObjects, float $timeout = NULL) : \Generator {
+    public static function MultiUpdate(array $updateObjects, ?float $timeout) : \Generator {
 
         $timeInt = NULL;
         $timePart = 0;
