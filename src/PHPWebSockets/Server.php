@@ -30,7 +30,9 @@ declare(strict_types = 1);
 
 namespace PHPWebSockets;
 
-use Psr\Log\{ LoggerAwareInterface, LoggerInterface, LogLevel };
+use Psr\Log\LoggerAwareInterface;
+use Psr\Log\LoggerInterface;
+use Psr\Log\LogLevel;
 
 class Server implements LoggerAwareInterface {
 
