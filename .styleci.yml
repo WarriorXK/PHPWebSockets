@@ -2,6 +2,7 @@ preset: recommended
 risky: true
 
 enabled:
+  - symfony_braces
   - concat_with_spaces
   - dir_constant
   - uppercase_constants
