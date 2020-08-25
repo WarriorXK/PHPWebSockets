@@ -2,7 +2,6 @@ preset: recommended
 risky: true
 
 enabled:
-  - symfony_braces
   - concat_with_spaces
   - dir_constant
   - uppercase_constants
@@ -10,6 +9,7 @@ enabled:
   - ternary_to_null_coalescing
 
 disabled:
+  - symfony_braces
   - class_definition
   - concat_without_spaces
   - declare_equal_normalize
