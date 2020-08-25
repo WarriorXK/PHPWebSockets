@@ -90,5 +90,4 @@ abstract class AUpdate {
     public function __toString() {
         return 'AUpdate) (C: ' . $this->getCode() . ')';
     }
-
 }
