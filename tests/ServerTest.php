@@ -121,7 +121,7 @@ class ServerTest extends TestCase {
 
                             if ($this->_bufferType === 'tmpfile') {
 
-                                $sourceConn->setNewMessageStreamCallback(function(array $headers) {
+                                $sourceConn->setNewMessageStreamCallback(function (array $headers) {
                                     return tmpfile();
                                 });
 
