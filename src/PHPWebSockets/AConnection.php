@@ -33,7 +33,7 @@ namespace PHPWebSockets;
 use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LogLevel;
 
-abstract class AConnection implements IStreamContainer, LoggerAwareInterface {
+abstract class AConnection implements IStreamContainer, LoggerAwareInterface, ITaggable {
 
     use TStreamContainerDefaults;
     use TLogAware;
@@ -205,6 +205,11 @@ abstract class AConnection implements IStreamContainer, LoggerAwareInterface {
      * @var resource
      */
     protected $_stream = NULL;
+
+    /**
+     * @var string|null
+     */
+    protected $_tag = NULL;
 
     /**
      * Sets the maximum size for the handshake in bytes
@@ -934,6 +939,20 @@ abstract class AConnection implements IStreamContainer, LoggerAwareInterface {
             $this->_stream = NULL;
         }
 
+    }
+
+    /**
+     * @param string|null $tag
+     */
+    public function setTag(?string $tag) : void {
+        $this->_tag = $tag;
+    }
+
+    /**
+     * @return string|null
+     */
+    public function getTag() : ?string {
+        return $this->_tag;
     }
 
     public function __destruct() {

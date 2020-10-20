@@ -34,7 +34,7 @@ use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerInterface;
 use Psr\Log\LogLevel;
 
-class Server implements LoggerAwareInterface {
+class Server implements LoggerAwareInterface, ITaggable {
 
     use TLogAware;
 
@@ -135,6 +135,11 @@ class Server implements LoggerAwareInterface {
      * @var string
      */
     protected $_address = NULL;
+
+    /**
+     * @var string|null
+     */
+    protected $_tag = NULL;
 
     /**
      * Constructs a new webserver
@@ -583,6 +588,20 @@ class Server implements LoggerAwareInterface {
 
         }
 
+    }
+
+    /**
+     * @param string|null $tag
+     */
+    public function setTag(?string $tag) : void {
+        $this->_tag = $tag;
+    }
+
+    /**
+     * @return string|null
+     */
+    public function getTag() : ?string {
+        return $this->_tag;
     }
 
     public function __destruct() {
