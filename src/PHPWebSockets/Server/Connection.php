@@ -88,6 +88,10 @@ class Connection extends AConnection {
 
     public function __construct(Server $server, $stream, string $streamName, int $index) {
 
+        if (!is_resource($stream)) {
+            throw new \InvalidArgumentException('The $stream argument has to be a resource!');
+        }
+
         $this->_remoteIP = parse_url($streamName, PHP_URL_HOST);
         $this->_server = $server;
         $this->_stream = $stream;
@@ -164,7 +168,7 @@ class Connection extends AConnection {
                         $this->writeRaw($this->_server->getErrorPageForCode(431), FALSE); // Request Header Fields Too Large
                         $this->setCloseAfterWrite();
 
-                        yield new Update\Error(Update\Error::C_READ_HANDSHAKETOLARGE, $this);
+                        yield new Update\Error(Update\Error::C_READ_HANDSHAKE_TO_LARGE, $this);
 
                     }
 
@@ -192,7 +196,7 @@ class Connection extends AConnection {
                     $this->writeRaw($this->_server->getErrorPageForCode($responseCode), FALSE);
                     $this->setCloseAfterWrite();
 
-                    yield new Update\Error(Update\Error::C_READ_HANDSHAKEFAILURE, $this);
+                    yield new Update\Error(Update\Error::C_READ_HANDSHAKE_FAILURE, $this);
 
                 }
 
@@ -273,7 +277,7 @@ class Connection extends AConnection {
     /**
      * @return void
      */
-    protected function _parseHeaders() {
+    protected function _parseHeaders() : void {
 
         if ($this->_server && $this->_server->getTrustForwardedHeaders()) {
 
@@ -307,7 +311,7 @@ class Connection extends AConnection {
      *
      * @return void
      */
-    public function accept(string $protocol = NULL) {
+    public function accept(string $protocol = NULL) : void {
 
         if ($this->isAccepted()) {
             throw new \LogicException('Connection has already been accepted!');
@@ -331,7 +335,7 @@ class Connection extends AConnection {
      *
      * @return void
      */
-    public function deny(int $errCode) {
+    public function deny(int $errCode) : void {
 
         if ($this->isAccepted()) {
             throw new \LogicException('Connection has already been accepted!');
@@ -347,7 +351,7 @@ class Connection extends AConnection {
      *
      * @return void
      */
-    public function detach() {
+    public function detach() : void {
 
         if (!$this->isAccepted()) {
             throw new \LogicException('Connections can only be detached after it has been accepted');
@@ -365,7 +369,7 @@ class Connection extends AConnection {
      *
      * @return void
      */
-    public function setAcceptTimeout(float $timeout) {
+    public function setAcceptTimeout(float $timeout) : void {
         $this->_acceptTimeout = $timeout;
     }
 
@@ -392,7 +396,7 @@ class Connection extends AConnection {
      *
      * @return \PHPWebSockets\Server|null
      */
-    public function getServer() {
+    public function getServer() : ?Server {
         return $this->_server;
     }
 
@@ -419,7 +423,7 @@ class Connection extends AConnection {
      *
      * @return string|null
      */
-    public function getRemoteIP() {
+    public function getRemoteIP() : ?string {
         return $this->_remoteIP;
     }
 
@@ -435,7 +439,7 @@ class Connection extends AConnection {
     /**
      * {@inheritdoc}
      */
-    public function close() {
+    public function close() : void {
 
         parent::close();
 
@@ -469,7 +473,7 @@ class Connection extends AConnection {
     /**
      * {@inheritdoc}
      */
-    protected function _afterReportClose() {
+    protected function _afterReportClose() : void {
 
         if ($this->_server !== NULL) {
 

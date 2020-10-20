@@ -34,30 +34,25 @@ use PHPWebSockets\AUpdate;
 
 class Error extends AUpdate {
 
-    const   C_UNKNOWN = 0,
-            C_SELECT = 1,
-            C_READ = 2,
-            C_READ_EMPTY = 3,
-            C_READ_UNHANDLED = 4,
-            C_READ_HANDSHAKEFAILURE = 5,
-            C_READ_HANDSHAKETOLARGE = 6,
-            C_READ_INVALID_PAYLOAD = 7,
-            C_READ_INVALID_HEADERS = 8,
-            C_READ_UNEXPECTED_DISCONNECT = 9,
-            C_READ_PROTOCOL_ERROR = 10,
-            C_READ_RSVBIT_SET = 11,
-            C_WRITE = 12,
-            C_ACCEPT_TIMEOUT_PASSED = 13,
-            C_WRITE_INVALID_TARGET_STREAM = 14,
-            C_READ_DISCONNECT_DURING_HANDSHAKE = 15,
-            C_DISCONNECT_TIMEOUT = 16,
-            C_READ_NO_STREAM_FOR_NEW_MESSAGE = 17,
-            C_ASYNC_CONNECT_FAILED = 18;
-
-    /**
-     * @deprecated Constant has the wrong name, use C_WRITE_INVALID_TARGET_STREAM instead
-     */
-    const C_READ_INVALID_TARGET_STREAM = self::C_WRITE_INVALID_TARGET_STREAM;
+    public const C_UNKNOWN = 0,
+                 C_SELECT = 1,
+                 C_READ = 2,
+                 C_READ_EMPTY = 3,
+                 C_READ_UNHANDLED = 4,
+                 C_READ_HANDSHAKE_FAILURE = 5,
+                 C_READ_HANDSHAKE_TO_LARGE = 6,
+                 C_READ_INVALID_PAYLOAD = 7,
+                 C_READ_INVALID_HEADERS = 8,
+                 C_READ_UNEXPECTED_DISCONNECT = 9,
+                 C_READ_PROTOCOL_ERROR = 10,
+                 C_READ_RSV_BIT_SET = 11,
+                 C_WRITE = 12,
+                 C_ACCEPT_TIMEOUT_PASSED = 13,
+                 C_WRITE_INVALID_TARGET_STREAM = 14,
+                 C_READ_DISCONNECT_DURING_HANDSHAKE = 15,
+                 C_DISCONNECT_TIMEOUT = 16,
+                 C_READ_NO_STREAM_FOR_NEW_MESSAGE = 17,
+                 C_ASYNC_CONNECT_FAILED = 18;
 
     /**
      * Returns a description for the provided error code
@@ -69,24 +64,24 @@ class Error extends AUpdate {
     public static function StringForCode(int $code) : string {
 
         $codes = [
-            self::C_UNKNOWN                          => 'Unknown error',
-            self::C_SELECT                           => 'Select error',
-            self::C_READ                             => 'Read error',
-            self::C_READ_EMPTY                       => 'Empty read',
-            self::C_READ_UNHANDLED                   => 'Unhandled read',
-            self::C_READ_HANDSHAKEFAILURE            => 'Handshake failure',
-            self::C_READ_HANDSHAKETOLARGE            => 'Handshake to large',
-            self::C_READ_INVALID_PAYLOAD             => 'Invalid payload',
-            self::C_READ_INVALID_HEADERS             => 'Invalid headers',
-            self::C_READ_UNEXPECTED_DISCONNECT       => 'Unexpected disconnect',
-            self::C_READ_PROTOCOL_ERROR              => 'Protocol error',
-            self::C_READ_RSVBIT_SET                  => 'RSV bit set while not being expected',
-            self::C_WRITE                            => 'Write failure',
-            self::C_ACCEPT_TIMEOUT_PASSED            => 'Accept timeout passed',
-            self::C_READ_DISCONNECT_DURING_HANDSHAKE => 'Disconnect during handshake',
-            self::C_DISCONNECT_TIMEOUT               => 'The remote failed to respond in time to our disconnect',
-            self::C_READ_NO_STREAM_FOR_NEW_MESSAGE   => 'No stream was returned by the newMessageStreamCallback',
-            self::C_ASYNC_CONNECT_FAILED             => 'Async connect failed',
+            self::C_UNKNOWN                            => 'Unknown error',
+            self::C_SELECT                             => 'Select error',
+            self::C_READ                               => 'Read error',
+            self::C_READ_EMPTY                         => 'Empty read',
+            self::C_READ_UNHANDLED                     => 'Unhandled read',
+            self::C_READ_HANDSHAKE_FAILURE             => 'Handshake failure',
+            self::C_READ_HANDSHAKE_TO_LARGE            => 'Handshake to large',
+            self::C_READ_INVALID_PAYLOAD               => 'Invalid payload',
+            self::C_READ_INVALID_HEADERS               => 'Invalid headers',
+            self::C_READ_UNEXPECTED_DISCONNECT         => 'Unexpected disconnect',
+            self::C_READ_PROTOCOL_ERROR                => 'Protocol error',
+            self::C_READ_RSV_BIT_SET                   => 'RSV bit set while not being expected',
+            self::C_WRITE                              => 'Write failure',
+            self::C_ACCEPT_TIMEOUT_PASSED              => 'Accept timeout passed',
+            self::C_READ_DISCONNECT_DURING_HANDSHAKE   => 'Disconnect during handshake',
+            self::C_DISCONNECT_TIMEOUT                 => 'The remote failed to respond in time to our disconnect',
+            self::C_READ_NO_STREAM_FOR_NEW_MESSAGE     => 'No stream was returned by the newMessageStreamCallback',
+            self::C_ASYNC_CONNECT_FAILED               => 'Async connect failed',
         ];
 
         return $codes[$code] ?? 'Unknown error code ' . $code;

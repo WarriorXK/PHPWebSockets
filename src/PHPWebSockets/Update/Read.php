@@ -35,32 +35,17 @@ use PHPWebSockets\AUpdate;
 
 class Read extends AUpdate {
 
-    const   C_UNKNOWN = 0,
-            C_NEW_CONNECTION = 1,
-            C_READ = 2,
-            C_PING = 3,
-            C_PONG = 4,
-            C_SOCK_DISCONNECT = 5,
-            C_CONNECTION_DENIED = 6,
-            C_CONNECTION_ACCEPTED = 7,
-            C_READ_DISCONNECT = 8,
-            C_NEW_SOCKET_CONNECTED = 9,
-            C_NEW_SOCKET_CONNECTION_AVAILABLE = 10;
-
-    /**
-     * @deprecated Use C_NEW_SOCKET_CONNECTION_AVAILABLE instead
-     */
-    const C_NEW_TCP_CONNECTION_AVAILABLE = self::C_NEW_SOCKET_CONNECTION_AVAILABLE;
-
-    /**
-     * @deprecated Use C_NEW_SOCKET_CONNECTED instead
-     */
-    const C_NEW_TCP_CONNECTION = self::C_NEW_SOCKET_CONNECTED;
-
-    /**
-     * @deprecated Use C_NEW_CONNECTION instead
-     */
-    const C_NEWCONNECTION = self::C_NEW_CONNECTION;
+    public const C_UNKNOWN = 0,
+                 C_NEW_CONNECTION = 1,
+                 C_READ = 2,
+                 C_PING = 3,
+                 C_PONG = 4,
+                 C_SOCK_DISCONNECT = 5,
+                 C_CONNECTION_DENIED = 6,
+                 C_CONNECTION_ACCEPTED = 7,
+                 C_READ_DISCONNECT = 8,
+                 C_NEW_SOCKET_CONNECTED = 9,
+                 C_NEW_SOCKET_CONNECTION_AVAILABLE = 10;
 
     /**
      * The message from the client
@@ -128,7 +113,7 @@ class Read extends AUpdate {
      *
      * @return string|null
      */
-    public function getMessage() {
+    public function getMessage() : ?string {
         return $this->_message;
     }
 
@@ -137,7 +122,7 @@ class Read extends AUpdate {
      *
      * @return int|null
      */
-    public function getOpcode() {
+    public function getOpcode() : ?int {
         return $this->_opcode;
     }
 

@@ -45,17 +45,19 @@ trait TLogAware {
      * Sets the logger
      *
      * @param \Psr\Log\LoggerInterface $logger
+     *
+     * @return void
      */
-    public function setLogger(LoggerInterface $logger) {
+    public function setLogger(LoggerInterface $logger) : void {
         $this->_logger = $logger;
     }
 
     /**
-     * Returns the set logger
+     * Returns the logger to use
      *
-     * @return \Psr\Log\LoggerInterface|null
+     * @return \Psr\Log\LoggerInterface
      */
-    public function getLogger() {
+    public function getLogger() : LoggerInterface {
 
         if ($this->_logger === NULL) {
             return \PHPWebSockets::GetLogger();
@@ -73,7 +75,7 @@ trait TLogAware {
      *
      * @return void
      */
-    protected function _log(string $level, string $message, array $context = []) {
+    protected function _log(string $level, string $message, array $context = []) : void {
 
         $this->getLogger()->log($level, $message, array_merge([
             'subject' => $this,

@@ -67,25 +67,14 @@ abstract class AUpdate {
      *
      * @return \PHPWebSockets\AConnection|null
      */
-    public function getSourceConnection() {
-        return $this->_sourceConnection;
-    }
-
-    /**
-     * Returns the source object related to this update
-     *
-     * @deprecated Use getSourceConnection instead
-     *
-     * @return object|null
-     */
-    public function getSourceObject() {
+    public function getSourceConnection() : ?AConnection {
         return $this->_sourceConnection;
     }
 
     /**
      * @return array|null
      */
-    public function getTrace() {
+    public function getTrace() : ?array {
         return $this->_trace;
     }
 

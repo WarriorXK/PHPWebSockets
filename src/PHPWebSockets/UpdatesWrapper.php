@@ -99,8 +99,10 @@ class UpdatesWrapper {
 
     /**
      * @param \PHPWebSockets\IStreamContainer $container
+     *
+     * @return void
      */
-    public function addStreamContainer(IStreamContainer $container) {
+    public function addStreamContainer(IStreamContainer $container) : void {
         $this->_streamContainers[] = $container;
     }
 
@@ -120,20 +122,22 @@ class UpdatesWrapper {
     }
 
     /**
-     * Creates a runloop
+     * Creates a run loop
      *
      * @param float|null    $timeout
-     * @param callable|null $runloop
+     * @param callable|null $runLoop
+     *
+     * @return void
      */
-    public function run(float $timeout = NULL, callable $runloop = NULL) {
+    public function run(float $timeout = NULL, callable $runLoop = NULL) : void {
 
         $this->_shouldRun = TRUE;
         while ($this->_shouldRun) {
 
             $this->update($timeout);
 
-            if ($runloop) {
-                $runloop($this);
+            if ($runLoop) {
+                $runLoop($this);
             }
 
         }
@@ -143,14 +147,14 @@ class UpdatesWrapper {
     /**
      * @return \PHPWebSockets\AUpdate|null
      */
-    public function getLastUpdate() {
+    public function getLastUpdate() : ?AUpdate {
         return $this->_lastUpdate;
     }
 
     /**
      * @return void
      */
-    public function stop() {
+    public function stop() : void {
         $this->_shouldRun = FALSE;
     }
 
@@ -160,7 +164,7 @@ class UpdatesWrapper {
      *
      * @return void
      */
-    public function update(float $timeout = NULL, array $tempStreams = []) {
+    public function update(?float $timeout, array $tempStreams = []) : void {
 
         $updates = \PHPWebSockets::MultiUpdate(array_merge($this->_streamContainers, $tempStreams), $timeout);
         foreach ($updates as $update) {
@@ -199,7 +203,7 @@ class UpdatesWrapper {
                         $this->_onSocketConnect($update);
                         break;
                     case Update\Read::C_NEW_SOCKET_CONNECTION_AVAILABLE:
-//                        $this->_onSocketConnectionAvailable($update);
+                         $this->_onSocketConnectionAvailable($update);
                         break;
                     default:
                         throw new \UnexpectedValueException('Unknown or unsupported update code for read: ' . $code);
@@ -221,10 +225,10 @@ class UpdatesWrapper {
                     case Update\Error::C_READ_UNHANDLED:
                         $this->_onUnhandledRead($update);
                         break;
-                    case Update\Error::C_READ_HANDSHAKEFAILURE:
+                    case Update\Error::C_READ_HANDSHAKE_FAILURE:
                         $this->_onHandshakeFailure($update);
                         break;
-                    case Update\Error::C_READ_HANDSHAKETOLARGE:
+                    case Update\Error::C_READ_HANDSHAKE_TO_LARGE:
                         $this->_onHandshakeToLarge($update);
                         break;
                     case Update\Error::C_READ_INVALID_PAYLOAD:
@@ -239,7 +243,7 @@ class UpdatesWrapper {
                     case Update\Error::C_READ_PROTOCOL_ERROR:
                         $this->_onProtocolError($update);
                         break;
-                    case Update\Error::C_READ_RSVBIT_SET:
+                    case Update\Error::C_READ_RSV_BIT_SET:
                         $this->_onInvalidRSVBit($update);
                         break;
                     case Update\Error::C_WRITE:
@@ -252,7 +256,7 @@ class UpdatesWrapper {
                         $this->_writeStreamInvalid($update);
                         break;
                     case Update\Error::C_READ_DISCONNECT_DURING_HANDSHAKE:
-//                        $this->_onDisconnectDuringHandshake($update);
+                         $this->_onDisconnectDuringHandshake($update);
                         break;
                     case Update\Error::C_DISCONNECT_TIMEOUT:
                         // Ignored for now since it already triggers a disconnect event
@@ -281,43 +285,55 @@ class UpdatesWrapper {
 
     /**
      * @param callable|null $callable
+     *
+     * @return void
      */
-    public function setClientConnectedHandler(callable $callable = NULL) {
+    public function setClientConnectedHandler(callable $callable = NULL) : void {
         $this->_clientConnectedHandler = $callable;
     }
 
     /**
      * @param callable|null $callable
+     *
+     * @return void
      */
-    public function setNewConnectionHandler(callable $callable = NULL) {
+    public function setNewConnectionHandler(callable $callable = NULL) : void {
         $this->_newConnectionHandler = $callable;
     }
 
     /**
      * @param callable|null $callable
+     *
+     * @return void
      */
-    public function setLastContactHandler(callable $callable = NULL) {
+    public function setLastContactHandler(callable $callable = NULL) : void {
         $this->_lastContactHandler = $callable;
     }
 
     /**
      * @param callable|null $callable
+     *
+     * @return void
      */
-    public function setMessageHandler(callable $callable = NULL) {
+    public function setMessageHandler(callable $callable = NULL) : void {
         $this->_newMessageHandler = $callable;
     }
 
     /**
      * @param callable|null $callable
+     *
+     * @return void
      */
-    public function setDisconnectHandler(callable $callable = NULL) {
+    public function setDisconnectHandler(callable $callable = NULL) : void {
         $this->_disconnectHandler = $callable;
     }
 
     /**
      * @param callable|null $callable
+     *
+     * @return void
      */
-    public function setErrorHandler(callable $callable = NULL) {
+    public function setErrorHandler(callable $callable = NULL) : void {
         $this->_errorHandler = $callable;
     }
 
@@ -325,7 +341,7 @@ class UpdatesWrapper {
      * Triggers
      */
 
-    private function _triggerNewConnectionHandler(Connection $connection) {
+    private function _triggerNewConnectionHandler(Connection $connection) : void {
 
         $accept = NULL;
         if ($this->_newConnectionHandler) {
@@ -340,7 +356,7 @@ class UpdatesWrapper {
 
     }
 
-    private function _triggerNewMessageHandler(AConnection $connection, string $message, int $opcode) {
+    private function _triggerNewMessageHandler(AConnection $connection, string $message, int $opcode) : void {
         if ($this->_newMessageHandler) {
             call_user_func($this->_newMessageHandler, $connection, $message, $opcode);
         }
@@ -352,7 +368,7 @@ class UpdatesWrapper {
         }
     }
 
-    private function _triggerDisconnectHandler(AConnection $connection, bool $wasClean, string $data = NULL) {
+    private function _triggerDisconnectHandler(AConnection $connection, bool $wasClean, string $data = NULL) : void {
 
         $reason = '';
         $code = 0;
@@ -377,13 +393,13 @@ class UpdatesWrapper {
         }
     }
 
-    private function _triggerErrorHandler(AConnection $connection, int $code) {
+    private function _triggerErrorHandler(AConnection $connection, int $code) : void {
         if ($this->_errorHandler) {
             call_user_func($this->_errorHandler, $connection, $code);
         }
     }
 
-    private function _triggerConnected(Client $client) {
+    private function _triggerConnected(Client $client) : void {
         if ($this->_clientConnectedHandler) {
             call_user_func($this->_clientConnectedHandler, $client);
         }
@@ -393,7 +409,7 @@ class UpdatesWrapper {
      * Read events
      */
 
-    private function _onNewConnection(Update\Read $update) {
+    private function _onNewConnection(Update\Read $update) : void {
 
         /** @var \PHPWebSockets\Server\Connection $source */
         $source = $update->getSourceConnection();
@@ -406,7 +422,7 @@ class UpdatesWrapper {
 
     }
 
-    private function _onRead(Update\Read $update) {
+    private function _onRead(Update\Read $update) : void {
 
         $source = $update->getSourceConnection();
 
@@ -415,15 +431,15 @@ class UpdatesWrapper {
 
     }
 
-    private function _onPing(Update\Read $update) {
+    private function _onPing(Update\Read $update) : void {
         $this->_triggerLastContactHandler($update->getSourceConnection());
     }
 
-    private function _onPong(Update\Read $update) {
+    private function _onPong(Update\Read $update) : void {
         $this->_triggerLastContactHandler($update->getSourceConnection());
     }
 
-    private function _onSocketDisconnect(Update\Read $update) {
+    private function _onSocketDisconnect(Update\Read $update) : void {
 
         $source = $update->getSourceConnection();
         $index = $source->getResourceIndex();
@@ -442,7 +458,7 @@ class UpdatesWrapper {
 
     }
 
-    private function _onConnectionRefused(Update\Read $update) {
+    private function _onConnectionRefused(Update\Read $update) : void {
 
         $source = $update->getSourceConnection();
 
@@ -451,7 +467,7 @@ class UpdatesWrapper {
 
     }
 
-    private function _onConnect(Update\Read $update) {
+    private function _onConnect(Update\Read $update) : void {
 
         /** @var \PHPWebSockets\Client $source */
         $source = $update->getSourceConnection();
@@ -461,7 +477,7 @@ class UpdatesWrapper {
 
     }
 
-    private function _onDisconnect(Update\Read $update) {
+    private function _onDisconnect(Update\Read $update) : void {
 
         $source = $update->getSourceConnection();
 
@@ -470,11 +486,11 @@ class UpdatesWrapper {
 
     }
 
-    private function _onSocketConnect(Update\Read $update) {
+    private function _onSocketConnect(Update\Read $update) : void {
         // Todo
     }
 
-    private function _onSocketConnectionAvailable(Update\Read $update) {
+    private function _onSocketConnectionAvailable(Update\Read $update) : void {
         // Todo
     }
 
@@ -482,23 +498,23 @@ class UpdatesWrapper {
      * Error events
      */
 
-    private function _onSelectInterrupt(Update\Error $update) {
+    private function _onSelectInterrupt(Update\Error $update) : void {
         // Nothing
     }
 
-    private function _onReadFail(Update\Error $update) {
+    private function _onReadFail(Update\Error $update) : void {
         $this->_triggerErrorHandler($update->getSourceConnection(), $update->getCode());
     }
 
-    private function _onReadEmpty(Update\Error $update) {
+    private function _onReadEmpty(Update\Error $update) : void {
         $this->_triggerErrorHandler($update->getSourceConnection(), $update->getCode());
     }
 
-    private function _onUnhandledRead(Update\Error $update) {
+    private function _onUnhandledRead(Update\Error $update) : void {
         // Nothing
     }
 
-    private function _onHandshakeFailure(Update\Error $update) {
+    private function _onHandshakeFailure(Update\Error $update) : void {
 
         $source = $update->getSourceConnection();
 
@@ -506,7 +522,7 @@ class UpdatesWrapper {
 
     }
 
-    private function _onHandshakeToLarge(Update\Error $update) {
+    private function _onHandshakeToLarge(Update\Error $update) : void {
 
         $source = $update->getSourceConnection();
 
@@ -514,7 +530,7 @@ class UpdatesWrapper {
 
     }
 
-    private function _onInvalidPayload(Update\Error $update) {
+    private function _onInvalidPayload(Update\Error $update) : void {
 
         $source = $update->getSourceConnection();
 
@@ -525,11 +541,11 @@ class UpdatesWrapper {
 
     }
 
-    private function _onInvalidHeaders(Update\Error $update) {
+    private function _onInvalidHeaders(Update\Error $update) : void {
         $this->_triggerErrorHandler($update->getSourceConnection(), $update->getCode());
     }
 
-    private function _onUnexpectedDisconnect(Update\Error $update) {
+    private function _onUnexpectedDisconnect(Update\Error $update) : void {
 
         $source = $update->getSourceConnection();
 
@@ -540,7 +556,7 @@ class UpdatesWrapper {
 
     }
 
-    private function _onProtocolError(Update\Error $update) {
+    private function _onProtocolError(Update\Error $update) : void {
 
         $source = $update->getSourceConnection();
 
@@ -551,7 +567,7 @@ class UpdatesWrapper {
 
     }
 
-    private function _onInvalidRSVBit(Update\Error $update) {
+    private function _onInvalidRSVBit(Update\Error $update) : void {
 
         $source = $update->getSourceConnection();
 
@@ -562,11 +578,11 @@ class UpdatesWrapper {
 
     }
 
-    private function _writeError(Update\Error $update) {
+    private function _writeError(Update\Error $update) : void {
         $this->_triggerErrorHandler($update->getSourceConnection(), $update->getCode());
     }
 
-    private function _acceptTimeoutPassed(Update\Error $update) {
+    private function _acceptTimeoutPassed(Update\Error $update) : void {
 
         $source = $update->getSourceConnection();
 
@@ -577,7 +593,7 @@ class UpdatesWrapper {
 
     }
 
-    private function _writeStreamInvalid(Update\Error $update) {
+    private function _writeStreamInvalid(Update\Error $update) : void {
 
         $source = $update->getSourceConnection();
 
@@ -588,17 +604,17 @@ class UpdatesWrapper {
 
     }
 
-    private function _onInvalidStream(Update\Error $update) {
+    private function _onInvalidStream(Update\Error $update) : void {
 
-        // Not sure if we should implement a callback for this since the implementator did this on purpose
+        // Not sure if we should implement a callback for this since the implementor did this on purpose
 
     }
 
-    private function _onDisconnectDuringHandshake(Update\Error $update) {
-        $this->_triggerErrorHandler($update->getSourceConnection(), $update->getCode());
+    private function _onDisconnectDuringHandshake(Update\Error $update) : void {
+        // $this->_triggerErrorHandler($update->getSourceConnection(), $update->getCode());
     }
 
-    private function _onAsyncConnectFailed(Update\Error $update) {
+    private function _onAsyncConnectFailed(Update\Error $update) : void {
 
         $source = $update->getSourceConnection();
 

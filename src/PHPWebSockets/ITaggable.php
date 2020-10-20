@@ -30,58 +30,14 @@ declare(strict_types = 1);
 
 namespace PHPWebSockets;
 
-trait TStreamContainerDefaults {
+interface ITaggable {
     /**
-     * Gets called just before stream_select gets called
-     *
-     * @return \Generator|\PHPWebSockets\AUpdate[]
+     * @param string|null $tag
      */
-    public function beforeStreamSelect() : \Generator {
-        yield from [];
-    }
+    public function setTag(?string $tag) : void;
 
     /**
-     * Gets called just after stream_select gets called
-     *
-     * @return \Generator|\PHPWebSockets\AUpdate[]
+     * @return string|null
      */
-    public function afterStreamSelect() : \Generator {
-        yield from [];
-    }
-
-    /**
-     * Returns if we have (partial)frames ready to be send
-     *
-     * @return bool
-     */
-    public function isWriteBufferEmpty() : bool {
-        return TRUE;
-    }
-
-    /**
-     * Handles exceptional data reads
-     *
-     * @return \Generator|\PHPWebSockets\AUpdate[]
-     */
-    public function handleExceptional() : \Generator {
-        yield from [];
-    }
-
-    /**
-     * Writes the current buffer to the connection
-     *
-     * @return \Generator|\PHPWebSockets\AUpdate[]
-     */
-    public function handleWrite() : \Generator {
-        yield from [];
-    }
-
-    /**
-     * Attempts to read from our connection
-     *
-     * @return \Generator|\PHPWebSockets\AUpdate[]
-     */
-    public function handleRead() : \Generator {
-        yield from [];
-    }
+    public function getTag() : ?string;
 }

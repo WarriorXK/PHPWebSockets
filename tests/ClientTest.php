@@ -35,8 +35,8 @@ use Psr\Log\LogLevel;
 
 class ClientTest extends TestCase {
 
-    const ADDRESS = 'tcp://127.0.0.1:9001';
-    const VALID_BUFFER_TYPES = [
+    protected const ADDRESS = 'tcp://127.0.0.1:9001';
+    protected const VALID_BUFFER_TYPES = [
         'memory',
         'tmpfile',
     ];
@@ -62,7 +62,7 @@ class ClientTest extends TestCase {
      */
     protected $_caseCount = NULL;
 
-    protected function setUp() {
+    protected function setUp() : void {
 
         global $argv;
 
@@ -92,7 +92,7 @@ class ClientTest extends TestCase {
 
         while ($client->isOpen()) {
 
-            foreach ($client->update() as $key => $value) {
+            foreach ($client->update(NULL) as $key => $value) {
 
                 \PHPWebSockets::Log(LogLevel::INFO, $value . '');
 
@@ -121,14 +121,14 @@ class ClientTest extends TestCase {
 
     }
 
-    protected function tearDown() {
+    protected function tearDown() : void {
 
         \PHPWebSockets::Log(LogLevel::INFO, 'Tearing down');
         proc_terminate($this->_autobahnProcess);
 
     }
 
-    public function testClient() {
+    public function testClient() : void {
 
         \PHPWebSockets::Log(LogLevel::INFO, 'Starting tests..');
 
@@ -139,7 +139,7 @@ class ClientTest extends TestCase {
 
             while ($client->isOpen()) {
 
-                $updates = $client->update();
+                $updates = $client->update(NULL);
                 foreach ($updates as $update) {
 
                     if ($update instanceof Read && $update->getCode() === Read::C_READ) {
@@ -169,7 +169,7 @@ class ClientTest extends TestCase {
         $client->connect(static::ADDRESS, '/updateReports?agent=' . $client->getUserAgent());
 
         while ($client->isOpen()) {
-            foreach ($client->update() as $key => $value) {
+            foreach ($client->update(NULL) as $key => $value) {
                 // Nothing, the remote will close it for us
             }
         }

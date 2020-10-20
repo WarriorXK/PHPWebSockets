@@ -1,5 +1,5 @@
 # PHPWebSockets
-[![Code documented](https://codedocs.xyz/WarriorXK/PHPWebSockets.svg)](https://codedocs.xyz/WarriorXK/PHPWebSockets/) Master: [![Build Status](https://travis-ci.org/WarriorXK/PHPWebSockets.svg?branch=master)](https://travis-ci.org/WarriorXK/PHPWebSockets) Develop: [![Build Status](https://travis-ci.org/WarriorXK/PHPWebSockets.svg?branch=develop)](https://travis-ci.org/WarriorXK/PHPWebSockets)
+[![Code documented](https://codedocs.xyz/WarriorXK/PHPWebSockets.svg)](https://codedocs.xyz/WarriorXK/PHPWebSockets/) Master: [![Build Status](https://travis-ci.com/WarriorXK/PHPWebSockets.svg?branch=master)](https://travis-ci.com/WarriorXK/PHPWebSockets) Develop: [![Build Status](https://travis-ci.com/WarriorXK/PHPWebSockets.svg?branch=develop)](https://travis-ci.com/WarriorXK/PHPWebSockets)
 
 A PHP 7.0+ library to accept and create websocket connections, we aim to be 100% compliant with the websocket RFC and use the [Autobahn test suite](http://autobahn.ws/testsuite/) to ensure so.
 Currently the server and the client are 100% compliant with the autobahn testsuite minus a few non-strict notices, the [compression extension](https://tools.ietf.org/html/rfc7692) for websockets will be implemented later
@@ -29,11 +29,11 @@ while (TRUE) {
 }
 ```
 
-If more control is required you can manually call ```$server->update();``` instead of using the wrapper, this will yield update objects which can be responded to.
+If more control is required you can manually call ```$server->update(0.1);``` instead of using the wrapper, this will yield update objects which can be responded to.
 
 ## Client
 For connecting to a server the \PHPWebSockets\Client class should be constructed and the method connect($address, $port, $path) should be used to connect.
-For ease of use you can again use the UpdatesWrapper class or use ```$server->update();``` for better control.
+For ease of use you can again use the UpdatesWrapper class or use ```$server->update(0.1);``` for better control.
 
 A basic websocket echo client would be:
 
