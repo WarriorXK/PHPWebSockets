@@ -30,8 +30,7 @@ declare(strict_types = 1);
 
 namespace PHPWebSockets;
 
-use Psr\Log\LoggerInterface;
-use Psr\Log\LogLevel;
+use Psr\Log\{LogLevel, LoggerInterface};
 
 class Client extends AConnection {
 

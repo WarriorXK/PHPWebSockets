@@ -30,9 +30,7 @@ declare(strict_types = 1);
 
 namespace PHPWebSockets;
 
-use Psr\Log\LoggerInterface;
-use Psr\Log\LoggerTrait;
-use Psr\Log\LogLevel;
+use Psr\Log\{LogLevel, LoggerInterface, LoggerTrait};
 
 class BasicLogger implements LoggerInterface {
 

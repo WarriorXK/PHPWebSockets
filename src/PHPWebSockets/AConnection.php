@@ -30,8 +30,7 @@ declare(strict_types = 1);
 
 namespace PHPWebSockets;
 
-use Psr\Log\LoggerAwareInterface;
-use Psr\Log\LogLevel;
+use Psr\Log\{LogLevel, LoggerAwareInterface};
 
 abstract class AConnection implements IStreamContainer, LoggerAwareInterface, ITaggable {
 
