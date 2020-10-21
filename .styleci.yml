@@ -7,6 +7,7 @@ enabled:
   - uppercase_constants
   - declare_strict_types
   - ternary_to_null_coalescing
+  - group_import
 
 disabled:
   - symfony_braces
@@ -20,6 +21,7 @@ disabled:
   - single_class_element_per_statement
   - alpha_ordered_imports
   - return_type_declaration
+  - single_import_per_statement
 
 finder:
   name:
