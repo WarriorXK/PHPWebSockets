@@ -88,6 +88,7 @@ class Error extends AUpdate {
     }
 
     public function __toString() {
+
         $code = $this->getCode();
 
         return 'Error) ' . self::StringForCode($code) . ' (C: ' . $code . ')';

@@ -609,6 +609,9 @@ class Server implements LoggerAwareInterface, ITaggable {
     }
 
     public function __toString() {
-        return 'WSServer ' . $this->_serverIndex;
+
+        $tag = $this->getTag();
+
+        return 'WSServer ' . $this->_serverIndex . ($tag === NULL ? '' : ' (Tag: ' . $tag . ')');
     }
 }

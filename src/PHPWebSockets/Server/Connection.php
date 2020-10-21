@@ -30,9 +30,7 @@ declare(strict_types = 1);
 
 namespace PHPWebSockets\Server;
 
-use PHPWebSockets\AConnection;
-use PHPWebSockets\Server;
-use PHPWebSockets\Update;
+use PHPWebSockets\{AConnection, Server, Update};
 use Psr\Log\LogLevel;
 
 class Connection extends AConnection {
@@ -487,7 +485,8 @@ class Connection extends AConnection {
     public function __toString() {
 
         $remoteIP = $this->getRemoteIP();
+        $tag = $this->getTag();
 
-        return 'WSConnection #' . $this->_resourceIndex . ($remoteIP ? ' => ' . $remoteIP : '') . ($this->_server !== NULL ? ' @ ' . $this->_server : '');
+        return 'WSConnection #' . $this->_resourceIndex . ($remoteIP ? ' => ' . $remoteIP : '') . ($tag === NULL ? '' : ' (Tag: ' . $tag . ')') . ($this->_server !== NULL ? ' @ ' . $this->_server : '');
     }
 }

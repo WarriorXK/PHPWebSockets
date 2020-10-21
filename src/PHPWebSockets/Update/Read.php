@@ -30,8 +30,7 @@ declare(strict_types = 1);
 
 namespace PHPWebSockets\Update;
 
-use PHPWebSockets\AConnection;
-use PHPWebSockets\AUpdate;
+use PHPWebSockets\{AUpdate, AConnection};
 
 class Read extends AUpdate {
 

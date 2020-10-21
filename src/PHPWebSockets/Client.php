@@ -412,6 +412,9 @@ class Client extends AConnection {
     }
 
     public function __toString() {
-        return 'WSClient #' . $this->_resourceIndex;
+
+        $tag = $this->getTag();
+
+        return 'WSClient #' . $this->_resourceIndex . ($tag === NULL ? '' : ' (Tag: ' . $tag . ')');
     }
 }
