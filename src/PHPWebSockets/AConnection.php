@@ -164,6 +164,18 @@ abstract class AConnection implements IStreamContainer, LoggerAwareInterface, IT
     protected $_framesBuffer = [];
 
     /**
+     * The amount of messages written
+     * @var int
+     */
+    protected $_writeCounter = 0;
+
+    /**
+     * The amount of messages read
+     * @var int
+     */
+    protected $_readCounter = 0;
+
+    /**
      * The write buffer
      *
      * @var string|null
@@ -485,6 +497,8 @@ abstract class AConnection implements IStreamContainer, LoggerAwareInterface, IT
                              */
                             $this->_resetFrameData();
 
+                            $this->_readCounter++;
+
                             yield new Update\Read(Update\Read::C_READ, $this, $newMessageOpCode, $newMessageData, $newMessageStream);
 
                         }
@@ -620,14 +634,24 @@ abstract class AConnection implements IStreamContainer, LoggerAwareInterface, IT
 
             $bytesWritten = @fwrite($this->getStream(), $this->_writeBuffer, min($this->getWriteRate(), $bytesToWrite));
             if ($bytesWritten === FALSE) {
+
                 $this->_log(LogLevel::DEBUG, '    fwrite failed');
+
                 yield new Update\Error(Update\Error::C_WRITE, $this);
+
             } elseif ($bytesWritten === $bytesToWrite) {
+
                 $this->_log(LogLevel::DEBUG, '    All bytes written');
+
+                $this->_writeCounter++;
                 $this->_writeBuffer = NULL;
+
             } else {
+
                 $this->_log(LogLevel::DEBUG, '    Written ' . $bytesWritten . ' bytes');
+
                 $this->_writeBuffer = substr($this->_writeBuffer, $bytesWritten);
+
             }
 
         }
@@ -938,6 +962,24 @@ abstract class AConnection implements IStreamContainer, LoggerAwareInterface, IT
             $this->_stream = NULL;
         }
 
+    }
+
+    /**
+     * Returns the amount of messages that have been written thus far by this connection
+     *
+     * @return int
+     */
+    public function getWriteCount() : int {
+        return $this->_writeCounter;
+    }
+
+    /**
+     * Returns the amount of messages that have been read thus far by this connection
+     *
+     * @return int
+     */
+    public function getReadCount() : int {
+        return $this->_readCounter;
     }
 
     /**
