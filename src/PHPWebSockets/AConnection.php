@@ -165,12 +165,14 @@ abstract class AConnection implements IStreamContainer, LoggerAwareInterface, IT
 
     /**
      * The amount of messages written
+     *
      * @var int
      */
     protected $_writeCounter = 0;
 
     /**
      * The amount of messages read
+     *
      * @var int
      */
     protected $_readCounter = 0;
