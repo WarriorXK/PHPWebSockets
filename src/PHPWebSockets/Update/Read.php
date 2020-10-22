@@ -6,7 +6,7 @@ declare(strict_types = 1);
  * - - - - - - - - - - - - - BEGIN LICENSE BLOCK - - - - - - - - - - - - -
  * The MIT License (MIT)
  *
- * Copyright (c) 2018 Kevin Meijer
+ * Copyright (c) 2020 Kevin Meijer
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -30,8 +30,7 @@ declare(strict_types = 1);
 
 namespace PHPWebSockets\Update;
 
-use PHPWebSockets\AConnection;
-use PHPWebSockets\AUpdate;
+use PHPWebSockets\{AUpdate, AConnection};
 
 class Read extends AUpdate {
 

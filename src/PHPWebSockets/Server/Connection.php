@@ -6,7 +6,7 @@ declare(strict_types = 1);
  * - - - - - - - - - - - - - BEGIN LICENSE BLOCK - - - - - - - - - - - - -
  * The MIT License (MIT)
  *
- * Copyright (c) 2018 Kevin Meijer
+ * Copyright (c) 2020 Kevin Meijer
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -30,9 +30,7 @@ declare(strict_types = 1);
 
 namespace PHPWebSockets\Server;
 
-use PHPWebSockets\AConnection;
-use PHPWebSockets\Server;
-use PHPWebSockets\Update;
+use PHPWebSockets\{AConnection, Server, Update};
 use Psr\Log\LogLevel;
 
 class Connection extends AConnection {
@@ -487,7 +485,8 @@ class Connection extends AConnection {
     public function __toString() {
 
         $remoteIP = $this->getRemoteIP();
+        $tag = $this->getTag();
 
-        return 'WSConnection #' . $this->_resourceIndex . ($remoteIP ? ' => ' . $remoteIP : '') . ($this->_server !== NULL ? ' @ ' . $this->_server : '');
+        return 'WSConnection #' . $this->_resourceIndex . ($remoteIP ? ' => ' . $remoteIP : '') . ($tag === NULL ? '' : ' (Tag: ' . $tag . ')') . ($this->_server !== NULL ? ' @ ' . $this->_server : '');
     }
 }

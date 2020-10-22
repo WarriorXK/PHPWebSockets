@@ -6,7 +6,7 @@ declare(strict_types = 1);
  * - - - - - - - - - - - - - BEGIN LICENSE BLOCK - - - - - - - - - - - - -
  * The MIT License (MIT)
  *
- * Copyright (c) 2018 Kevin Meijer
+ * Copyright (c) 2020 Kevin Meijer
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -30,9 +30,7 @@ declare(strict_types = 1);
 
 namespace PHPWebSockets;
 
-use Psr\Log\LoggerAwareInterface;
-use Psr\Log\LoggerInterface;
-use Psr\Log\LogLevel;
+use Psr\Log\{LogLevel, LoggerAwareInterface, LoggerInterface};
 
 class Server implements LoggerAwareInterface, ITaggable {
 
@@ -609,6 +607,9 @@ class Server implements LoggerAwareInterface, ITaggable {
     }
 
     public function __toString() {
-        return 'WSServer ' . $this->_serverIndex;
+
+        $tag = $this->getTag();
+
+        return 'WSServer ' . $this->_serverIndex . ($tag === NULL ? '' : ' (Tag: ' . $tag . ')');
     }
 }
