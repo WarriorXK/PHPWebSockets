@@ -6,7 +6,7 @@ declare(strict_types = 1);
  * - - - - - - - - - - - - - BEGIN LICENSE BLOCK - - - - - - - - - - - - -
  * The MIT License (MIT)
  *
- * Copyright (c) 2018 Kevin Meijer
+ * Copyright (c) 2020 Kevin Meijer
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -28,41 +28,40 @@ declare(strict_types = 1);
  * - - - - - - - - - - - - - - END LICENSE BLOCK - - - - - - - - - - - - -
  */
 
-use Psr\Log\LoggerInterface;
-use Psr\Log\LogLevel;
+use Psr\Log\{LogLevel, LoggerInterface};
 
 final class PHPWebSockets {
 
-    const   WEBSOCKET_GUID = '258EAFA5-E914-47DA-95CA-C5AB0DC85B11';
+    public const WEBSOCKET_GUID = '258EAFA5-E914-47DA-95CA-C5AB0DC85B11';
 
-    const   OPCODE_CONTINUE = 0,
-            OPCODE_FRAME_TEXT = 1,
-            OPCODE_FRAME_BINARY = 2,
-            OPCODE_CLOSE_CONNECTION = 8,
-            OPCODE_PING = 9,
-            OPCODE_PONG = 10;
+    public const OPCODE_CONTINUE = 0,
+                 OPCODE_FRAME_TEXT = 1,
+                 OPCODE_FRAME_BINARY = 2,
+                 OPCODE_CLOSE_CONNECTION = 8,
+                 OPCODE_PING = 9,
+                 OPCODE_PONG = 10;
 
-    const   CLOSECODE_NORMAL = 1000,
-            CLOSECODE_ENDPOINT_CLOSING = 1001,
-            CLOSECODE_PROTOCOL_ERROR = 1002,
-            CLOSECODE_UNSUPPORTED_PAYLOAD = 1003,
-            // CLOSECODE_                           = 1004, // Reserved
-            CLOSECODE_NO_STATUS = 1005,
-            CLOSECODE_ABNORMAL_DISCONNECT = 1006,
-            CLOSECODE_INVALID_PAYLOAD = 1007,
-            CLOSECODE_POLICY_VIOLATION = 1008,
-            CLOSECODE_PAYLOAD_TO_LARGE = 1009,
-            CLOSECODE_EXTENSION_NEGOTIATION_FAILURE = 1010,
-            CLOSECODE_UNEXPECTED_CONDITION = 1011,
-            CLOSECODE_SERVICE_RESTARTING = 1012,
-            CLOSECODE_TRY_AGAIN_LATER = 1013,
-            CLOSECODE_BAD_GATEWAY = 1014,
-            CLOSECODE_TLS_HANDSHAKE_FAILURE = 1015;
+    public const CLOSECODE_NORMAL = 1000,
+                 CLOSECODE_ENDPOINT_CLOSING = 1001,
+                 CLOSECODE_PROTOCOL_ERROR = 1002,
+                 CLOSECODE_UNSUPPORTED_PAYLOAD = 1003,
+                 // CLOSECODE_ = 1004, // Reserved
+                 CLOSECODE_NO_STATUS = 1005,
+                 CLOSECODE_ABNORMAL_DISCONNECT = 1006,
+                 CLOSECODE_INVALID_PAYLOAD = 1007,
+                 CLOSECODE_POLICY_VIOLATION = 1008,
+                 CLOSECODE_PAYLOAD_TO_LARGE = 1009,
+                 CLOSECODE_EXTENSION_NEGOTIATION_FAILURE = 1010,
+                 CLOSECODE_UNEXPECTED_CONDITION = 1011,
+                 CLOSECODE_SERVICE_RESTARTING = 1012,
+                 CLOSECODE_TRY_AGAIN_LATER = 1013,
+                 CLOSECODE_BAD_GATEWAY = 1014,
+                 CLOSECODE_TLS_HANDSHAKE_FAILURE = 1015;
 
-    const UTF8_ACCEPT = 0,
-          UTF8_REJECT = 1;
+    public const UTF8_ACCEPT = 0,
+                 UTF8_REJECT = 1;
 
-    const HTTP_STATUSCODES = [
+    public const HTTP_STATUSCODES = [
         100 => 'Continue',
         101 => 'Switching Protocols',
         102 => 'Processing',
@@ -159,7 +158,7 @@ final class PHPWebSockets {
      *
      * @return \Generator|\PHPWebSockets\AUpdate[]
      */
-    public static function MultiUpdate(array $updateObjects, float $timeout = NULL) : \Generator {
+    public static function MultiUpdate(array $updateObjects, ?float $timeout) : \Generator {
 
         $timeInt = NULL;
         $timePart = 0;
@@ -433,7 +432,7 @@ final class PHPWebSockets {
      *
      * @return string|null
      */
-    public static function GetStringForStatusCode(int $errorCode) {
+    public static function GetStringForStatusCode(int $errorCode) : ?string {
         return self::HTTP_STATUSCODES[$errorCode] ?? NULL;
     }
 
@@ -465,7 +464,7 @@ final class PHPWebSockets {
      *
      * @return void
      */
-    public static function SetTraceAllUpdates(bool $value) {
+    public static function SetTraceAllUpdates(bool $value) : void {
         self::$_TraceAllUpdates = $value;
     }
 
@@ -475,8 +474,10 @@ final class PHPWebSockets {
      * @param string $logLevel The log level
      * @param mixed  $message  The message to log
      * @param array  $context
+     *
+     * @return void
      */
-    public static function Log(string $logLevel, $message, array $context = []) {
+    public static function Log(string $logLevel, $message, array $context = []) : void {
         self::GetLogger()->log($logLevel, $message, $context);
     }
 
@@ -484,8 +485,10 @@ final class PHPWebSockets {
      * Sets the logger
      *
      * @param \Psr\Log\LoggerInterface $logger
+     *
+     * @return void
      */
-    public static function SetLogger(LoggerInterface $logger) {
+    public static function SetLogger(LoggerInterface $logger) : void {
         self::$_Logger = $logger;
     }
 
@@ -508,8 +511,10 @@ final class PHPWebSockets {
      * Note: The method is not registered as autoloader, this still has to happen by calling spl_autoload_register([\PHPWebSockets::class, 'Autoload']);
      *
      * @param string $className
+     *
+     * @return void
      */
-    public static function Autoload(string $className) {
+    public static function Autoload(string $className) : void {
 
         if (substr($className, 0, 12) !== 'PHPWebSocket') {
             return;

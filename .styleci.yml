@@ -1,4 +1,5 @@
 preset: recommended
+risky: true
 
 enabled:
   - concat_with_spaces
@@ -6,9 +7,10 @@ enabled:
   - uppercase_constants
   - declare_strict_types
   - ternary_to_null_coalescing
+  - group_import
 
 disabled:
-  - braces
+  - symfony_braces
   - class_definition
   - concat_without_spaces
   - declare_equal_normalize
@@ -19,6 +21,7 @@ disabled:
   - single_class_element_per_statement
   - alpha_ordered_imports
   - return_type_declaration
+  - single_import_per_statement
 
 finder:
   name:

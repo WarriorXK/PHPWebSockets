@@ -6,7 +6,7 @@ declare(strict_types = 1);
  * - - - - - - - - - - - - - BEGIN LICENSE BLOCK - - - - - - - - - - - - -
  * The MIT License (MIT)
  *
- * Copyright (c) 2018 Kevin Meijer
+ * Copyright (c) 2020 Kevin Meijer
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -37,9 +37,7 @@ trait TStreamContainerDefaults {
      * @return \Generator|\PHPWebSockets\AUpdate[]
      */
     public function beforeStreamSelect() : \Generator {
-        if (FALSE) {
-            yield;
-        }
+        yield from [];
     }
 
     /**
@@ -48,9 +46,7 @@ trait TStreamContainerDefaults {
      * @return \Generator|\PHPWebSockets\AUpdate[]
      */
     public function afterStreamSelect() : \Generator {
-        if (FALSE) {
-            yield;
-        }
+        yield from [];
     }
 
     /**
@@ -68,9 +64,7 @@ trait TStreamContainerDefaults {
      * @return \Generator|\PHPWebSockets\AUpdate[]
      */
     public function handleExceptional() : \Generator {
-        if (FALSE) {
-            yield;
-        }
+        yield from [];
     }
 
     /**
@@ -79,9 +73,7 @@ trait TStreamContainerDefaults {
      * @return \Generator|\PHPWebSockets\AUpdate[]
      */
     public function handleWrite() : \Generator {
-        if (FALSE) {
-            yield;
-        }
+        yield from [];
     }
 
     /**
@@ -90,8 +82,6 @@ trait TStreamContainerDefaults {
      * @return \Generator|\PHPWebSockets\AUpdate[]
      */
     public function handleRead() : \Generator {
-        if (FALSE) {
-            yield;
-        }
+        yield from [];
     }
 }

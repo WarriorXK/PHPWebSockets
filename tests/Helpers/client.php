@@ -51,7 +51,7 @@ $lastPing = 0;
 while ($client->isOpen()) {
 
     if ($cliArgs['die-at'] > 0.0 && microtime(TRUE) >= $cliArgs['die-at']) {
-        die();
+        exit();
     }
 
     if ($cliArgs['close-at'] > 0.0 && microtime(TRUE) >= $cliArgs['close-at']) {

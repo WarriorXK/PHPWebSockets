@@ -6,7 +6,7 @@ declare(strict_types = 1);
  * - - - - - - - - - - - - - BEGIN LICENSE BLOCK - - - - - - - - - - - - -
  * The MIT License (MIT)
  *
- * Copyright (c) 2018 Kevin Meijer
+ * Copyright (c) 2020 Kevin Meijer
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -33,7 +33,7 @@ use Psr\Log\LogLevel;
 
 class UpdatesWrapperTest extends TestCase {
 
-    const ADDRESS = 'tcp://127.0.0.1:9001';
+    protected const ADDRESS = 'tcp://127.0.0.1:9124';
 
     /**
      * @var bool
@@ -59,7 +59,7 @@ class UpdatesWrapperTest extends TestCase {
 
     protected $_exit = FALSE;
 
-    protected function setUp() {
+    protected function setUp() : void {
 
         $this->_updatesWrapper = new \PHPWebSockets\UpdatesWrapper();
         $this->_updatesWrapper->setDisconnectHandler(function (\PHPWebSockets\AConnection $connection, bool $wasClean, int $code, string $reason) {
@@ -91,7 +91,7 @@ class UpdatesWrapperTest extends TestCase {
 
             $index = $client->getResourceIndex();
 
-            $this->assertInternalType('int', $index);
+            $this->assertIsInt($index);
             $this->assertArrayNotHasKey($index, $this->_connectionList);
 
             $this->_connectionList[$index] = $client;
@@ -109,7 +109,7 @@ class UpdatesWrapperTest extends TestCase {
 
             $index = $connection->getResourceIndex();
 
-            $this->assertInternalType('int', $index);
+            $this->assertIsInt($index);
             $this->assertArrayNotHasKey($index, $this->_connectionList);
 
             if ($this->_refuseNextConnection) {
@@ -163,7 +163,7 @@ class UpdatesWrapperTest extends TestCase {
 
     }
 
-    protected function tearDown() {
+    protected function tearDown() : void {
 
         $this->_wsServer->close();
 

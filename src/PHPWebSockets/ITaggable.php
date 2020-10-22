@@ -30,64 +30,14 @@ declare(strict_types = 1);
 
 namespace PHPWebSockets;
 
-abstract class AUpdate {
+interface ITaggable {
+    /**
+     * @param string|null $tag
+     */
+    public function setTag(?string $tag) : void;
 
     /**
-     * The source object related to this update
-     *
-     * @var \PHPWebSockets\AConnection|null
+     * @return string|null
      */
-    protected $_sourceConnection = NULL;
-
-    /**
-     * @var array|null
-     */
-    protected $_trace = NULL;
-
-    /**
-     * The code for this update
-     *
-     * @var int
-     */
-    protected $_code = 0;
-
-    public function __construct(int $code, AConnection $sourceConnection = NULL) {
-
-        $this->_sourceConnection = $sourceConnection;
-        $this->_code = $code;
-
-        if (\PHPWebSockets::ShouldUpdateTrace($this)) {
-            $this->_trace = debug_backtrace(0);
-        }
-
-    }
-
-    /**
-     * Returns the connection that triggered this update
-     *
-     * @return \PHPWebSockets\AConnection|null
-     */
-    public function getSourceConnection() : ?AConnection {
-        return $this->_sourceConnection;
-    }
-
-    /**
-     * @return array|null
-     */
-    public function getTrace() : ?array {
-        return $this->_trace;
-    }
-
-    /**
-     * Returns the code for this update
-     *
-     * @return int
-     */
-    public function getCode() : int {
-        return $this->_code;
-    }
-
-    public function __toString() {
-        return 'AUpdate) (C: ' . $this->getCode() . ')';
-    }
+    public function getTag() : ?string;
 }

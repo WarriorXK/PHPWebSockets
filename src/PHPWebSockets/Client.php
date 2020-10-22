@@ -6,7 +6,7 @@ declare(strict_types = 1);
  * - - - - - - - - - - - - - BEGIN LICENSE BLOCK - - - - - - - - - - - - -
  * The MIT License (MIT)
  *
- * Copyright (c) 2018 Kevin Meijer
+ * Copyright (c) 2020 Kevin Meijer
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -30,8 +30,7 @@ declare(strict_types = 1);
 
 namespace PHPWebSockets;
 
-use Psr\Log\LoggerInterface;
-use Psr\Log\LogLevel;
+use Psr\Log\{LogLevel, LoggerInterface};
 
 class Client extends AConnection {
 
@@ -145,7 +144,7 @@ class Client extends AConnection {
      *
      * @return bool
      */
-    public function connect(string $address, string $path = '/', array $streamContext = [], bool $async = FALSE) {
+    public function connect(string $address, string $path = '/', array $streamContext = [], bool $async = FALSE) : bool {
 
         if ($this->isOpen()) {
             throw new \LogicException('The connection is already open!');
@@ -171,7 +170,7 @@ class Client extends AConnection {
     /**
      * {@inheritdoc}
      */
-    protected function _afterOpen() {
+    protected function _afterOpen() : void {
 
         parent::_afterOpen();
 
@@ -192,20 +191,20 @@ class Client extends AConnection {
     }
 
     /**
-     * Returns the code of the last error that occured
+     * Returns the code of the last error that occurred
      *
      * @return int|null
      */
-    public function getLastErrorCode() {
+    public function getLastErrorCode() : ?int {
         return $this->_streamLastErrorCode;
     }
 
     /**
-     * Returns the last error that occured
+     * Returns the last error that occurred
      *
      * @return string|null
      */
-    public function getLastError() {
+    public function getLastError() : ?string {
         return $this->_streamLastError;
     }
 
@@ -216,7 +215,7 @@ class Client extends AConnection {
      *
      * @return \Generator|\PHPWebSockets\AUpdate[]
      */
-    public function update(float $timeout = NULL) : \Generator {
+    public function update(?float $timeout) : \Generator {
         yield from \PHPWebSockets::MultiUpdate([$this], $timeout);
     }
 
@@ -274,7 +273,7 @@ class Client extends AConnection {
 
                     if (strlen($this->_readBuffer) > $this->getMaxHandshakeLength()) {
 
-                        yield new Update\Error(Update\Error::C_READ_HANDSHAKETOLARGE, $this);
+                        yield new Update\Error(Update\Error::C_READ_HANDSHAKE_TO_LARGE, $this);
                         $this->close();
 
                     }
@@ -332,11 +331,13 @@ class Client extends AConnection {
     }
 
     /**
-     * Returns the user agent string that is reported to the server that we are connecting to
+     * Returns the user agent string that is reported to the server that we are connecting to, if set to NULL the default value is used
      *
      * @param string|null $userAgent
+     *
+     * @return void
      */
-    public function setUserAgent(string $userAgent = NULL) {
+    public function setUserAgent(?string $userAgent) : void {
         $this->_userAgent = $userAgent;
     }
 
@@ -360,7 +361,7 @@ class Client extends AConnection {
      *
      * @return void
      */
-    public function setMasksPayload(bool $mask) {
+    public function setMasksPayload(bool $mask) : void {
         $this->_shouldMask = $mask;
     }
 
@@ -396,7 +397,7 @@ class Client extends AConnection {
      *
      * @return string|null
      */
-    public function getAddress() {
+    public function getAddress() : ?string {
         return $this->_address;
     }
 
@@ -405,11 +406,14 @@ class Client extends AConnection {
      *
      * @return string|null
      */
-    public function getPath() {
+    public function getPath() : ?string {
         return $this->_path;
     }
 
     public function __toString() {
-        return 'WSClient #' . $this->_resourceIndex;
+
+        $tag = $this->getTag();
+
+        return 'WSClient #' . $this->_resourceIndex . ($tag === NULL ? '' : ' (Tag: ' . $tag . ')');
     }
 }

@@ -6,7 +6,7 @@ declare(strict_types = 1);
  * - - - - - - - - - - - - - BEGIN LICENSE BLOCK - - - - - - - - - - - - -
  * The MIT License (MIT)
  *
- * Copyright (c) 2018 Kevin Meijer
+ * Copyright (c) 2020 Kevin Meijer
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -30,10 +30,9 @@ declare(strict_types = 1);
 
 namespace PHPWebSockets;
 
-use Psr\Log\LoggerAwareInterface;
-use Psr\Log\LogLevel;
+use Psr\Log\{LogLevel, LoggerAwareInterface};
 
-abstract class AConnection implements IStreamContainer, LoggerAwareInterface {
+abstract class AConnection implements IStreamContainer, LoggerAwareInterface, ITaggable {
 
     use TStreamContainerDefaults;
     use TLogAware;
@@ -165,6 +164,20 @@ abstract class AConnection implements IStreamContainer, LoggerAwareInterface {
     protected $_framesBuffer = [];
 
     /**
+     * The amount of messages written
+     *
+     * @var int
+     */
+    protected $_writeCounter = 0;
+
+    /**
+     * The amount of messages read
+     *
+     * @var int
+     */
+    protected $_readCounter = 0;
+
+    /**
      * The write buffer
      *
      * @var string|null
@@ -207,13 +220,18 @@ abstract class AConnection implements IStreamContainer, LoggerAwareInterface {
     protected $_stream = NULL;
 
     /**
+     * @var string|null
+     */
+    protected $_tag = NULL;
+
+    /**
      * Sets the maximum size for the handshake in bytes
      *
      * @param int $maxLength
      *
      * @return void
      */
-    public function setMaxHandshakeLength(int $maxLength) {
+    public function setMaxHandshakeLength(int $maxLength) : void {
         $this->_maxHandshakeLength = $maxLength;
     }
 
@@ -239,7 +257,7 @@ abstract class AConnection implements IStreamContainer, LoggerAwareInterface {
      * Attempts to write until the write buffer is empty
      * Note: This will discard any reads that happen during this period
      *
-     * @param float $timeout
+     * @param float|null $timeout
      *
      * @return bool
      */
@@ -268,7 +286,7 @@ abstract class AConnection implements IStreamContainer, LoggerAwareInterface {
      *
      * @return void
      */
-    public function setCloseAfterWrite() {
+    public function setCloseAfterWrite() : void {
         $this->_closeAfterWrite = TRUE;
     }
 
@@ -277,7 +295,7 @@ abstract class AConnection implements IStreamContainer, LoggerAwareInterface {
      *
      * @return void
      */
-    protected function _afterOpen() {
+    protected function _afterOpen() : void {
 
         $this->_openedTimestamp = microtime(TRUE);
         $stream = $this->getStream();
@@ -333,7 +351,7 @@ abstract class AConnection implements IStreamContainer, LoggerAwareInterface {
                 $this->sendDisconnect(\PHPWebSockets::CLOSECODE_PROTOCOL_ERROR, 'Invalid RSV value');
                 $this->setCloseAfterWrite();
 
-                yield new Update\Error(Update\Error::C_READ_RSVBIT_SET, $this);
+                yield new Update\Error(Update\Error::C_READ_RSV_BIT_SET, $this);
 
                 return;
             }
@@ -481,6 +499,8 @@ abstract class AConnection implements IStreamContainer, LoggerAwareInterface {
                              */
                             $this->_resetFrameData();
 
+                            $this->_readCounter++;
+
                             yield new Update\Read(Update\Read::C_READ, $this, $newMessageOpCode, $newMessageData, $newMessageStream);
 
                         }
@@ -575,7 +595,7 @@ abstract class AConnection implements IStreamContainer, LoggerAwareInterface {
     /**
      * @return void
      */
-    private function _resetFrameData() {
+    private function _resetFrameData() : void {
 
         $this->_partialMessageOpcode = NULL;
         $this->_partialMessageStream = NULL;
@@ -616,14 +636,24 @@ abstract class AConnection implements IStreamContainer, LoggerAwareInterface {
 
             $bytesWritten = @fwrite($this->getStream(), $this->_writeBuffer, min($this->getWriteRate(), $bytesToWrite));
             if ($bytesWritten === FALSE) {
+
                 $this->_log(LogLevel::DEBUG, '    fwrite failed');
+
                 yield new Update\Error(Update\Error::C_WRITE, $this);
+
             } elseif ($bytesWritten === $bytesToWrite) {
+
                 $this->_log(LogLevel::DEBUG, '    All bytes written');
+
+                $this->_writeCounter++;
                 $this->_writeBuffer = NULL;
+
             } else {
+
                 $this->_log(LogLevel::DEBUG, '    Written ' . $bytesWritten . ' bytes');
+
                 $this->_writeBuffer = substr($this->_writeBuffer, $bytesWritten);
+
             }
 
         }
@@ -665,7 +695,7 @@ abstract class AConnection implements IStreamContainer, LoggerAwareInterface {
     /**
      * @return void
      */
-    protected function _afterReportClose() {
+    protected function _afterReportClose() : void {
         // For child classes
     }
 
@@ -678,7 +708,7 @@ abstract class AConnection implements IStreamContainer, LoggerAwareInterface {
      *
      * @return void
      */
-    public function writeMultiFramed(string $data, int $opcode = \PHPWebSockets::OPCODE_FRAME_TEXT, int $frameSize = 65535) {
+    public function writeMultiFramed(string $data, int $opcode = \PHPWebSockets::OPCODE_FRAME_TEXT, int $frameSize = 65535) : void {
 
         if ($opcode !== \PHPWebSockets::OPCODE_FRAME_TEXT && $opcode !== \PHPWebSockets::OPCODE_FRAME_BINARY) {
             throw new \InvalidArgumentException('Only OPCODE_FRAME_TEXT and OPCODE_FRAME_BINARY are supported in ' . __METHOD__);
@@ -725,7 +755,7 @@ abstract class AConnection implements IStreamContainer, LoggerAwareInterface {
      * @param string $data
      * @param bool   $priority
      */
-    public function writeRaw(string $data, bool $priority) {
+    public function writeRaw(string $data, bool $priority) : void {
 
         if ($priority) {
             $this->_priorityFramesBuffer[] = $data;
@@ -744,7 +774,7 @@ abstract class AConnection implements IStreamContainer, LoggerAwareInterface {
      *
      * @return void
      */
-    public function write(string $data, int $opcode = \PHPWebSockets::OPCODE_FRAME_TEXT, bool $isFinal = TRUE) {
+    public function write(string $data, int $opcode = \PHPWebSockets::OPCODE_FRAME_TEXT, bool $isFinal = TRUE) : void {
         $this->writeRaw(Framer::Frame($data, $this->_shouldMask(), $opcode, $isFinal), \PHPWebSockets::IsPriorityOpcode($opcode));
     }
 
@@ -778,7 +808,7 @@ abstract class AConnection implements IStreamContainer, LoggerAwareInterface {
      *
      * @return void
      */
-    public function sendDisconnect(int $code, string $reason = '', float $timeout = 10.0) {
+    public function sendDisconnect(int $code, string $reason = '', float $timeout = 10.0) : void {
 
         if (!$this->_remoteSentDisconnect) {
 
@@ -822,7 +852,7 @@ abstract class AConnection implements IStreamContainer, LoggerAwareInterface {
      *
      * @return void
      */
-    public function setNewMessageStreamCallback(callable $callable = NULL) {
+    public function setNewMessageStreamCallback(callable $callable = NULL) : void {
         $this->_newMessageStreamCallback = $callable;
     }
 
@@ -847,7 +877,7 @@ abstract class AConnection implements IStreamContainer, LoggerAwareInterface {
     /**
      * @return int|null
      */
-    public function getResourceIndex() {
+    public function getResourceIndex() : ?int {
         return $this->_resourceIndex;
     }
 
@@ -856,7 +886,7 @@ abstract class AConnection implements IStreamContainer, LoggerAwareInterface {
      *
      * @return float|null
      */
-    public function getOpenedTimestamp() {
+    public function getOpenedTimestamp() : ?float {
         return $this->_openedTimestamp;
     }
 
@@ -867,7 +897,7 @@ abstract class AConnection implements IStreamContainer, LoggerAwareInterface {
      *
      * @return void
      */
-    public function setWriteRate(int $rate) {
+    public function setWriteRate(int $rate) : void {
         $this->_writeRate = $rate;
     }
 
@@ -884,8 +914,10 @@ abstract class AConnection implements IStreamContainer, LoggerAwareInterface {
      * Sets the maximum amount of bytes to read per cycle
      *
      * @param int $rate
+     *
+     * @return void
      */
-    public function setReadRate(int $rate) {
+    public function setReadRate(int $rate) : void {
         $this->_readRate = $rate;
     }
 
@@ -919,7 +951,7 @@ abstract class AConnection implements IStreamContainer, LoggerAwareInterface {
      *
      * @return void
      */
-    public function close() {
+    public function close() : void {
 
         if (!$this->_isClosed) {
             $this->_shouldReportClose = TRUE;
@@ -932,6 +964,38 @@ abstract class AConnection implements IStreamContainer, LoggerAwareInterface {
             $this->_stream = NULL;
         }
 
+    }
+
+    /**
+     * Returns the amount of messages that have been written thus far by this connection
+     *
+     * @return int
+     */
+    public function getWriteCount() : int {
+        return $this->_writeCounter;
+    }
+
+    /**
+     * Returns the amount of messages that have been read thus far by this connection
+     *
+     * @return int
+     */
+    public function getReadCount() : int {
+        return $this->_readCounter;
+    }
+
+    /**
+     * @param string|null $tag
+     */
+    public function setTag(?string $tag) : void {
+        $this->_tag = $tag;
+    }
+
+    /**
+     * @return string|null
+     */
+    public function getTag() : ?string {
+        return $this->_tag;
     }
 
     public function __destruct() {

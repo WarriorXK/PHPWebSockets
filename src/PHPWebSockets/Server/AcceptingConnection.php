@@ -6,7 +6,7 @@ declare(strict_types = 1);
  * - - - - - - - - - - - - - BEGIN LICENSE BLOCK - - - - - - - - - - - - -
  * The MIT License (MIT)
  *
- * Copyright (c) 2018 Kevin Meijer
+ * Copyright (c) 2020 Kevin Meijer
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -30,14 +30,10 @@ declare(strict_types = 1);
 
 namespace PHPWebSockets\Server;
 
-use PHPWebSockets\TStreamContainerDefaults;
-use PHPWebSockets\IStreamContainer;
-use PHPWebSockets\TLogAware;
-use PHPWebSockets\Server;
-use Psr\Log\LoggerAwareInterface;
-use Psr\Log\LogLevel;
+use PHPWebSockets\{ITaggable, TStreamContainerDefaults, IStreamContainer, TLogAware, Server};
+use Psr\Log\{ LoggerAwareInterface, LogLevel };
 
-class AcceptingConnection implements IStreamContainer, LoggerAwareInterface {
+class AcceptingConnection implements IStreamContainer, LoggerAwareInterface, ITaggable {
 
     use TStreamContainerDefaults;
     use TLogAware;
@@ -55,6 +51,11 @@ class AcceptingConnection implements IStreamContainer, LoggerAwareInterface {
      * @var resource
      */
     protected $_stream = NULL;
+
+    /**
+     * @var string|null
+     */
+    protected $_tag = NULL;
 
     public function __construct(Server $server, $stream) {
 
@@ -132,8 +133,10 @@ class AcceptingConnection implements IStreamContainer, LoggerAwareInterface {
      * Closes the stream
      *
      * @param bool $cleanup If we should remove our unix socket if we used one
+     *
+     * @return void
      */
-    public function close(bool $cleanup = TRUE) {
+    public function close(bool $cleanup = TRUE) : void {
 
         if (is_resource($this->_stream)) {
             fclose($this->_stream);
@@ -175,6 +178,20 @@ class AcceptingConnection implements IStreamContainer, LoggerAwareInterface {
 
     }
 
+    /**
+     * @param string|null $tag
+     */
+    public function setTag(?string $tag) : void {
+        $this->_tag = $tag;
+    }
+
+    /**
+     * @return string|null
+     */
+    public function getTag() : ?string {
+        return $this->_tag;
+    }
+
     public function __destruct() {
 
         if ($this->isOpen()) {
@@ -184,6 +201,9 @@ class AcceptingConnection implements IStreamContainer, LoggerAwareInterface {
     }
 
     public function __toString() {
-        return 'AWSConnection #' . (int) $this->getStream() . ' @ ' . $this->_server;
+
+        $tag = $this->getTag();
+
+        return 'AWSConnection #' . (int) $this->getStream() . ($tag === NULL ? '' : ' (Tag: ' . $tag . ')') . ' @ ' . $this->_server;
     }
 }
