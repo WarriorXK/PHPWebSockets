@@ -189,6 +189,11 @@ final class PHPWebSockets {
 
             $stream = $object->getStream();
 
+            // It is possible the stream closed itself during beforeStreamSelect
+            if ($stream === NULL) {
+                continue;
+            }
+
             $objectStreamMap[(int) $stream] = $object;
             $exceptional[] = $stream;
             if (!$object->isWriteBufferEmpty()) {
