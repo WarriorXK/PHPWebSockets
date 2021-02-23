@@ -305,22 +305,33 @@ class Connection extends AConnection {
     /**
      * Accepts the connection
      *
-     * @param string|null $protocol The accepted protocol
+     * @param string|null $protocol          The accepted protocol
+     * @param string[]    $additionalHeaders Additional headers to send in the response
      *
      * @return void
      */
-    public function accept(string $protocol = NULL) : void {
+    public function accept(string $protocol = NULL, array $additionalHeaders = []) : void {
 
         if ($this->isAccepted()) {
             throw new \LogicException('Connection has already been accepted!');
         }
 
-        $misc = '';
+        $headers = [
+            'Server: ' . $this->_server->getServerIdentifier(),
+            'Upgrade: websocket',
+            'Connection: Upgrade',
+            'Sec-WebSocket-Accept: ' . base64_encode($this->_rawToken),
+        ];
+
         if ($protocol !== NULL) {
-            $misc .= 'Sec-WebSocket-Protocol ' . $protocol . "\r\n";
+            $headers[] = 'Sec-WebSocket-Protocol: ' . $protocol;
         }
 
-        $this->writeRaw('HTTP/1.1 101 ' . \PHPWebSockets::GetStringForStatusCode(101) . "\r\nServer: " . $this->_server->getServerIdentifier() . "\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Accept: " . base64_encode($this->_rawToken) . "\r\n" . $misc . "\r\n", FALSE);
+        foreach ($additionalHeaders as $header) {
+            $headers[] = $header;
+        }
+
+        $this->writeRaw('HTTP/1.1 101 ' . \PHPWebSockets::GetStringForStatusCode(101) . "\r\n" . implode("\r\n", $headers) . "\r\n\r\n", FALSE);
 
         $this->_accepted = TRUE;
 
