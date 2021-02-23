@@ -1,7 +1,7 @@
 {
     "name": "warriorxk/phpwebsockets",
     "type": "library",
-    "description": "A websocket library for PHP 7.0+ with support for IPC using socket pairs",
+    "description": "A websocket library with support for IPC using socket pairs",
     "keywords": ["websocket", "php", "phpwebsockets", "ipc", "socket", "client", "server"],
     "homepage": "https://github.com/WarriorXK/PHPWebSockets",
     "license": "MIT",
