@@ -556,7 +556,7 @@ class UpdatesWrapperTest extends TestCase {
 
                 $connections = $this->_wsServer->getConnections(FALSE);
 
-                $this->assertNotEmpty($connections);
+                $this->assertCount(1, $connections);
 
                 \PHPWebSockets::Log(LogLevel::INFO, 'Sending disconnect');
 
