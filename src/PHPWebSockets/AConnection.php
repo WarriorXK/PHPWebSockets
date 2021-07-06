@@ -540,9 +540,9 @@ abstract class AConnection implements IStreamContainer, LoggerAwareInterface, IT
 
                             $this->_isClosed = TRUE;
 
-                            $this->close();
-
                             yield new Update\Read(Update\Read::C_SOCK_DISCONNECT, $this);
+
+                            $this->close();
 
                         } elseif (!$this->_weSentDisconnect) {
 
