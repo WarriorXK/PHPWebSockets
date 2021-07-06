@@ -160,14 +160,8 @@ class AcceptingConnection implements IStreamContainer, LoggerAwareInterface, ITa
                     $path = substr($address, $pos + 3);
                     if (file_exists($path)) {
 
-                        if (!$cleanup) {
-                            $this->_log(LogLevel::DEBUG, 'Not cleaning up ' . $path);
-                        } else {
-
-                            $this->_log(LogLevel::DEBUG, 'Unlinking: ' . $path);
-                            unlink($path);
-
-                        }
+                        $this->_log(LogLevel::DEBUG, 'Unlinking: ' . $path);
+                        unlink($path);
 
                     }
 
