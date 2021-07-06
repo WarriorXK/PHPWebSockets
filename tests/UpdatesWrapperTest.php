@@ -176,7 +176,7 @@ class UpdatesWrapperTest extends TestCase {
         $this->assertEmpty($this->_wsServer->getConnections(FALSE));
 
         $descriptorSpec = [['pipe', 'r'], STDOUT, STDERR];
-        $clientProcess = proc_open('./tests/Helpers/client.php --address=' . escapeshellarg(self::ADDRESS) . ' --message=' . escapeshellarg('Hello world') . ' --message-count=5', $descriptorSpec, $pipes, realpath(__DIR__ . '/../'));
+        $clientProcess = proc_open('./tests/Helpers/WSClient.php --address=' . escapeshellarg(self::ADDRESS) . ' --message=' . escapeshellarg('Hello world') . ' --message-count=5', $descriptorSpec, $pipes, realpath(__DIR__ . '/../'));
 
         while (proc_get_status($clientProcess)['running'] ?? FALSE) {
 
@@ -198,7 +198,7 @@ class UpdatesWrapperTest extends TestCase {
         $this->assertEmpty($this->_wsServer->getConnections(FALSE));
 
         $descriptorSpec = [['pipe', 'r'], STDOUT, STDERR];
-        $clientProcess = proc_open('./tests/Helpers/client.php --address=' . escapeshellarg(self::ADDRESS) . ' --message=' . escapeshellarg('Hello world') . ' --message-count=5 --async', $descriptorSpec, $pipes, realpath(__DIR__ . '/../'));
+        $clientProcess = proc_open('./tests/Helpers/WSClient.php --address=' . escapeshellarg(self::ADDRESS) . ' --message=' . escapeshellarg('Hello world') . ' --message-count=5 --async', $descriptorSpec, $pipes, realpath(__DIR__ . '/../'));
 
         while (proc_get_status($clientProcess)['running'] ?? FALSE) {
 
@@ -223,7 +223,7 @@ class UpdatesWrapperTest extends TestCase {
         $runUntil = $dieAt + 4.0;
 
         $descriptorSpec = [['pipe', 'r'], STDOUT, STDERR];
-        $clientProcess = proc_open('./tests/Helpers/client.php --address=' . escapeshellarg(self::ADDRESS) . ' --message=' . escapeshellarg('Hello world') . ' --die-at=' . escapeshellarg((string) $dieAt), $descriptorSpec, $pipes, realpath(__DIR__ . '/../'));
+        $clientProcess = proc_open('./tests/Helpers/WSClient.php --address=' . escapeshellarg(self::ADDRESS) . ' --message=' . escapeshellarg('Hello world') . ' --die-at=' . escapeshellarg((string) $dieAt), $descriptorSpec, $pipes, realpath(__DIR__ . '/../'));
 
         while (microtime(TRUE) <= $runUntil) {
 
@@ -262,7 +262,7 @@ class UpdatesWrapperTest extends TestCase {
         $didClose = FALSE;
 
         $descriptorSpec = [['pipe', 'r'], STDOUT, STDERR];
-        $clientProcess = proc_open('./tests/Helpers/client.php --address=' . escapeshellarg(self::ADDRESS) . ' --message=' . escapeshellarg('Hello world') . ' --message-count=5', $descriptorSpec, $pipes, realpath(__DIR__ . '/../'));
+        $clientProcess = proc_open('./tests/Helpers/WSClient.php --address=' . escapeshellarg(self::ADDRESS) . ' --message=' . escapeshellarg('Hello world') . ' --message-count=5', $descriptorSpec, $pipes, realpath(__DIR__ . '/../'));
 
         while (microtime(TRUE) <= $runUntil) {
 
@@ -305,7 +305,7 @@ class UpdatesWrapperTest extends TestCase {
         $closeAt = microtime(TRUE) + 3.0;
 
         $descriptorSpec = [['pipe', 'r'], STDOUT, STDERR];
-        $clientProcess = proc_open('./tests/Helpers/client.php --address=' . escapeshellarg(self::ADDRESS) . ' --message=' . escapeshellarg('Hello world') . ' --close-at=' . $closeAt . ' --message-count=5', $descriptorSpec, $pipes, realpath(__DIR__ . '/../'));
+        $clientProcess = proc_open('./tests/Helpers/WSClient.php --address=' . escapeshellarg(self::ADDRESS) . ' --message=' . escapeshellarg('Hello world') . ' --close-at=' . $closeAt . ' --message-count=5', $descriptorSpec, $pipes, realpath(__DIR__ . '/../'));
 
         while (TRUE) {
 
@@ -335,7 +335,7 @@ class UpdatesWrapperTest extends TestCase {
         $runUntil = microtime(TRUE) + 8.0;
 
         $descriptorSpec = [['pipe', 'r'], STDOUT, STDERR];
-        $clientProcess = proc_open('./tests/Helpers/client.php --address=' . escapeshellarg(self::ADDRESS) . ' --message=' . escapeshellarg('Hello world') . ' --message-count=1', $descriptorSpec, $pipes, realpath(__DIR__ . '/../'));
+        $clientProcess = proc_open('./tests/Helpers/WSClient.php --address=' . escapeshellarg(self::ADDRESS) . ' --message=' . escapeshellarg('Hello world') . ' --message-count=1', $descriptorSpec, $pipes, realpath(__DIR__ . '/../'));
 
         while (microtime(TRUE) <= $runUntil) {
 
@@ -375,7 +375,7 @@ class UpdatesWrapperTest extends TestCase {
         $runUntil = microtime(TRUE) + 8.0;
 
         $descriptorSpec = [['pipe', 'r'], STDOUT, STDERR];
-        $clientProcess = proc_open('./tests/Helpers/client.php --address=' . escapeshellarg('tcp://127.0.0.1:9000') . ' --message=' . escapeshellarg('Hello world') . ' --message-count=1 --async', $descriptorSpec, $pipes, realpath(__DIR__ . '/../'));
+        $clientProcess = proc_open('./tests/Helpers/WSClient.php --address=' . escapeshellarg('tcp://127.0.0.1:9000') . ' --message=' . escapeshellarg('Hello world') . ' --message-count=1 --async', $descriptorSpec, $pipes, realpath(__DIR__ . '/../'));
 
         while (microtime(TRUE) <= $runUntil) {
 
@@ -417,7 +417,7 @@ class UpdatesWrapperTest extends TestCase {
         $didClose = FALSE;
 
         $descriptorSpec = [['pipe', 'r'], STDOUT, STDERR];
-        $clientProcess = proc_open('./tests/Helpers/client.php --address=' . escapeshellarg(self::ADDRESS) . ' --message=' . escapeshellarg('Hello world') . ' --message-count=5', $descriptorSpec, $pipes, realpath(__DIR__ . '/../'));
+        $clientProcess = proc_open('./tests/Helpers/WSClient.php --address=' . escapeshellarg(self::ADDRESS) . ' --message=' . escapeshellarg('Hello world') . ' --message-count=5', $descriptorSpec, $pipes, realpath(__DIR__ . '/../'));
 
         while (microtime(TRUE) <= $runUntil) {
 

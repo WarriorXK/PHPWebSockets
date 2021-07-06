@@ -11,8 +11,8 @@ $cliArgs = [
     'message-interval' => 1,
     'message-count'    => 0,
     'ping-interval'    => 0,
-    'die-at'           => 0,
-    'close-at'         => 0,
+    'die-at'           => 0.0,
+    'close-at'         => 0.0,
     'async'            => FALSE,
 ];
 
