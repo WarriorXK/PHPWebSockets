@@ -461,4 +461,63 @@ class UpdatesWrapperTest extends TestCase {
         \PHPWebSockets::Log(LogLevel::INFO, 'Test finished' . PHP_EOL);
 
     }
+
+    public function testTCPClientConnect() {
+
+        \PHPWebSockets::Log(LogLevel::INFO, 'Starting test..' . PHP_EOL);
+
+        $this->assertEmpty($this->_wsServer->getConnections(FALSE));
+
+        $closeAt = microtime(TRUE) + 3.0;
+        $runUntil = $closeAt + 4.0;
+
+        $didSendDisconnect = FALSE;
+        $didClose = FALSE;
+
+        $descriptorSpec = [['pipe', 'r'], STDOUT, STDERR];
+        $clientProcess = proc_open('./tests/Helpers/Socket.php --address=' . escapeshellarg(self::ADDRESS) . ' --close-at=' . $closeAt, $descriptorSpec, $pipes, realpath(__DIR__ . '/../'));
+
+        while (microtime(TRUE) <= $runUntil) {
+
+            $this->_updatesWrapper->update(0.5, $this->_wsServer->getConnections(TRUE));
+
+            if (!$didSendDisconnect) {
+                $this->assertTrue(proc_get_status($clientProcess)['running'] ?? FALSE);
+            }
+
+            if ($didSendDisconnect && !$didClose) {
+
+                /** @var \PHPWebSockets\AConnection $connection */
+                $connection = reset($connections);
+                $connection->close();
+
+                $didClose = TRUE;
+
+            }
+
+            if (microtime(TRUE) >= $closeAt && !$didSendDisconnect) {
+
+                $connections = $this->_wsServer->getConnections(FALSE);
+
+                $this->assertNotEmpty($connections);
+
+                \PHPWebSockets::Log(LogLevel::INFO, 'Sending disconnect + close');
+
+                /** @var \PHPWebSockets\AConnection $connection */
+                $connection = reset($connections);
+                $connection->sendDisconnect(\PHPWebSockets::CLOSECODE_NORMAL);
+
+                $didSendDisconnect = TRUE;
+
+            }
+
+        }
+
+        $this->assertEmpty($this->_wsServer->getConnections(FALSE));
+        $this->assertEmpty($this->_connectionList);
+
+        \PHPWebSockets::Log(LogLevel::INFO, 'Test finished' . PHP_EOL);
+
+    }
+
 }
