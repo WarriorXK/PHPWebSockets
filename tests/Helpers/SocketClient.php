@@ -10,7 +10,8 @@ $cliArgs = [
     'die-at'           => 0.0,
     'close-at'         => 0.0,
     'async'            => FALSE,
-    'connect-timeout'  => 0.0,
+    'connect-timeout'  => 5.0,
+    'message'          => NULL,
 ];
 
 foreach ($argv as $item) {
@@ -22,7 +23,9 @@ foreach ($argv as $item) {
     } elseif (substr($item, 0, 11) === '--close-at=') {
         $cliArgs['close-at'] = (float) substr($item, 11);
     } elseif (substr($item, 0, 18) === '--connect-timeout=') {
-        $cliArgs['connect-timeout'] = (float) substr($item, 11);
+        $cliArgs['connect-timeout'] = (float) substr($item, 18);
+    } elseif (substr($item, 0, 10) === '--message=') {
+        $cliArgs['message'] = substr($item, 10);
     } elseif ($item === '--async') {
         $cliArgs['async'] = TRUE;
     }
@@ -33,17 +36,23 @@ $flags = ($cliArgs['async'] ? STREAM_CLIENT_ASYNC_CONNECT : STREAM_CLIENT_CONNEC
 
 $stream = @stream_socket_client($cliArgs['address'], $errorCode, $errorMessage, $cliArgs['connect-timeout'], $flags);
 if ($stream === FALSE) {
-    echo 'Connect failed' . PHP_EOL;
+    echo 'Connect failed: ' . $errorMessage . ' (' . $errorCode . ')' . PHP_EOL;
     exit(1);
 }
+
+$didWrite = FALSE;
 
 while (TRUE) {
 
     $now = microtime(TRUE);
-    if ($now >= $cliArgs['die-at']) {
+    if ($cliArgs['die-at'] > 0.0 && $now >= $cliArgs['die-at']) {
         exit();
     }
-    if ($now >= $cliArgs['close-at']) {
+    if ($cliArgs['close-at'] > 0.0 && $now >= $cliArgs['close-at']) {
+        fclose($stream);
+        exit();
+    }
+    if ($cliArgs['message'] !== NULL && $didWrite) {
         fclose($stream);
         exit();
     }
@@ -59,6 +68,17 @@ while (TRUE) {
             do {
                 $data = fread($socket, 8192);
             } while (strlen($data) > 0);
+
+        }
+
+        foreach ($write as $socket) {
+
+            if ($cliArgs['message'] !== NULL) {
+
+                fwrite($socket, $cliArgs['message']);
+                $didWrite = TRUE;
+
+            }
 
         }
 

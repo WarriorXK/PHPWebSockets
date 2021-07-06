@@ -13,6 +13,7 @@ $cliArgs = [
     'ping-interval'    => 0,
     'die-at'           => 0.0,
     'close-at'         => 0.0,
+    'disconnect-at'    => 0.0,
     'async'            => FALSE,
 ];
 
@@ -32,6 +33,8 @@ foreach ($argv as $item) {
         $cliArgs['die-at'] = (float) substr($item, 9);
     } elseif (substr($item, 0, 11) === '--close-at=') {
         $cliArgs['close-at'] = (float) substr($item, 11);
+    } elseif (substr($item, 0, 16) === '--disconnect-at=') {
+        $cliArgs['disconnect-at'] = (float) substr($item, 16);
     } elseif ($item === '--async') {
         $cliArgs['async'] = TRUE;
     }
@@ -52,6 +55,10 @@ while ($client->isOpen()) {
 
     if ($cliArgs['die-at'] > 0.0 && microtime(TRUE) >= $cliArgs['die-at']) {
         exit();
+    }
+
+    if ($cliArgs['disconnect-at'] > 0.0 && microtime(TRUE) >= $cliArgs['disconnect-at']) {
+        $client->sendDisconnect(\PHPWebSockets::CLOSECODE_NORMAL);
     }
 
     if ($cliArgs['close-at'] > 0.0 && microtime(TRUE) >= $cliArgs['close-at']) {

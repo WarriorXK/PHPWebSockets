@@ -155,7 +155,7 @@ class UpdatesWrapperTest extends TestCase {
         });
         $this->_updatesWrapper->setErrorHandler(function (\PHPWebSockets\AConnection $connection, int $code) {
 
-            \PHPWebSockets::Log(LogLevel::INFO, 'Got error ' . $code . ' from ' . $connection);
+            \PHPWebSockets::Log(LogLevel::INFO, 'Got error ' . $code . ' (' . \PHPWebSockets\Update\Error::StringForCode($code) . ') ' . ' from ' . $connection);
 
         });
 
@@ -404,7 +404,57 @@ class UpdatesWrapperTest extends TestCase {
 
     }
 
-    public function testDoubleClose() {
+    public function testDelayedDoubleClose() {
+
+        \PHPWebSockets::Log(LogLevel::INFO, 'Starting test..' . PHP_EOL);
+
+        $this->assertEmpty($this->_wsServer->getConnections(FALSE));
+
+        $clientCloseAt = microtime(TRUE) + 3.0;
+        $serverSleepAt = $clientCloseAt - 1.0;
+        $delay = 5;
+        $runUntil = $clientCloseAt + $delay + 4.0;
+
+        $didClose = FALSE;
+
+        $descriptorSpec = [['pipe', 'r'], STDOUT, STDERR];
+        $clientProcess = proc_open('./tests/Helpers/WSClient.php --address=' . escapeshellarg(self::ADDRESS) . ' --message=' . escapeshellarg('Hello world') . ' --close-at=' . $clientCloseAt . ' --message-count=5', $descriptorSpec, $pipes, realpath(__DIR__ . '/../'));
+
+        while (microtime(TRUE) <= $runUntil) {
+
+            $this->_updatesWrapper->update(0.5, $this->_wsServer->getConnections(TRUE));
+
+            if (microtime(TRUE) < $clientCloseAt) {
+                $this->assertTrue(proc_get_status($clientProcess)['running'] ?? FALSE);
+            }
+
+            if (!$didClose && microtime(TRUE) >= $serverSleepAt) {
+
+                \PHPWebSockets::Log(LogLevel::INFO, 'Sleeping..' . PHP_EOL);
+
+                sleep($delay);
+
+                \PHPWebSockets::Log(LogLevel::INFO, 'Closing' . PHP_EOL);
+
+                $connections = $this->_wsServer->getConnections(FALSE);
+                /** @var \PHPWebSockets\AConnection $connection */
+                $connection = reset($connections);
+                $connection->close();
+
+                $didClose = TRUE;
+
+            }
+
+        }
+
+        $this->assertEmpty($this->_wsServer->getConnections(FALSE));
+        $this->assertEmpty($this->_connectionList);
+
+        \PHPWebSockets::Log(LogLevel::INFO, 'Test finished' . PHP_EOL);
+
+    }
+
+    public function testDisconnectAndClose() {
 
         \PHPWebSockets::Log(LogLevel::INFO, 'Starting test..' . PHP_EOL);
 
@@ -462,6 +512,75 @@ class UpdatesWrapperTest extends TestCase {
 
     }
 
+    public function testSimultaneousDisconnect() {
+
+        /*
+         * Here we disconnect at the same time without updating in the meantime, simulating a "hang" in the server
+         */
+
+        \PHPWebSockets::Log(LogLevel::INFO, 'Starting test..' . PHP_EOL);
+
+        $this->assertEmpty($this->_wsServer->getConnections(FALSE));
+
+        $disconnectAt = microtime(TRUE) + 3.0;
+
+        $didSendDisconnect = FALSE;
+        $gotClient = FALSE;
+
+        $descriptorSpec = [['pipe', 'r'], STDOUT, STDERR];
+        $clientProcess = proc_open('./tests/Helpers/WSClient.php --address=' . escapeshellarg(self::ADDRESS) . ' --disconnect-at=' . escapeshellarg((string) $disconnectAt) . ' --message=' . escapeshellarg('Hello world') . ' --message-count=5', $descriptorSpec, $pipes, realpath(__DIR__ . '/../'));
+
+        while (TRUE) {
+
+            // Only update if we are waiting for a client, or 1 second after we've send the disconnect
+            $shouldUpdate = (!$gotClient || ($didSendDisconnect && (microtime(TRUE) > $disconnectAt + 1)));
+
+            if ($shouldUpdate) {
+                \PHPWebSockets::Log(LogLevel::INFO, 'Updating');
+                $this->_updatesWrapper->update(0.5, $this->_wsServer->getConnections(TRUE));
+            } else {
+                \PHPWebSockets::Log(LogLevel::INFO, 'Not updating');
+                sleep(1);
+            }
+
+            if (!$didSendDisconnect) {
+                $this->assertTrue(proc_get_status($clientProcess)['running'] ?? FALSE);
+            }
+
+            if (!empty($this->_wsServer->getConnections(FALSE))) {
+                // Client has been accepted, stop updating
+                $gotClient = TRUE;
+            }
+
+            if (microtime(TRUE) >= $disconnectAt && !$didSendDisconnect) {
+
+                $connections = $this->_wsServer->getConnections(FALSE);
+
+                $this->assertNotEmpty($connections);
+
+                \PHPWebSockets::Log(LogLevel::INFO, 'Sending disconnect');
+
+                /** @var \PHPWebSockets\AConnection $connection */
+                $connection = reset($connections);
+                $connection->sendDisconnect(\PHPWebSockets::CLOSECODE_NORMAL);
+
+                $didSendDisconnect = TRUE;
+
+            }
+
+            if (!proc_get_status($clientProcess)['running'] ?? FALSE) {
+                break;
+            }
+
+        }
+
+        $this->assertEmpty($this->_wsServer->getConnections(FALSE));
+        $this->assertEmpty($this->_connectionList);
+
+        \PHPWebSockets::Log(LogLevel::INFO, 'Test finished' . PHP_EOL);
+
+    }
+
     public function testTCPClientConnect() {
 
         \PHPWebSockets::Log(LogLevel::INFO, 'Starting test..' . PHP_EOL);
@@ -471,45 +590,48 @@ class UpdatesWrapperTest extends TestCase {
         $closeAt = microtime(TRUE) + 3.0;
         $runUntil = $closeAt + 4.0;
 
-        $didSendDisconnect = FALSE;
-        $didClose = FALSE;
-
         $descriptorSpec = [['pipe', 'r'], STDOUT, STDERR];
-        $clientProcess = proc_open('./tests/Helpers/Socket.php --address=' . escapeshellarg(self::ADDRESS) . ' --close-at=' . $closeAt, $descriptorSpec, $pipes, realpath(__DIR__ . '/../'));
+        $clientProcess = proc_open('./tests/Helpers/SocketClient.php --address=' . escapeshellarg(self::ADDRESS) . ' --close-at=' . $closeAt, $descriptorSpec, $pipes, realpath(__DIR__ . '/../'));
 
         while (microtime(TRUE) <= $runUntil) {
 
             $this->_updatesWrapper->update(0.5, $this->_wsServer->getConnections(TRUE));
 
-            if (!$didSendDisconnect) {
-                $this->assertTrue(proc_get_status($clientProcess)['running'] ?? FALSE);
-            }
+            if ($clientProcess !== NULL) {
 
-            if ($didSendDisconnect && !$didClose) {
+                $status = proc_get_status($clientProcess);
+                if (!$status['running']) {
 
-                /** @var \PHPWebSockets\AConnection $connection */
-                $connection = reset($connections);
-                $connection->close();
+                    \PHPWebSockets::Log(LogLevel::INFO, 'Client disappeared');
+                    $clientProcess = NULL;
 
-                $didClose = TRUE;
+                }
 
             }
 
-            if (microtime(TRUE) >= $closeAt && !$didSendDisconnect) {
+        }
 
-                $connections = $this->_wsServer->getConnections(FALSE);
+        $this->assertEmpty($this->_wsServer->getConnections(FALSE));
+        $this->assertEmpty($this->_connectionList);
 
-                $this->assertNotEmpty($connections);
+        \PHPWebSockets::Log(LogLevel::INFO, 'Test finished' . PHP_EOL);
 
-                \PHPWebSockets::Log(LogLevel::INFO, 'Sending disconnect + close');
+    }
 
-                /** @var \PHPWebSockets\AConnection $connection */
-                $connection = reset($connections);
-                $connection->sendDisconnect(\PHPWebSockets::CLOSECODE_NORMAL);
+    public function testTCPClientBadData() {
 
-                $didSendDisconnect = TRUE;
+        \PHPWebSockets::Log(LogLevel::INFO, 'Starting test..' . PHP_EOL);
 
-            }
+        $this->assertEmpty($this->_wsServer->getConnections(FALSE));
+
+        $message = "Hello websocket server\r\n\r\nMah body";
+
+        $descriptorSpec = [['pipe', 'r'], STDOUT, STDERR];
+        $clientProcess = proc_open('./tests/Helpers/SocketClient.php --address=' . escapeshellarg(self::ADDRESS) . ' --message=' . escapeshellarg($message), $descriptorSpec, $pipes, realpath(__DIR__ . '/../'));
+
+        while (proc_get_status($clientProcess)['running'] ?? FALSE) {
+
+            $this->_updatesWrapper->update(0.5, $this->_wsServer->getConnections(TRUE));
 
         }
 
