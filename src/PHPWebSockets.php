@@ -146,7 +146,7 @@ final class PHPWebSockets {
     /**
      * The log handler function
      *
-     * @var \Psr\Log\LoggerInterface
+     * @var \Psr\Log\LoggerInterface|null
      */
     private static $_Logger = NULL;
 
@@ -213,14 +213,14 @@ final class PHPWebSockets {
             } else {
 
                 if (!empty($read) || !empty($write) || !empty($exceptional)) {
-                    static::Log(LogLevel::DEBUG, 'Read: ' . count($read) . ' Write: ' . count($write) . ' Except: ' . count($exceptional));
+                    self::Log(LogLevel::DEBUG, 'Read: ' . count($read) . ' Write: ' . count($write) . ' Except: ' . count($exceptional));
                 }
 
                 foreach ($read as $stream) {
 
                     $object = $objectStreamMap[(int) $stream];
                     if ($object === NULL) {
-                        static::Log(LogLevel::ERROR, 'Unable to find stream container related to stream during read!');
+                        self::Log(LogLevel::ERROR, 'Unable to find stream container related to stream during read!');
                         continue;
                     }
 
@@ -232,12 +232,12 @@ final class PHPWebSockets {
 
                     $object = $objectStreamMap[(int) $stream];
                     if ($object === NULL) {
-                        static::Log(LogLevel::ERROR, 'Unable to find stream container related to stream during write!');
+                        self::Log(LogLevel::ERROR, 'Unable to find stream container related to stream during write!');
                         continue;
                     }
 
                     if (!is_resource($object->getStream())) { // Check if it is still open, it could have closed
-                        static::Log(LogLevel::WARNING, 'Unable to complete write for stream container ' . $object . ', connection was closed');
+                        self::Log(LogLevel::WARNING, 'Unable to complete write for stream container ' . $object . ', connection was closed');
                         continue;
                     }
 
@@ -249,16 +249,16 @@ final class PHPWebSockets {
 
                     $object = $objectStreamMap[(int) $stream];
                     if ($object === NULL) {
-                        static::Log(LogLevel::ERROR, 'Unable to find stream container related to stream during exceptional read!');
+                        self::Log(LogLevel::ERROR, 'Unable to find stream container related to stream during exceptional read!');
                         continue;
                     }
 
                     if (!is_resource($object->getStream())) { // Check if it is still open, it could have closed
-                        static::Log(LogLevel::WARNING, 'Unable to complete exceptional read for stream container, connection was closed');
+                        self::Log(LogLevel::WARNING, 'Unable to complete exceptional read for stream container, connection was closed');
                         continue;
                     }
 
-                    static::Log(LogLevel::ERROR, 'Got exceptional for ' . $object);
+                    self::Log(LogLevel::ERROR, 'Got exceptional for ' . $object);
 
                     yield from $object->handleExceptional();
 

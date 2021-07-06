@@ -76,7 +76,7 @@ interface IStreamContainer {
     /**
      * Returns the stream object for this connection
      *
-     * @return resource
+     * @return resource|null
      */
     public function getStream();
 
