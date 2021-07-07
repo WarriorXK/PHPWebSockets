@@ -975,9 +975,30 @@ abstract class AConnection implements IStreamContainer, LoggerAwareInterface, IT
         $this->_isClosed = TRUE;
 
         if (is_resource($this->_stream)) {
-            fclose($this->_stream);
+
+            $stream = $this->_stream;
             $this->_stream = NULL;
+
+            fclose($stream);
+
         }
+
+        // To prevent the warning that there was still data to write
+        $this->_clearBuffers();
+        $this->_resetFrameData();
+
+    }
+
+    /**
+     * Clears all buffers
+     */
+    private function _clearBuffers() : void {
+
+        $this->_currentFrameRemainingBytes = 0;
+        $this->_priorityFramesBuffer = [];
+        $this->_framesBuffer = [];
+        $this->_writeBuffer = NULL;
+        $this->_readBuffer = NULL;
 
     }
 
