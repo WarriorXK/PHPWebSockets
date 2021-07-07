@@ -768,6 +768,10 @@ abstract class AConnection implements IStreamContainer, LoggerAwareInterface, IT
      */
     public function writeRaw(string $data, bool $priority) : void {
 
+        if (!$this->isOpen()) {
+            throw new \LogicException('Unable to write: Connection is closed');
+        }
+
         if ($priority) {
             $this->_priorityFramesBuffer[] = $data;
         } else {
