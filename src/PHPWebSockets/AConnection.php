@@ -717,7 +717,18 @@ abstract class AConnection implements IStreamContainer, LoggerAwareInterface, IT
             throw new \LogicException('FrameSize should be at least 1');
         }
 
-        $frames = str_split($data, $frameSize);
+        $dataLen = strlen($data);
+        if (strlen($data) > $frameSize) {
+
+            $frames = str_split($data, $frameSize);
+            if ($frames === FALSE) {
+                throw new \UnexpectedValueException('Unable to split ' . $dataLen . ' bytes into frames of ' . $frameSize . ' bytes');
+            }
+
+        } else {
+            $frames = [$data];
+        }
+
         end($frames);
         $lastKey = key($frames);
 
