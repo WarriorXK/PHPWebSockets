@@ -131,7 +131,7 @@ abstract class AConnection implements IStreamContainer, LoggerAwareInterface, IT
     /**
      * The timestamp since when this connection has been opened
      *
-     * @var int
+     * @var float|null
      */
     protected $_openedTimestamp = NULL;
 
@@ -215,7 +215,7 @@ abstract class AConnection implements IStreamContainer, LoggerAwareInterface, IT
     /**
      * The resource stream
      *
-     * @var resource
+     * @var resource|null
      */
     protected $_stream = NULL;
 
@@ -859,7 +859,7 @@ abstract class AConnection implements IStreamContainer, LoggerAwareInterface, IT
     /**
      * Returns the stream object for this connection
      *
-     * @return resource
+     * @return resource|null
      */
     public function getStream() {
         return $this->_stream;
