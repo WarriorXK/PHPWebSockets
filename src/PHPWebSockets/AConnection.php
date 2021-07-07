@@ -6,7 +6,7 @@ declare(strict_types = 1);
  * - - - - - - - - - - - - - BEGIN LICENSE BLOCK - - - - - - - - - - - - -
  * The MIT License (MIT)
  *
- * Copyright (c) 2020 Kevin Meijer
+ * Copyright (c) 2021 Kevin Meijer
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -478,8 +478,9 @@ abstract class AConnection implements IStreamContainer, LoggerAwareInterface, IT
 
                             if ($res === FALSE) {
 
-                                $this->close();
                                 yield new Update\Error(Update\Error::C_WRITE_INVALID_TARGET_STREAM, $this);
+
+                                $this->close();
 
                             }
 
@@ -717,7 +718,18 @@ abstract class AConnection implements IStreamContainer, LoggerAwareInterface, IT
             throw new \LogicException('FrameSize should be at least 1');
         }
 
-        $frames = str_split($data, $frameSize);
+        $dataLen = strlen($data);
+        if (strlen($data) > $frameSize) {
+
+            $frames = str_split($data, $frameSize);
+            if ($frames === FALSE) {
+                throw new \UnexpectedValueException('Unable to split ' . $dataLen . ' bytes into frames of ' . $frameSize . ' bytes');
+            }
+
+        } else {
+            $frames = [$data];
+        }
+
         end($frames);
         $lastKey = key($frames);
 
@@ -756,6 +768,10 @@ abstract class AConnection implements IStreamContainer, LoggerAwareInterface, IT
      * @param bool   $priority
      */
     public function writeRaw(string $data, bool $priority) : void {
+
+        if (!$this->isOpen()) {
+            throw new \LogicException('Unable to write: Connection is closed');
+        }
 
         if ($priority) {
             $this->_priorityFramesBuffer[] = $data;
@@ -960,9 +976,30 @@ abstract class AConnection implements IStreamContainer, LoggerAwareInterface, IT
         $this->_isClosed = TRUE;
 
         if (is_resource($this->_stream)) {
-            fclose($this->_stream);
+
+            $stream = $this->_stream;
             $this->_stream = NULL;
+
+            fclose($stream);
+
         }
+
+        // To prevent the warning that there was still data to write
+        $this->_clearBuffers();
+        $this->_resetFrameData();
+
+    }
+
+    /**
+     * Clears all buffers
+     */
+    private function _clearBuffers() : void {
+
+        $this->_currentFrameRemainingBytes = 0;
+        $this->_priorityFramesBuffer = [];
+        $this->_framesBuffer = [];
+        $this->_writeBuffer = NULL;
+        $this->_readBuffer = NULL;
 
     }
 
