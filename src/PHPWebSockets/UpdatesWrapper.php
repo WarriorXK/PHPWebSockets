@@ -535,7 +535,6 @@ class UpdatesWrapper {
         $source = $update->getSourceConnection();
 
         $this->_triggerErrorHandler($source, $update->getCode());
-        $this->_triggerDisconnectHandler($source, FALSE, NULL);
 
         $this->_handledDisconnects[$source->getResourceIndex()] = TRUE;
 
@@ -561,7 +560,6 @@ class UpdatesWrapper {
         $source = $update->getSourceConnection();
 
         $this->_triggerErrorHandler($source, $update->getCode());
-        $this->_triggerDisconnectHandler($source, FALSE, NULL);
 
         $this->_handledDisconnects[$source->getResourceIndex()] = TRUE;
 
@@ -572,7 +570,6 @@ class UpdatesWrapper {
         $source = $update->getSourceConnection();
 
         $this->_triggerErrorHandler($source, $update->getCode());
-        $this->_triggerDisconnectHandler($source, FALSE, NULL);
 
         $this->_handledDisconnects[$source->getResourceIndex()] = TRUE;
 
@@ -587,7 +584,6 @@ class UpdatesWrapper {
         $source = $update->getSourceConnection();
 
         $this->_triggerErrorHandler($source, $update->getCode());
-        $this->_triggerDisconnectHandler($source, FALSE, NULL);
 
         $this->_handledDisconnects[$source->getResourceIndex()] = TRUE;
 

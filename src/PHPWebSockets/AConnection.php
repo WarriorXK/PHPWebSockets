@@ -478,8 +478,9 @@ abstract class AConnection implements IStreamContainer, LoggerAwareInterface, IT
 
                             if ($res === FALSE) {
 
-                                $this->close();
                                 yield new Update\Error(Update\Error::C_WRITE_INVALID_TARGET_STREAM, $this);
+
+                                $this->close();
 
                             }
 
