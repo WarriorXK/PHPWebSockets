@@ -6,7 +6,7 @@ declare(strict_types = 1);
  * - - - - - - - - - - - - - BEGIN LICENSE BLOCK - - - - - - - - - - - - -
  * The MIT License (MIT)
  *
- * Copyright (c) 2020 Kevin Meijer
+ * Copyright (c) 2021 Kevin Meijer
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -535,7 +535,6 @@ class UpdatesWrapper {
         $source = $update->getSourceConnection();
 
         $this->_triggerErrorHandler($source, $update->getCode());
-        $this->_triggerDisconnectHandler($source, FALSE, NULL);
 
         $this->_handledDisconnects[$source->getResourceIndex()] = TRUE;
 
@@ -561,7 +560,6 @@ class UpdatesWrapper {
         $source = $update->getSourceConnection();
 
         $this->_triggerErrorHandler($source, $update->getCode());
-        $this->_triggerDisconnectHandler($source, FALSE, NULL);
 
         $this->_handledDisconnects[$source->getResourceIndex()] = TRUE;
 
@@ -572,7 +570,6 @@ class UpdatesWrapper {
         $source = $update->getSourceConnection();
 
         $this->_triggerErrorHandler($source, $update->getCode());
-        $this->_triggerDisconnectHandler($source, FALSE, NULL);
 
         $this->_handledDisconnects[$source->getResourceIndex()] = TRUE;
 
@@ -587,7 +584,6 @@ class UpdatesWrapper {
         $source = $update->getSourceConnection();
 
         $this->_triggerErrorHandler($source, $update->getCode());
-        $this->_triggerDisconnectHandler($source, FALSE, NULL);
 
         $this->_handledDisconnects[$source->getResourceIndex()] = TRUE;
 
