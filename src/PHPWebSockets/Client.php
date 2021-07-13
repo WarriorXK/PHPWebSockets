@@ -179,7 +179,7 @@ class Client extends AConnection {
 
         $headerParts = [
             'GET ' . $this->getPath() . ' HTTP/1.1',
-            'Host: ' .  $addressInfo['host'],
+            'Host: ' . $addressInfo['host'],
             'User-Agent: ' . $this->getUserAgent(),
             'Upgrade: websocket',
             'Connection: Upgrade',
