@@ -82,6 +82,10 @@ class ServerTest extends TestCase {
 
         }
 
+        if ($this->_bufferType === NULL) {
+            $this->_bufferType = getenv('BUFFERTYPE') ?: NULL;
+        }
+
         $this->assertContains($this->_bufferType, static::VALID_BUFFER_TYPES, 'Invalid buffer type');
 
         \PHPWebSockets::Log(LogLevel::INFO, 'Using buffer type ' . $this->_bufferType);
