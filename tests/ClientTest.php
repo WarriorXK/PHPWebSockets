@@ -83,7 +83,11 @@ class ClientTest extends TestCase {
         $descriptorSpec = [['pipe', 'r'], STDOUT, STDERR];
         $this->_autobahnProcess = proc_open('wstest -m fuzzingserver -s Resources/Autobahn/fuzzingserver.json', $descriptorSpec, $pipes, realpath(__DIR__ . '/../'));
 
-        sleep(2);
+        $sleepSec = 10;
+
+        \PHPWebSockets::Log(LogLevel::INFO, 'Sleeping ' . $sleepSec . ' seconds to wait for the fuzzing server to start');
+
+        sleep($sleepSec);
 
         $client = $this->_createClient();
         $connectResult = $client->connect(static::ADDRESS, '/getCaseCount');
