@@ -94,7 +94,7 @@ class ClientTest extends TestCase {
 
             foreach ($client->update(NULL) as $key => $value) {
 
-                \PHPWebSockets::Log(LogLevel::INFO, $value . '');
+                \PHPWebSockets::Log(LogLevel::DEBUG, 'Got message: ' . $value);
 
                 if ($value instanceof Read && $value->getCode() === Read::C_READ) {
 
@@ -107,7 +107,7 @@ class ClientTest extends TestCase {
 
                     }
 
-                    $this->_caseCount = (int) $msg;
+                    $this->_caseCount = json_decode($msg);
 
                 }
 
