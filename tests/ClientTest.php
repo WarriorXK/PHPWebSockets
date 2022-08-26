@@ -76,14 +76,18 @@ class ClientTest extends TestCase {
 
         }
 
-        $this->assertContains($this->_bufferType, static::VALID_BUFFER_TYPES);
+        if ($this->_bufferType === NULL) {
+            $this->_bufferType = getenv('BUFFERTYPE') ?: NULL;
+        }
+
+        $this->assertContains($this->_bufferType, static::VALID_BUFFER_TYPES, 'Invalid buffer type');
 
         \PHPWebSockets::Log(LogLevel::INFO, 'Using buffer type ' . $this->_bufferType);
 
         $descriptorSpec = [['pipe', 'r'], STDOUT, STDERR];
         $this->_autobahnProcess = proc_open('wstest -m fuzzingserver -s Resources/Autobahn/fuzzingserver.json', $descriptorSpec, $pipes, realpath(__DIR__ . '/../'));
 
-        $sleepSec = 10;
+        $sleepSec = 2;
 
         \PHPWebSockets::Log(LogLevel::INFO, 'Sleeping ' . $sleepSec . ' seconds to wait for the fuzzing server to start');
 
