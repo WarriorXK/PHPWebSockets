@@ -257,13 +257,17 @@ abstract class AConnection implements IStreamContainer, LoggerAwareInterface, IT
      * Attempts to write until the write buffer is empty
      * Note: This will discard any reads that happen during this period
      *
-     * @param float|null $timeout
+     * @param float|null $totalTimeout
+     * @param float|null $lastUpdateTimeout
      *
      * @return bool
      */
-    public function writeUntilEmpty(float $timeout = NULL) : bool {
+    public function writeUntilEmpty(float $totalTimeout = NULL, float $lastUpdateTimeout = NULL) : bool {
 
         $start = microtime(TRUE);
+        $lastTimeWritten = $start;
+        $previousWriteBufferSize = ($this->_writeBuffer !== NULL ? strlen($this->_writeBuffer) : 0);
+
         do {
 
             iterator_to_array(\PHPWebSockets::MultiUpdate([$this], 1.0));
@@ -272,7 +276,19 @@ abstract class AConnection implements IStreamContainer, LoggerAwareInterface, IT
                 throw new \RuntimeException('Connection closed during write empty');
             }
 
-            if ($timeout !== NULL && microtime(TRUE) - $start > $timeout) {
+            if ($totalTimeout !== NULL && microtime(TRUE) - $start > $totalTimeout) {
+                return FALSE;
+            }
+
+            $currentWriteBufferSize = ($this->_writeBuffer !== NULL ? strlen($this->_writeBuffer) : 0);
+            if ($currentWriteBufferSize !== $previousWriteBufferSize) {
+
+                $lastTimeWritten = microtime(TRUE);
+                $previousWriteBufferSize = $currentWriteBufferSize;
+
+            }
+
+            if ($lastUpdateTimeout !== NULL && microtime(TRUE) - $lastTimeWritten > $lastUpdateTimeout) {
                 return FALSE;
             }
 
