@@ -175,10 +175,13 @@ class Client extends AConnection {
         parent::_afterOpen();
 
         $this->_resourceIndex = (int) $this->getStream();
+        $addressInfo = parse_url($this->getAddress());
+
+        $host = $addressInfo['host'] . (isset($addressInfo['port']) ? ':' . $addressInfo['port'] : '');
 
         $headerParts = [
             'GET ' . $this->getPath() . ' HTTP/1.1',
-            'Host: ' . $this->getAddress(),
+            'Host: ' . $host,
             'User-Agent: ' . $this->getUserAgent(),
             'Upgrade: websocket',
             'Connection: Upgrade',
