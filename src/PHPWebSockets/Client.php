@@ -239,7 +239,12 @@ class Client extends AConnection {
 
         if (strlen($newData) === 0) {
 
-            $this->_log(LogLevel::DEBUG, 'Read length of 0, socket is closed');
+            if (!feof($this->getStream())) {
+                $this->_log(LogLevel::DEBUG, 'Read length of 0, ignoring');
+                return;
+            }
+
+            $this->_log(LogLevel::DEBUG, 'FEOF returns true and no more bytes to read, socket is closed');
 
             $this->_isClosed = TRUE;
 
@@ -254,72 +259,69 @@ class Client extends AConnection {
             $this->close();
 
             return;
+        }
 
-        } else {
+        // If we've received data we can be sure we're connected
+        $this->_isConnectingAsync = FALSE;
 
-            // If we've received data we can be sure we're connected
-            $this->_isConnectingAsync = FALSE;
+        $handshakeAccepted = $this->handshakeAccepted();
+        if (!$handshakeAccepted) {
 
-            $handshakeAccepted = $this->handshakeAccepted();
-            if (!$handshakeAccepted) {
+            $headersEnd = strpos($newData, "\r\n\r\n");
+            if ($headersEnd === FALSE) {
 
-                $headersEnd = strpos($newData, "\r\n\r\n");
-                if ($headersEnd === FALSE) {
+                $this->_log(LogLevel::DEBUG, 'Handshake data didn\'t finished yet, waiting..');
 
-                    $this->_log(LogLevel::DEBUG, 'Handshake data didn\'t finished yet, waiting..');
-
-                    if ($this->_readBuffer === NULL) {
-                        $this->_readBuffer = '';
-                    }
-
-                    $this->_readBuffer .= $newData;
-
-                    if (strlen($this->_readBuffer) > $this->getMaxHandshakeLength()) {
-
-                        yield new Update\Error(Update\Error::C_READ_HANDSHAKE_TO_LARGE, $this);
-                        $this->close();
-
-                    }
-
-                    return; // Still waiting for headers
+                if ($this->_readBuffer === NULL) {
+                    $this->_readBuffer = '';
                 }
 
-                if ($this->_readBuffer !== NULL) {
+                $this->_readBuffer .= $newData;
 
-                    $newData = $this->_readBuffer . $newData;
-                    $this->_readBuffer = NULL;
+                if (strlen($this->_readBuffer) > $this->getMaxHandshakeLength()) {
 
-                }
-
-                $rawHandshake = substr($newData, 0, $headersEnd);
-
-                if (strlen($newData) > strlen($rawHandshake)) { // Place all data that came after the header back into the buffer
-                    $newData = substr($newData, $headersEnd + 4);
-                }
-
-                $this->_headers = \PHPWebSockets::ParseHTTPHeaders($rawHandshake);
-                if (($this->_headers['status-code'] ?? NULL) === 101) {
-
-                    $this->_handshakeAccepted = TRUE;
-                    $this->_hasHandshake = TRUE;
-
-                    yield new Update\Read(Update\Read::C_CONNECTION_ACCEPTED, $this);
-                } else {
-
+                    yield new Update\Error(Update\Error::C_READ_HANDSHAKE_TO_LARGE, $this);
                     $this->close();
 
-                    yield new Update\Read(Update\Read::C_CONNECTION_DENIED, $this);
-
                 }
 
-                $handshakeAccepted = $this->handshakeAccepted();
+                return; // Still waiting for headers
+            }
+
+            if ($this->_readBuffer !== NULL) {
+
+                $newData = $this->_readBuffer . $newData;
+                $this->_readBuffer = NULL;
 
             }
 
-            if ($handshakeAccepted) {
-                yield from $this->_handlePacket($newData);
+            $rawHandshake = substr($newData, 0, $headersEnd);
+
+            if (strlen($newData) > strlen($rawHandshake)) { // Place all data that came after the header back into the buffer
+                $newData = substr($newData, $headersEnd + 4);
             }
 
+            $this->_headers = \PHPWebSockets::ParseHTTPHeaders($rawHandshake);
+            if (($this->_headers['status-code'] ?? NULL) === 101) {
+
+                $this->_handshakeAccepted = TRUE;
+                $this->_hasHandshake = TRUE;
+
+                yield new Update\Read(Update\Read::C_CONNECTION_ACCEPTED, $this);
+            } else {
+
+                $this->close();
+
+                yield new Update\Read(Update\Read::C_CONNECTION_DENIED, $this);
+
+            }
+
+            $handshakeAccepted = $this->handshakeAccepted();
+
+        }
+
+        if ($handshakeAccepted) {
+            yield from $this->_handlePacket($newData);
         }
 
     }

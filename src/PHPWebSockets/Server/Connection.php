@@ -131,6 +131,13 @@ class Connection extends AConnection {
 
         if (strlen($newData) === 0) {
 
+            if (!feof($this->getStream())) {
+                $this->_log(LogLevel::DEBUG, 'Read length of 0, ignoring');
+                return;
+            }
+
+            $this->_log(LogLevel::DEBUG, 'FEOF returns true and no more bytes to read, socket is closed');
+
             $this->_isClosed = TRUE;
 
             if (!$this->hasHandshake()) {
@@ -144,68 +151,65 @@ class Connection extends AConnection {
             $this->close();
 
             return;
+        }
 
-        } else {
+        $hasHandshake = $this->hasHandshake();
+        if (!$hasHandshake) {
 
-            $hasHandshake = $this->hasHandshake();
-            if (!$hasHandshake) {
+            $headersEnd = strpos($newData, "\r\n\r\n");
+            if ($headersEnd === FALSE) {
 
-                $headersEnd = strpos($newData, "\r\n\r\n");
-                if ($headersEnd === FALSE) {
+                $this->_log(LogLevel::DEBUG, 'Handshake data hasn\'t finished yet, waiting..');
 
-                    $this->_log(LogLevel::DEBUG, 'Handshake data hasn\'t finished yet, waiting..');
-
-                    if ($this->_readBuffer === NULL) {
-                        $this->_readBuffer = '';
-                    }
-
-                    $this->_readBuffer .= $newData;
-
-                    if (strlen($this->_readBuffer) > $this->getMaxHandshakeLength()) {
-
-                        $this->writeRaw($this->_server->getErrorPageForCode(431), FALSE); // Request Header Fields Too Large
-                        $this->setCloseAfterWrite();
-
-                        yield new Update\Error(Update\Error::C_READ_HANDSHAKE_TO_LARGE, $this);
-
-                    }
-
-                    return; // Still waiting for headers
+                if ($this->_readBuffer === NULL) {
+                    $this->_readBuffer = '';
                 }
 
-                if ($this->_readBuffer !== NULL) {
+                $this->_readBuffer .= $newData;
 
-                    $newData = $this->_readBuffer . $newData;
-                    $this->_readBuffer = NULL;
+                if (strlen($this->_readBuffer) > $this->getMaxHandshakeLength()) {
 
-                }
-
-                $rawHandshake = substr($newData, 0, $headersEnd);
-
-                if (strlen($newData) > strlen($rawHandshake)) {
-                    $newData = substr($newData, $headersEnd + 4);
-                }
-
-                $responseCode = 0;
-                if ($this->_doHandshake($rawHandshake, $responseCode)) {
-                    yield new Update\Read(Update\Read::C_NEW_CONNECTION, $this);
-                } else {
-
-                    $this->writeRaw($this->_server->getErrorPageForCode($responseCode), FALSE);
+                    $this->writeRaw($this->_server->getErrorPageForCode(431), FALSE); // Request Header Fields Too Large
                     $this->setCloseAfterWrite();
 
-                    yield new Update\Error(Update\Error::C_READ_HANDSHAKE_FAILURE, $this);
+                    yield new Update\Error(Update\Error::C_READ_HANDSHAKE_TO_LARGE, $this);
 
                 }
 
-                $hasHandshake = $this->hasHandshake();
+                return; // Still waiting for headers
+            }
+
+            if ($this->_readBuffer !== NULL) {
+
+                $newData = $this->_readBuffer . $newData;
+                $this->_readBuffer = NULL;
 
             }
 
-            if ($hasHandshake) {
-                yield from $this->_handlePacket($newData);
+            $rawHandshake = substr($newData, 0, $headersEnd);
+
+            if (strlen($newData) > strlen($rawHandshake)) {
+                $newData = substr($newData, $headersEnd + 4);
             }
 
+            $responseCode = 0;
+            if ($this->_doHandshake($rawHandshake, $responseCode)) {
+                yield new Update\Read(Update\Read::C_NEW_CONNECTION, $this);
+            } else {
+
+                $this->writeRaw($this->_server->getErrorPageForCode($responseCode), FALSE);
+                $this->setCloseAfterWrite();
+
+                yield new Update\Error(Update\Error::C_READ_HANDSHAKE_FAILURE, $this);
+
+            }
+
+            $hasHandshake = $this->hasHandshake();
+
+        }
+
+        if ($hasHandshake) {
+            yield from $this->_handlePacket($newData);
         }
 
     }
