@@ -178,13 +178,14 @@ class UpdatesWrapperTest extends TestCase {
         $descriptorSpec = [['pipe', 'r'], STDOUT, STDERR];
         $clientProcess = proc_open('./tests/Helpers/client.php --address=' . escapeshellarg(self::ADDRESS) . ' --message=' . escapeshellarg('Hello world') . ' --message-count=5', $descriptorSpec, $pipes, realpath(__DIR__ . '/../'));
 
-        while (proc_get_status($clientProcess)['running'] ?? FALSE) {
+        while (($status = proc_get_status($clientProcess))['running'] ?? FALSE) {
 
             $this->_updatesWrapper->update(0.5, $this->_wsServer->getConnections(TRUE));
 
         }
 
-        $this->assertEmpty($this->_wsServer->getConnections(FALSE));
+        $this->assertEquals(0, $status['exitcode'], 'Helper did not exit cleanly');
+        $this->assertEmpty($this->_connectionList);
         $this->assertEmpty($this->_connectionList);
 
         \PHPWebSockets::Log(LogLevel::INFO, 'Test finished' . PHP_EOL);
@@ -200,12 +201,13 @@ class UpdatesWrapperTest extends TestCase {
         $descriptorSpec = [['pipe', 'r'], STDOUT, STDERR];
         $clientProcess = proc_open('./tests/Helpers/client.php --address=' . escapeshellarg(self::ADDRESS) . ' --message=' . escapeshellarg('Hello world') . ' --message-count=5 --async', $descriptorSpec, $pipes, realpath(__DIR__ . '/../'));
 
-        while (proc_get_status($clientProcess)['running'] ?? FALSE) {
+        while (($status = proc_get_status($clientProcess))['running'] ?? FALSE) {
 
             $this->_updatesWrapper->update(0.5, $this->_wsServer->getConnections(TRUE));
 
         }
 
+        $this->assertEquals(0, $status['exitcode'], 'Helper did not exit cleanly');
         $this->assertEmpty($this->_wsServer->getConnections(FALSE));
         $this->assertEmpty($this->_connectionList);
 
@@ -225,6 +227,8 @@ class UpdatesWrapperTest extends TestCase {
         $descriptorSpec = [['pipe', 'r'], STDOUT, STDERR];
         $clientProcess = proc_open('./tests/Helpers/client.php --address=' . escapeshellarg(self::ADDRESS) . ' --message=' . escapeshellarg('Hello world') . ' --die-at=' . escapeshellarg((string) $dieAt), $descriptorSpec, $pipes, realpath(__DIR__ . '/../'));
 
+        $status = NULL;
+
         while (microtime(TRUE) <= $runUntil) {
 
             $this->_updatesWrapper->update(0.5, $this->_wsServer->getConnections(TRUE));
@@ -243,6 +247,7 @@ class UpdatesWrapperTest extends TestCase {
 
         }
 
+        $this->assertEquals(0, $status['exitcode'], 'Helper did not exit cleanly');
         $this->assertEmpty($this->_wsServer->getConnections(FALSE));
         $this->assertEmpty($this->_connectionList);
 
@@ -289,6 +294,9 @@ class UpdatesWrapperTest extends TestCase {
 
         }
 
+        $status = proc_get_status($clientProcess);
+
+        $this->assertEquals(0, $status['exitcode'], 'Helper did not exit cleanly');
         $this->assertEmpty($this->_wsServer->getConnections(FALSE));
         $this->assertEmpty($this->_connectionList);
 
@@ -311,12 +319,14 @@ class UpdatesWrapperTest extends TestCase {
 
             $this->_updatesWrapper->update(0.5, $this->_wsServer->getConnections(TRUE));
 
-            if (!proc_get_status($clientProcess)['running'] ?? FALSE) {
+            $status = proc_get_status($clientProcess);
+            if (!($status['running'] ?? FALSE)) {
                 break;
             }
 
         }
 
+        $this->assertEquals(0, $status['exitcode'], 'Helper did not exit cleanly');
         $this->assertEmpty($this->_wsServer->getConnections(FALSE));
         $this->assertEmpty($this->_connectionList);
 
@@ -337,6 +347,8 @@ class UpdatesWrapperTest extends TestCase {
         $descriptorSpec = [['pipe', 'r'], STDOUT, STDERR];
         $clientProcess = proc_open('./tests/Helpers/client.php --address=' . escapeshellarg(self::ADDRESS) . ' --message=' . escapeshellarg('Hello world') . ' --message-count=1', $descriptorSpec, $pipes, realpath(__DIR__ . '/../'));
 
+        $status = NULL;
+
         while (microtime(TRUE) <= $runUntil) {
 
             $this->_updatesWrapper->update(0.5, $this->_wsServer->getConnections(TRUE));
@@ -355,6 +367,7 @@ class UpdatesWrapperTest extends TestCase {
 
         }
 
+        $this->assertEquals(0, $status['exitcode'], 'Helper did not exit cleanly');
         $this->assertEmpty($this->_wsServer->getConnections(FALSE));
         $this->assertEmpty($this->_connectionList);
 
@@ -377,6 +390,8 @@ class UpdatesWrapperTest extends TestCase {
         $descriptorSpec = [['pipe', 'r'], STDOUT, STDERR];
         $clientProcess = proc_open('./tests/Helpers/client.php --address=' . escapeshellarg('tcp://127.0.0.1:9000') . ' --message=' . escapeshellarg('Hello world') . ' --message-count=1 --async', $descriptorSpec, $pipes, realpath(__DIR__ . '/../'));
 
+        $status = NULL;
+
         while (microtime(TRUE) <= $runUntil) {
 
             $this->_updatesWrapper->update(0.5, $this->_wsServer->getConnections(TRUE));
@@ -395,6 +410,7 @@ class UpdatesWrapperTest extends TestCase {
 
         }
 
+        $this->assertEquals(0, $status['exitcode'], 'Helper did not exit cleanly');
         $this->assertEmpty($this->_wsServer->getConnections(FALSE));
         $this->assertEmpty($this->_connectionList);
 
@@ -455,6 +471,9 @@ class UpdatesWrapperTest extends TestCase {
 
         }
 
+        $status = proc_get_status($clientProcess);
+
+        $this->assertEquals(0, $status['exitcode'], 'Helper did not exit cleanly');
         $this->assertEmpty($this->_wsServer->getConnections(FALSE));
         $this->assertEmpty($this->_connectionList);
 

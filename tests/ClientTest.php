@@ -35,7 +35,7 @@ use Psr\Log\LogLevel;
 
 class ClientTest extends TestCase {
 
-    protected const ADDRESS = 'tcp://127.0.0.1:9001';
+    protected const CONTAINER_NAME = 'fuzzingserver';
     protected const VALID_BUFFER_TYPES = [
         'memory',
         'tmpfile',
@@ -54,6 +54,20 @@ class ClientTest extends TestCase {
      * @var string|null
      */
     protected $_bufferType = NULL;
+
+    /**
+     * The URI to connect to
+     *
+     * @var string
+     */
+    protected $_serverURI;
+
+    /**
+     * The output directory for reports
+     *
+     * @var string
+     */
+    protected $_reportsDir;
 
     /**
      * The amount of cases to run
@@ -80,23 +94,45 @@ class ClientTest extends TestCase {
             $this->_bufferType = getenv('BUFFERTYPE') ?: NULL;
         }
 
-        $this->assertContains($this->_bufferType, static::VALID_BUFFER_TYPES, 'Invalid buffer type');
+        $this->assertContains($this->_bufferType, static::VALID_BUFFER_TYPES, 'Invalid buffer type, env: ' . implode(', ', getenv()));
 
         \PHPWebSockets::Log(LogLevel::INFO, 'Using buffer type ' . $this->_bufferType);
 
-        $descriptorSpec = [['pipe', 'r'], STDOUT, STDERR];
-        $this->_autobahnProcess = proc_open('wstest -m fuzzingserver -s Resources/Autobahn/fuzzingserver.json', $descriptorSpec, $pipes, realpath(__DIR__ . '/../'));
+        $this->_reportsDir = sys_get_temp_dir() . '/ws_reports';
+        if (!is_dir($this->_reportsDir)) {
+            mkdir($this->_reportsDir);
+        }
 
-        $sleepSec = 2;
+        $descriptorSpec = [['pipe', 'r'], STDOUT, STDERR];
+        $serverPort = 9001;
+        $image = 'crossbario/autobahn-testsuite';
+        $cmd = 'docker run --rm \
+            -v "' . realpath(__DIR__ . '/../Resources/Autobahn') . ':/config" \
+            -v "' . $this->_reportsDir . ':/reports" \
+            -p ' . $serverPort . ':9001 \
+            --name ' . escapeshellarg(self::CONTAINER_NAME) . ' \
+            ' . $image . ' \
+            wstest -m fuzzingserver -s /config/fuzzingserver.json
+            ';
+
+        \PHPWebSockets::Log(LogLevel::INFO, 'Pulling image ' . $image);
+        passthru('docker pull ' . $image);
+
+        $this->_autobahnProcess = proc_open($cmd, $descriptorSpec, $pipes);
+
+        $sleepSec = 5;
 
         \PHPWebSockets::Log(LogLevel::INFO, 'Sleeping ' . $sleepSec . ' seconds to wait for the fuzzing server to start');
 
         sleep($sleepSec);
 
-        $client = $this->_createClient();
-        $connectResult = $client->connect(static::ADDRESS, '/getCaseCount');
+        $serverIP = trim(exec('docker inspect -f "{{range.NetworkSettings.Networks}}{{.IPAddress}}{{end}}" ' . self::CONTAINER_NAME));
+        $this->_serverURI = 'tcp://' . $serverIP . ':' . $serverPort;
 
-        $this->assertTrue($connectResult, 'Unable to connect to server: ' . $client->getLastError());
+        $client = $this->_createClient();
+        $connectResult = $client->connect($this->_serverURI, '/getCaseCount');
+
+        $this->assertTrue($connectResult, 'Unable to connect to address ' . $this->_serverURI . ': ' . $client->getLastError());
 
         while ($client->isOpen()) {
 
@@ -133,6 +169,7 @@ class ClientTest extends TestCase {
 
         \PHPWebSockets::Log(LogLevel::INFO, 'Tearing down');
         proc_terminate($this->_autobahnProcess);
+        exec('docker container stop ' . escapeshellarg(self::CONTAINER_NAME));
 
     }
 
@@ -143,7 +180,7 @@ class ClientTest extends TestCase {
         for ($i = 0; $i < $this->_caseCount; $i++) {
 
             $client = $this->_createClient();
-            $client->connect(static::ADDRESS, '/runCase?case=' . ($i + 1) . '&agent=' . $client->getUserAgent());
+            $client->connect($this->_serverURI, '/runCase?case=' . ($i + 1) . '&agent=' . $client->getUserAgent());
 
             while ($client->isOpen()) {
 
@@ -174,7 +211,7 @@ class ClientTest extends TestCase {
 
         \PHPWebSockets::Log(LogLevel::INFO, 'All test cases ran, asking for report update');
         $client = $this->_createClient();
-        $client->connect(static::ADDRESS, '/updateReports?agent=' . $client->getUserAgent());
+        $client->connect($this->_serverURI, '/updateReports?agent=' . $client->getUserAgent());
 
         while ($client->isOpen()) {
             foreach ($client->update(NULL) as $key => $value) {
@@ -183,11 +220,11 @@ class ClientTest extends TestCase {
         }
 
         \PHPWebSockets::Log(LogLevel::INFO, 'Reports finished, getting results..');
-        $outputFile = '/tmp/reports/index.json';
+        $outputFile = $this->_reportsDir . '/index.json';
         $this->assertFileExists($outputFile);
 
         $testCases = json_decode(file_get_contents($outputFile), TRUE)[$client->getUserAgent()] ?? NULL;
-        $this->assertNotNull('Unable to get test case results');
+        $this->assertNotNull($testCases, 'Unable to get test case results');
 
         $hasFailures = FALSE;
         foreach ($testCases as $case => $data) {

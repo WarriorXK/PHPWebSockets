@@ -1,0 +1,60 @@
+name: PHPUnit
+on: [push]
+jobs:
+  PHPUnit-Autobahn:
+    runs-on: ubuntu-22.04
+    strategy:
+      matrix:
+        php_version: [ 7.4, 8.0, 8.1, 8.2 ]
+        buffer_type: [ memory, tmpfile ]
+        test: [ tests/ClientTest.php, tests/ServerTest.php ]
+    steps:
+      # Install PHP
+      - name: Setup PHP with PECL extension
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php_version }}
+          extensions: pcntl
+      # Clone code
+      - uses: actions/checkout@v3
+      # Composer install
+      - uses: php-actions/composer@v6
+        with:
+          args: --ignore-platform-reqs
+      # Prepare the environment
+      - name: Disable xdebug
+        run: phpenv config-rm xdebug.ini || true
+      - name: Add docker GPG key to apt
+        run: curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
+      - name: Add docker apt repo
+        run: echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+      - name: Apt update
+        run: sudo apt-get update
+      - name: Install docker
+        run: sudo apt install docker-ce
+      # Run PHPUnit
+      - name: PHPUnit
+        run: ./vendor/bin/phpunit ${{ matrix.test }}
+        env:
+          BUFFERTYPE: ${{ matrix.buffer_type }}
+#  PHPUnit-Other:
+#    runs-on: ubuntu-22.04
+#    strategy:
+#      matrix:
+#        php_version: [ 7.4, 8.0, 8.1, 8.2 ]
+#    steps:
+#      # Install PHP
+#      - name: Setup PHP with PECL extension
+#        uses: shivammathur/setup-php@v2
+#        with:
+#          php-version: ${{ matrix.php_version }}
+#          extensions: pcntl
+#      # Clone code
+#      - uses: actions/checkout@v3
+#      # Composer install
+#      - uses: php-actions/composer@v6
+#        with:
+#          args: --ignore-platform-reqs
+#      # Run PHPUnit
+#      - name: PHPUnit
+#        run: ./vendor/bin/phpunit ${{ matrix.test }}
