@@ -1,5 +1,5 @@
 # PHPWebSockets
-[![Code documented](https://codedocs.xyz/WarriorXK/PHPWebSockets.svg)](https://codedocs.xyz/WarriorXK/PHPWebSockets/) Master: [![Build Status](https://travis-ci.com/WarriorXK/PHPWebSockets.svg?branch=master)](https://travis-ci.com/WarriorXK/PHPWebSockets) Develop: [![Build Status](https://travis-ci.com/WarriorXK/PHPWebSockets.svg?branch=develop)](https://travis-ci.com/WarriorXK/PHPWebSockets)
+[![Code documented](https://codedocs.xyz/WarriorXK/PHPWebSockets.svg)](https://codedocs.xyz/WarriorXK/PHPWebSockets/) Master: ![Build Status](https://github.com/WarriorXK/PHPWebSockets/actions/workflows/Main.yaml/badge.svg?branch=master) Develop: ![Build Status](https://github.com/WarriorXK/PHPWebSockets/actions/workflows/Main.yaml/badge.svg?branch=develop)
 
 A PHP library to accept and create websocket connections, we aim to be 100% compliant with the websocket RFC and use the [Autobahn test suite](http://autobahn.ws/testsuite/) to ensure so.
 Currently the server and the client are 100% compliant with the autobahn testsuite minus a few non-strict notices, the [compression extension](https://tools.ietf.org/html/rfc7692) for websockets will be implemented later
