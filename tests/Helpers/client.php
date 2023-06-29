@@ -103,7 +103,7 @@ while ($client->isOpen()) {
         }
     }
 
-    if ($client->isDisconnecting()) {
+    if (!$client->isOpen() || $client->isDisconnecting()) {
         continue;
     }
 
