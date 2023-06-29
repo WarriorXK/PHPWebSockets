@@ -185,7 +185,7 @@ class UpdatesWrapperTest extends TestCase {
         }
 
         $this->assertEquals(0, $status['exitcode'], 'Helper did not exit cleanly');
-        $this->assertEmpty($this->_connectionList);
+        $this->assertEmpty($this->_wsServer->getConnections(FALSE));
         $this->assertEmpty($this->_connectionList);
 
         \PHPWebSockets::Log(LogLevel::INFO, 'Test finished' . PHP_EOL);
