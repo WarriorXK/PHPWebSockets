@@ -37,24 +37,24 @@ jobs:
         run: ./vendor/bin/phpunit ${{ matrix.test }}
         env:
           BUFFERTYPE: ${{ matrix.buffer_type }}
-#  PHPUnit-Other:
-#    runs-on: ubuntu-22.04
-#    strategy:
-#      matrix:
-#        php_version: [ 7.4, 8.0, 8.1, 8.2 ]
-#    steps:
-#      # Install PHP
-#      - name: Setup PHP with PECL extension
-#        uses: shivammathur/setup-php@v2
-#        with:
-#          php-version: ${{ matrix.php_version }}
-#          extensions: pcntl
-#      # Clone code
-#      - uses: actions/checkout@v3
-#      # Composer install
-#      - uses: php-actions/composer@v6
-#        with:
-#          args: --ignore-platform-reqs
-#      # Run PHPUnit
-#      - name: PHPUnit
-#        run: ./vendor/bin/phpunit ${{ matrix.test }}
+  PHPUnit-Other:
+    runs-on: ubuntu-22.04
+    strategy:
+      matrix:
+        php_version: [ 7.4, 8.0, 8.1, 8.2 ]
+    steps:
+      # Install PHP
+      - name: Setup PHP with PECL extension
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php_version }}
+          extensions: pcntl
+      # Clone code
+      - uses: actions/checkout@v3
+      # Composer install
+      - uses: php-actions/composer@v6
+        with:
+          args: --ignore-platform-reqs
+      # Run PHPUnit
+      - name: PHPUnit
+        run: ./vendor/bin/phpunit ${{ matrix.test }}

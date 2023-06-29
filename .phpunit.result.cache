@@ -1,1 +1,0 @@
-C:37:"PHPUnit\Runner\DefaultTestResultCache":190:{a:2:{s:7:"defects";a:2:{s:22:"ServerTest::testServer";i:3;s:22:"ClientTest::testClient";i:3;}s:5:"times";a:2:{s:22:"ServerTest::testServer";d:60.247;s:22:"ClientTest::testClient";d:47.992;}}}
