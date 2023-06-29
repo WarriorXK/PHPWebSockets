@@ -73,6 +73,7 @@ $messageCount = 0;
 $lastMessage = 0;
 $pingCount = 0;
 $lastPing = 0;
+$didCloseOrDisconnect = FALSE;
 
 while ($client->isOpen()) {
 
@@ -81,7 +82,10 @@ while ($client->isOpen()) {
     }
 
     if ($cliArgs['close-at'] > 0.0 && microtime(TRUE) >= $cliArgs['close-at']) {
-        $client->close();
+        if (!$didCloseOrDisconnect) {
+            $client->close();
+            $didCloseOrDisconnect = TRUE;
+        }
     }
 
     foreach ($client->update(0.1) as $update) {
@@ -93,10 +97,13 @@ while ($client->isOpen()) {
     }
 
     if ($cliArgs['message-count'] > 0 && $messageCount > $cliArgs['message-count']) {
-        $client->sendDisconnect(\PHPWebSockets::CLOSECODE_NORMAL);
+        if (!$didCloseOrDisconnect) {
+            $client->sendDisconnect(\PHPWebSockets::CLOSECODE_NORMAL);
+            $didCloseOrDisconnect = TRUE;
+        }
     }
 
-    if ($client->isDisconnecting()) {
+    if (!$client->isOpen() || $client->isDisconnecting()) {
         continue;
     }
 
