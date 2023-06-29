@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" bootstrap="vendor/autoload.php" xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/10.0/phpunit.xsd">
+    <coverage/>
+    <testsuites>
+        <testsuite name="PHPWebSockets">
+            <directory>./tests</directory>
+            <exclude>./tests/ClientTest.php</exclude>
+            <exclude>./tests/ServerTest.php</exclude>
+        </testsuite>
+    </testsuites>
+</phpunit>
