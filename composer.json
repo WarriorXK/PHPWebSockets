@@ -14,7 +14,7 @@
         }
     ],
     "require-dev": {
-        "phpunit/phpunit": "^9.3",
+        "phpunit/phpunit": "^9.6",
         "ext-pcntl": "*",
         "ext-json": "*"
     },
@@ -45,5 +45,10 @@
     "non-feature-branches": [
         "develop",
         "master"
-    ]
+    ],
+    "config": {
+        "platform": {
+            "php": "7.4"
+        }
+    }
 }
