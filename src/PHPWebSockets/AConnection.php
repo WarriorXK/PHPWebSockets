@@ -494,7 +494,9 @@ abstract class AConnection implements IStreamContainer, LoggerAwareInterface, IT
 
                             if ($res === FALSE) {
 
-                                yield new Update\Error(Update\Error::C_WRITE_INVALID_TARGET_STREAM, $this);
+                                $errUpdate = new Update\Error(Update\Error::C_WRITE_INVALID_TARGET_STREAM, $this);
+                                $errUpdate->setAdditionalInfo(error_get_last()['message'] ?? '');
+                                yield $errUpdate;
 
                                 $this->close();
 
@@ -656,7 +658,9 @@ abstract class AConnection implements IStreamContainer, LoggerAwareInterface, IT
 
                 $this->_log(LogLevel::DEBUG, '    fwrite failed');
 
-                yield new Update\Error(Update\Error::C_WRITE, $this);
+                $errUpdate = new Update\Error(Update\Error::C_WRITE, $this);
+                $errUpdate->setAdditionalInfo(error_get_last()['message'] ?? '');
+                yield $errUpdate;
 
             } elseif ($bytesWritten === $bytesToWrite) {
 

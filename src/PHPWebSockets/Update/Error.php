@@ -91,6 +91,6 @@ class Error extends AUpdate {
 
         $code = $this->getCode();
 
-        return 'Error) ' . self::StringForCode($code) . ' (C: ' . $code . ')';
+        return 'Error) ' . self::StringForCode($code) . ' (C: ' . $code . ')' . ($this->_additionalInfo ? ' Additional info: ' . $this->_additionalInfo : '');
     }
 }
