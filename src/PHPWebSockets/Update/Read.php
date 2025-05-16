@@ -138,6 +138,6 @@ class Read extends AUpdate {
 
         $code = $this->getCode();
 
-        return 'Read) ' . self::StringForCode($code) . ' (C: ' . $code . ')';
+        return 'Read) ' . self::StringForCode($code) . ' (C: ' . $code . ')' . ($this->_additionalInfo ? ' Additional info: ' . $this->_additionalInfo : '');;
     }
 }

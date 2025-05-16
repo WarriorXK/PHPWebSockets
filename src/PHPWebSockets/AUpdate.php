@@ -40,6 +40,11 @@ abstract class AUpdate {
     protected $_sourceConnection = NULL;
 
     /**
+     * @var string
+     */
+    protected $_additionalInfo = '';
+
+    /**
      * @var array|null
      */
     protected $_trace = NULL;
@@ -72,6 +77,24 @@ abstract class AUpdate {
     }
 
     /**
+     * Sets additional information to pass on for error handling
+     *
+     * @param string $info
+     *
+     * @return void
+     */
+    public function setAdditionalInfo(string $info) : void {
+        $this->_additionalInfo = $info;
+    }
+
+    /**
+     * @return string
+     */
+    public function getAdditionalInfo() : string {
+        return $this->_additionalInfo;
+    }
+
+    /**
      * @return array|null
      */
     public function getTrace() : ?array {
@@ -88,6 +111,6 @@ abstract class AUpdate {
     }
 
     public function __toString() {
-        return 'AUpdate) (C: ' . $this->getCode() . ')';
+        return 'AUpdate) (C: ' . $this->getCode() . ')' . ($this->_additionalInfo ? ' Additional info: ' . $this->_additionalInfo : '');
     }
 }

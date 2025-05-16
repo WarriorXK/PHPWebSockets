@@ -230,9 +230,13 @@ class Client extends AConnection {
         $this->_log(LogLevel::DEBUG, __METHOD__);
 
         $readRate = $this->getReadRate();
-        $newData = fread($this->getStream(), min($this->_currentFrameRemainingBytes ?? $readRate, $readRate));
+        $newData = @fread($this->getStream(), min($this->_currentFrameRemainingBytes ?? $readRate, $readRate));
         if ($newData === FALSE) {
-            yield new Update\Error(Update\Error::C_READ, $this);
+
+            $errUpdate = new Update\Error(Update\Error::C_READ, $this);
+            $errUpdate->setAdditionalInfo(error_get_last()['message'] ?? '');
+
+            yield $errUpdate;
 
             return;
         }
