@@ -34,12 +34,7 @@ use Psr\Log\LoggerInterface;
 
 trait TLogAware {
 
-    /**
-     * The logger
-     *
-     * @var \Psr\Log\LoggerInterface|null
-     */
-    protected $_logger = NULL;
+    protected ?LoggerInterface $_logger = NULL;
 
     /**
      * Sets the logger
@@ -57,10 +52,9 @@ trait TLogAware {
      *
      * @return \Psr\Log\LoggerInterface
      */
-    public function getLogger() : LoggerInterface {
-
+    public function getLogger() : ?LoggerInterface {
         if ($this->_logger === NULL) {
-            return \PHPWebSockets::GetLogger();
+            $this->_logger = \PHPWebSockets::GetLogger();
         }
 
         return $this->_logger;
@@ -76,10 +70,11 @@ trait TLogAware {
      * @return void
      */
     protected function _log(string $level, string $message, array $context = []) : void {
-
-        $this->getLogger()->log($level, $message, array_merge([
-            'subject' => $this,
-        ], $context));
-
+        $logger = $this->getLogger();
+        if ($logger) {
+            $logger->log($level, $message, array_merge([
+                'subject' => $this,
+            ], $context));
+        }
     }
 }

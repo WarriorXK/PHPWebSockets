@@ -97,7 +97,7 @@ class Connection extends AConnection {
 
         // Inherit the logger from the server
         $serverLogger = $server->getLogger();
-        if ($serverLogger !== \PHPWebSockets::GetLogger()) {
+        if ($serverLogger && $serverLogger !== \PHPWebSockets::GetLogger()) {
             $this->setLogger($serverLogger);
         }
 
