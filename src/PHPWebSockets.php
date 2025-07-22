@@ -129,26 +129,11 @@ final class PHPWebSockets {
         511 => 'Network Authentication Required',
     ];
 
-    /**
-     * If we should add debug traces in the constructor of AUpdate
-     *
-     * @var bool
-     */
-    private static $_TraceAllUpdates = FALSE;
+    private static bool $_TraceAllUpdates = FALSE;
 
-    /**
-     * The current version of PHPWebSockets
-     *
-     * @var string|null
-     */
-    private static $_Version = NULL;
+    private static ?string $_Version = NULL;
 
-    /**
-     * The log handler function
-     *
-     * @var \Psr\Log\LoggerInterface
-     */
-    private static $_Logger = NULL;
+    private static ?LoggerInterface $_Logger = NULL;
 
     /**
      * Checks for updates for the provided IStreamContainer objects
@@ -483,7 +468,10 @@ final class PHPWebSockets {
      * @return void
      */
     public static function Log(string $logLevel, $message, array $context = []) : void {
-        self::GetLogger()->log($logLevel, $message, $context);
+        $logger = self::getLogger();
+        if ($logger) {
+            $logger->log($logLevel, $message, $context);
+        }
     }
 
     /**
@@ -502,12 +490,7 @@ final class PHPWebSockets {
      *
      * @return \Psr\Log\LoggerInterface
      */
-    public static function GetLogger() : LoggerInterface {
-
-        if (self::$_Logger === NULL) {
-            self::$_Logger = new \PHPWebSockets\BasicLogger();
-        }
-
+    public static function GetLogger() : ?LoggerInterface {
         return self::$_Logger;
     }
 
