@@ -129,7 +129,7 @@ class UpdatesWrapper {
      *
      * @return void
      */
-    public function run(float $timeout = NULL, callable $runLoop = NULL) : void {
+    public function run(?float $timeout = NULL, ?callable $runLoop = NULL) : void {
 
         $this->_shouldRun = TRUE;
         while ($this->_shouldRun) {
@@ -288,7 +288,7 @@ class UpdatesWrapper {
      *
      * @return void
      */
-    public function setClientConnectedHandler(callable $callable = NULL) : void {
+    public function setClientConnectedHandler(?callable $callable = NULL) : void {
         $this->_clientConnectedHandler = $callable;
     }
 
@@ -297,7 +297,7 @@ class UpdatesWrapper {
      *
      * @return void
      */
-    public function setNewConnectionHandler(callable $callable = NULL) : void {
+    public function setNewConnectionHandler(?callable $callable = NULL) : void {
         $this->_newConnectionHandler = $callable;
     }
 
@@ -306,7 +306,7 @@ class UpdatesWrapper {
      *
      * @return void
      */
-    public function setLastContactHandler(callable $callable = NULL) : void {
+    public function setLastContactHandler(?callable $callable = NULL) : void {
         $this->_lastContactHandler = $callable;
     }
 
@@ -315,7 +315,7 @@ class UpdatesWrapper {
      *
      * @return void
      */
-    public function setMessageHandler(callable $callable = NULL) : void {
+    public function setMessageHandler(?callable $callable = NULL) : void {
         $this->_newMessageHandler = $callable;
     }
 
@@ -324,7 +324,7 @@ class UpdatesWrapper {
      *
      * @return void
      */
-    public function setDisconnectHandler(callable $callable = NULL) : void {
+    public function setDisconnectHandler(?callable $callable = NULL) : void {
         $this->_disconnectHandler = $callable;
     }
 
@@ -333,7 +333,7 @@ class UpdatesWrapper {
      *
      * @return void
      */
-    public function setErrorHandler(callable $callable = NULL) : void {
+    public function setErrorHandler(?callable $callable = NULL) : void {
         $this->_errorHandler = $callable;
     }
 
@@ -368,7 +368,7 @@ class UpdatesWrapper {
         }
     }
 
-    private function _triggerDisconnectHandler(AConnection $connection, bool $wasClean, string $data = NULL) : void {
+    private function _triggerDisconnectHandler(AConnection $connection, bool $wasClean, ?string $data = NULL) : void {
 
         $reason = '';
         $code = 0;

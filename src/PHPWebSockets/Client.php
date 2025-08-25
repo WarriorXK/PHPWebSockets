@@ -99,7 +99,7 @@ class Client extends AConnection {
      */
     protected $_path = NULL;
 
-    public function __construct(LoggerInterface $logger = NULL) {
+    public function __construct(?LoggerInterface $logger = NULL) {
 
         if ($logger) {
             $this->setLogger($logger);

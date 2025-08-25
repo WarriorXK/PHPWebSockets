@@ -56,7 +56,7 @@ abstract class AUpdate {
      */
     protected $_code = 0;
 
-    public function __construct(int $code, AConnection $sourceConnection = NULL) {
+    public function __construct(int $code, ?AConnection $sourceConnection = NULL) {
 
         $this->_sourceConnection = $sourceConnection;
         $this->_code = $code;

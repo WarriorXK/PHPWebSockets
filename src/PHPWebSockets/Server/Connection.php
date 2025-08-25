@@ -317,7 +317,7 @@ class Connection extends AConnection {
      *
      * @return void
      */
-    public function accept(string $protocol = NULL, array $additionalHeaders = []) : void {
+    public function accept(?string $protocol = NULL, array $additionalHeaders = []) : void {
 
         if ($this->isAccepted()) {
             throw new \LogicException('Connection has already been accepted!');
