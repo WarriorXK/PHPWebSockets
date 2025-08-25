@@ -149,7 +149,7 @@ class Server implements LoggerAwareInterface, ITaggable {
      *
      * @return void
      */
-    public function __construct(string $address = NULL, array $streamContext = [], bool $useCrypto = FALSE, LoggerInterface $logger = NULL) {
+    public function __construct(?string $address = NULL, array $streamContext = [], bool $useCrypto = FALSE, ?LoggerInterface $logger = NULL) {
 
         if ($logger !== NULL) {
             $this->setLogger($logger);

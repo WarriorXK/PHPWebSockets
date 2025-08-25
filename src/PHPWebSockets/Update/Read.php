@@ -67,7 +67,7 @@ class Read extends AUpdate {
      */
     protected $_stream = NULL;
 
-    public function __construct(int $code, AConnection $sourceConnection = NULL, int $opcode = NULL, string $message = NULL, $stream = NULL) {
+    public function __construct(int $code, ?AConnection $sourceConnection = NULL, ?int $opcode = NULL, ?string $message = NULL, $stream = NULL) {
 
         if ($stream !== NULL && !is_resource($stream)) {
             throw new \InvalidArgumentException('The $stream argument has to be NULL or a resource!');
