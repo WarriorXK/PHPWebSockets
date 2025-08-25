@@ -128,7 +128,7 @@ final class Framer {
      *
      * @return string|bool|null
      */
-    public static function GetFramePayload(string $frame, array $headers = NULL) {
+    public static function GetFramePayload(string $frame, ?array $headers = NULL) {
 
         $headers = ($headers ?? self::GetFrameHeaders($frame));
         if ($headers === NULL) {

@@ -262,7 +262,7 @@ abstract class AConnection implements IStreamContainer, LoggerAwareInterface, IT
      *
      * @return bool
      */
-    public function writeUntilEmpty(float $totalTimeout = NULL, float $lastUpdateTimeout = NULL) : bool {
+    public function writeUntilEmpty(?float $totalTimeout = NULL, ?float $lastUpdateTimeout = NULL) : bool {
 
         $start = microtime(TRUE);
         $lastTimeWritten = $start;
@@ -819,7 +819,7 @@ abstract class AConnection implements IStreamContainer, LoggerAwareInterface, IT
      *
      * @return bool
      */
-    public function waitUntilDisconnect(float $timeout = NULL) : bool {
+    public function waitUntilDisconnect(?float $timeout = NULL) : bool {
 
         $start = microtime(TRUE);
         do {
@@ -888,7 +888,7 @@ abstract class AConnection implements IStreamContainer, LoggerAwareInterface, IT
      *
      * @return void
      */
-    public function setNewMessageStreamCallback(callable $callable = NULL) : void {
+    public function setNewMessageStreamCallback(?callable $callable = NULL) : void {
         $this->_newMessageStreamCallback = $callable;
     }
 
